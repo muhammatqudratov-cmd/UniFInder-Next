@@ -17,7 +17,7 @@ export const UPDATE_MEMBER_BY_ADMIN = gql`
 			memberImage
 			memberAddress
 			memberDesc
-			memberProperties
+			memberUniversities
 			memberRank
 			memberArticles
 			memberPoints
@@ -34,28 +34,28 @@ export const UPDATE_MEMBER_BY_ADMIN = gql`
 `;
 
 /**************************
- *        PROPERTY        *
+ *        UNIVERSITY        *
  *************************/
 
-export const UPDATE_PROPERTY_BY_ADMIN = gql`
-	mutation UpdatePropertyByAdmin($input: PropertyUpdate!) {
-		updatePropertyByAdmin(input: $input) {
+export const UPDATE_UNIVERSITY_BY_ADMIN = gql`
+	mutation UpdateUniversityByAdmin($input: UniversityUpdate!) {
+		updateUniversityByAdmin(input: $input) {
 			_id
-			propertyType
-			propertyStatus
-			propertyLocation
-			propertyAddress
-			propertyTitle
-			propertyPrice
-			propertySquare
-			propertyBeds
-			propertyRooms
-			propertyViews
-			propertyLikes
-			propertyImages
-			propertyDesc
-			propertyBarter
-			propertyRent
+			universityType
+			universityStatus
+			universityLocation
+			universityAddress
+			universityName
+			universityTuition
+			universityCampusSize
+			universityCapacity
+			universityFaculties
+			universityViews
+			universityLikes
+			universityImages
+			universityDesc
+			universityScholarship
+			universityDormitory
 			memberId
 			soldAt
 			deletedAt
@@ -66,25 +66,25 @@ export const UPDATE_PROPERTY_BY_ADMIN = gql`
 	}
 `;
 
-export const REMOVE_PROPERTY_BY_ADMIN = gql`
-	mutation RemovePropertyByAdmin($input: String!) {
-		removePropertyByAdmin(propertyId: $input) {
+export const REMOVE_UNIVERSITY_BY_ADMIN = gql`
+	mutation RemoveUniversityByAdmin($input: String!) {
+		removeUniversityByAdmin(universityId: $input) {
 			_id
-			propertyType
-			propertyStatus
-			propertyLocation
-			propertyAddress
-			propertyTitle
-			propertyPrice
-			propertySquare
-			propertyBeds
-			propertyRooms
-			propertyViews
-			propertyLikes
-			propertyImages
-			propertyDesc
-			propertyBarter
-			propertyRent
+			universityType
+			universityStatus
+			universityLocation
+			universityAddress
+			universityName
+			universityTuition
+			universityCampusSize
+			universityCapacity
+			universityFaculties
+			universityViews
+			universityLikes
+			universityImages
+			universityDesc
+			universityScholarship
+			universityDormitory
 			memberId
 			soldAt
 			deletedAt

@@ -19,7 +19,7 @@ export const SIGN_UP = gql`
 			memberDesc
 			memberWarnings
 			memberBlocks
-			memberProperties
+			memberUniversities
 			memberRank
 			memberArticles
 			memberPoints
@@ -48,7 +48,7 @@ export const LOGIN = gql`
 			memberDesc
 			memberWarnings
 			memberBlocks
-			memberProperties
+			memberUniversities
 			memberRank
 			memberPoints
 			memberLikes
@@ -74,7 +74,7 @@ export const UPDATE_MEMBER = gql`
 			memberImage
 			memberAddress
 			memberDesc
-			memberProperties
+			memberUniversities
 			memberRank
 			memberArticles
 			memberPoints
@@ -105,7 +105,7 @@ export const LIKE_TARGET_MEMBER = gql`
 			memberDesc
 			memberWarnings
 			memberBlocks
-			memberProperties
+			memberUniversities
 			memberRank
 			memberPoints
 			memberLikes
@@ -119,28 +119,28 @@ export const LIKE_TARGET_MEMBER = gql`
 `;
 
 /**************************
- *        PROPERTY        *
+ *        UNIVERSITY        *
  *************************/
 
-export const CREATE_PROPERTY = gql`
-	mutation CreateProperty($input: PropertyInput!) {
-		createProperty(input: $input) {
+export const CREATE_UNIVERSITY = gql`
+	mutation CreateUniversity($input: UniversityInput!) {
+		createUniversity(input: $input) {
 			_id
-			propertyType
-			propertyStatus
-			propertyLocation
-			propertyAddress
-			propertyTitle
-			propertyPrice
-			propertySquare
-			propertyBeds
-			propertyRooms
-			propertyViews
-			propertyLikes
-			propertyImages
-			propertyDesc
-			propertyBarter
-			propertyRent
+			universityType
+			universityStatus
+			universityLocation
+			universityAddress
+			universityName
+			universityTuition
+			universityCampusSize
+			universityCapacity
+			universityFaculties
+			universityViews
+			universityLikes
+			universityImages
+			universityDesc
+			universityScholarship
+			universityDormitory
 			memberId
 			soldAt
 			deletedAt
@@ -151,25 +151,25 @@ export const CREATE_PROPERTY = gql`
 	}
 `;
 
-export const UPDATE_PROPERTY = gql`
-	mutation UpdateProperty($input: PropertyUpdate!) {
-		updateProperty(input: $input) {
+export const UPDATE_UNIVERSITY = gql`
+	mutation UpdateUniversity($input: UniversityUpdate!) {
+		updateUniversity(input: $input) {
 			_id
-			propertyType
-			propertyStatus
-			propertyLocation
-			propertyAddress
-			propertyTitle
-			propertyPrice
-			propertySquare
-			propertyBeds
-			propertyRooms
-			propertyViews
-			propertyLikes
-			propertyImages
-			propertyDesc
-			propertyBarter
-			propertyRent
+			universityType
+			universityStatus
+			universityLocation
+			universityAddress
+			universityName
+			universityTuition
+			universityCampusSize
+			universityCapacity
+			universityFaculties
+			universityViews
+			universityLikes
+			universityImages
+			universityDesc
+			universityScholarship
+			universityDormitory
 			memberId
 			soldAt
 			deletedAt
@@ -180,25 +180,25 @@ export const UPDATE_PROPERTY = gql`
 	}
 `;
 
-export const LIKE_TARGET_PROPERTY = gql`
-	mutation LikeTargetProperty($input: String!) {
-		likeTargetProperty(propertyId: $input) {
+export const LIKE_TARGET_UNIVERSITY = gql`
+	mutation LikeTargetUniversity($input: String!) {
+		likeTargetUniversity(universityId: $input) {
 			_id
-			propertyType
-			propertyStatus
-			propertyLocation
-			propertyAddress
-			propertyTitle
-			propertyPrice
-			propertySquare
-			propertyBeds
-			propertyRooms
-			propertyViews
-			propertyLikes
-			propertyImages
-			propertyDesc
-			propertyBarter
-			propertyRent
+			universityType
+			universityStatus
+			universityLocation
+			universityAddress
+			universityName
+			universityTuition
+			universityCampusSize
+			universityCapacity
+			universityFaculties
+			universityViews
+			universityLikes
+			universityImages
+			universityDesc
+			universityScholarship
+			universityDormitory
 			memberId
 			soldAt
 			deletedAt

@@ -20,7 +20,7 @@ export const GET_ALL_MEMBERS_BY_ADMIN = gql`
 				memberDesc
 				memberWarnings
 				memberBlocks
-				memberProperties
+				memberUniversities
 				memberRank
 				memberArticles
 				memberPoints
@@ -39,29 +39,29 @@ export const GET_ALL_MEMBERS_BY_ADMIN = gql`
 `;
 
 /**************************
- *        PROPERTY        *
+ *        UNIVERSITY        *
  *************************/
 
-export const GET_ALL_PROPERTIES_BY_ADMIN = gql`
-	query GetAllPropertiesByAdmin($input: AllPropertiesInquiry!) {
-		getAllPropertiesByAdmin(input: $input) {
+export const GET_ALL_UNIVERSITIES_BY_ADMIN = gql`
+	query GetAllUniversitiesByAdmin($input: AllUniversitiesInquiry!) {
+		getAllUniversitiesByAdmin(input: $input) {
 			list {
 				_id
-				propertyType
-				propertyStatus
-				propertyLocation
-				propertyAddress
-				propertyTitle
-				propertyPrice
-				propertySquare
-				propertyBeds
-				propertyRooms
-				propertyViews
-				propertyLikes
-				propertyImages
-				propertyDesc
-				propertyBarter
-				propertyRent
+				universityType
+				universityStatus
+				universityLocation
+				universityAddress
+				universityName
+				universityTuition
+				universityCampusSize
+				universityCapacity
+				universityFaculties
+				universityViews
+				universityLikes
+				universityImages
+				universityDesc
+				universityScholarship
+				universityDormitory
 				memberId
 				soldAt
 				deletedAt
@@ -81,7 +81,7 @@ export const GET_ALL_PROPERTIES_BY_ADMIN = gql`
 					memberDesc
 					memberWarnings
 					memberBlocks
-					memberProperties
+					memberUniversities
 					memberRank
 					memberPoints
 					memberLikes
@@ -131,7 +131,7 @@ export const GET_ALL_BOARD_ARTICLES_BY_ADMIN = gql`
 					memberDesc
 					memberWarnings
 					memberBlocks
-					memberProperties
+					memberUniversities
 					memberRank
 					memberPoints
 					memberLikes
@@ -178,7 +178,7 @@ export const GET_COMMENTS = gql`
 					memberDesc
 					memberWarnings
 					memberBlocks
-					memberProperties
+					memberUniversities
 					memberRank
 					memberPoints
 					memberLikes

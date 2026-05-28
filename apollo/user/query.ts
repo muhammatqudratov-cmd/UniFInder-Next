@@ -20,7 +20,7 @@ export const GET_AGENTS = gql`
 				memberDesc
 				memberWarnings
 				memberBlocks
-				memberProperties
+				memberUniversities
 				memberRank
 				memberPoints
 				memberLikes
@@ -55,7 +55,7 @@ query GetMember($input: String!) {
         memberImage
         memberAddress
         memberDesc
-        memberProperties
+        memberUniversities
         memberArticles
         memberPoints
         memberLikes
@@ -79,28 +79,28 @@ query GetMember($input: String!) {
 `);
 
 /**************************
- *        PROPERTY        *
+ *        UNIVERSITY        *
  *************************/
 
-export const GET_PROPERTY = gql`
-	query GetProperty($input: String!) {
-		getProperty(propertyId: $input) {
+export const GET_UNIVERSITY = gql`
+	query GetUniversity($input: String!) {
+		getUniversity(universityId: $input) {
 			_id
-			propertyType
-			propertyStatus
-			propertyLocation
-			propertyAddress
-			propertyTitle
-			propertyPrice
-			propertySquare
-			propertyBeds
-			propertyRooms
-			propertyViews
-			propertyLikes
-			propertyImages
-			propertyDesc
-			propertyBarter
-			propertyRent
+			universityType
+			universityStatus
+			universityLocation
+			universityAddress
+			universityName
+			universityTuition
+			universityCampusSize
+			universityCapacity
+			universityFaculties
+			universityViews
+			universityLikes
+			universityImages
+			universityDesc
+			universityScholarship
+			universityDormitory
 			memberId
 			soldAt
 			deletedAt
@@ -137,27 +137,27 @@ export const GET_PROPERTY = gql`
 	}
 `;
 
-export const GET_PROPERTIES = gql`
-	query GetProperties($input: PropertiesInquiry!) {
-		getProperties(input: $input) {
+export const GET_UNIVERSITIES = gql`
+	query GetUniversities($input: UniversitiesInquiry!) {
+		getUniversities(input: $input) {
 			list {
 				_id
-				propertyType
-				propertyStatus
-				propertyLocation
-				propertyAddress
-				propertyTitle
-				propertyPrice
-				propertySquare
-				propertyBeds
-				propertyRooms
-				propertyViews
-				propertyLikes
-				propertyRank
-				propertyImages
-				propertyDesc
-				propertyBarter
-				propertyRent
+				universityType
+				universityStatus
+				universityLocation
+				universityAddress
+				universityName
+				universityTuition
+				universityCampusSize
+				universityCapacity
+				universityFaculties
+				universityViews
+				universityLikes
+				universityRank
+				universityImages
+				universityDesc
+				universityScholarship
+				universityDormitory
 				memberId
 				soldAt
 				deletedAt
@@ -177,7 +177,7 @@ export const GET_PROPERTIES = gql`
 					memberDesc
 					memberWarnings
 					memberBlocks
-					memberProperties
+					memberUniversities
 					memberRank
 					memberPoints
 					memberLikes
@@ -199,26 +199,26 @@ export const GET_PROPERTIES = gql`
 	}
 `;
 
-export const GET_AGENT_PROPERTIES = gql`
-	query GetAgentProperties($input: AgentPropertiesInquiry!) {
-		getAgentProperties(input: $input) {
+export const GET_AGENT_UNIVERSITIES = gql`
+	query GetAgentUniversities($input: AgentUniversitiesInquiry!) {
+		getAgentUniversities(input: $input) {
 			list {
 				_id
-				propertyType
-				propertyStatus
-				propertyLocation
-				propertyAddress
-				propertyTitle
-				propertyPrice
-				propertySquare
-				propertyBeds
-				propertyRooms
-				propertyViews
-				propertyLikes
-				propertyImages
-				propertyDesc
-				propertyBarter
-				propertyRent
+				universityType
+				universityStatus
+				universityLocation
+				universityAddress
+				universityName
+				universityTuition
+				universityCampusSize
+				universityCapacity
+				universityFaculties
+				universityViews
+				universityLikes
+				universityImages
+				universityDesc
+				universityScholarship
+				universityDormitory
 				memberId
 				soldAt
 				deletedAt
@@ -235,26 +235,26 @@ export const GET_AGENT_PROPERTIES = gql`
 
 export const GET_FAVORITES = gql`
 	query GetFavorites($input: OrdinaryInquiry!) {
-		getFavorites(input: $input) {
+		myFavorites(input: $input) {
 			list {
 				_id
-				propertyType
-				propertyStatus
-				propertyLocation
-				propertyAddress
-				propertyTitle
-				propertyPrice
-				propertySquare
-				propertyBeds
-				propertyRooms
-				propertyViews
-				propertyLikes
-				propertyComments
-				propertyRank
-				propertyImages
-				propertyDesc
-				propertyBarter
-				propertyRent
+				universityType
+				universityStatus
+				universityLocation
+				universityAddress
+				universityName
+				universityTuition
+				universityCampusSize
+				universityCapacity
+				universityFaculties
+				universityViews
+				universityLikes
+				universityComments
+				universityRank
+				universityImages
+				universityDesc
+				universityScholarship
+				universityDormitory
 				memberId
 				soldAt
 				deletedAt
@@ -272,7 +272,7 @@ export const GET_FAVORITES = gql`
 					memberImage
 					memberAddress
 					memberDesc
-					memberProperties
+					memberUniversities
 					memberArticles
 					memberPoints
 					memberLikes
@@ -298,26 +298,26 @@ export const GET_FAVORITES = gql`
 
 export const GET_VISITED = gql`
 	query GetVisited($input: OrdinaryInquiry!) {
-		getVisited(input: $input) {
+		myVisited(input: $input) {
 			list {
 				_id
-				propertyType
-				propertyStatus
-				propertyLocation
-				propertyAddress
-				propertyTitle
-				propertyPrice
-				propertySquare
-				propertyBeds
-				propertyRooms
-				propertyViews
-				propertyLikes
-				propertyComments
-				propertyRank
-				propertyImages
-				propertyDesc
-				propertyBarter
-				propertyRent
+				universityType
+				universityStatus
+				universityLocation
+				universityAddress
+				universityName
+				universityTuition
+				universityCampusSize
+				universityCapacity
+				universityFaculties
+				universityViews
+				universityLikes
+				universityComments
+				universityRank
+				universityImages
+				universityDesc
+				universityScholarship
+				universityDormitory
 				memberId
 				soldAt
 				deletedAt
@@ -335,7 +335,7 @@ export const GET_VISITED = gql`
 					memberImage
 					memberAddress
 					memberDesc
-					memberProperties
+					memberUniversities
 					memberArticles
 					memberPoints
 					memberLikes
@@ -391,7 +391,7 @@ export const GET_BOARD_ARTICLE = gql`
 				memberDesc
 				memberWarnings
 				memberBlocks
-				memberProperties
+				memberUniversities
 				memberRank
 				memberPoints
 				memberLikes
@@ -443,7 +443,7 @@ export const GET_BOARD_ARTICLES = gql`
 					memberDesc
 					memberWarnings
 					memberBlocks
-					memberProperties
+					memberUniversities
 					memberRank
 					memberPoints
 					memberLikes
@@ -489,7 +489,7 @@ export const GET_COMMENTS = gql`
 					memberDesc
 					memberWarnings
 					memberBlocks
-					memberProperties
+					memberUniversities
 					memberRank
 					memberPoints
 					memberLikes
@@ -540,7 +540,7 @@ export const GET_MEMBER_FOLLOWERS = gql`
 					memberImage
 					memberAddress
 					memberDesc
-					memberProperties
+					memberUniversities
 					memberArticles
 					memberPoints
 					memberLikes
@@ -583,7 +583,7 @@ export const GET_MEMBER_FOLLOWINGS = gql`
 					memberImage
 					memberAddress
 					memberDesc
-					memberProperties
+					memberUniversities
 					memberArticles
 					memberPoints
 					memberLikes

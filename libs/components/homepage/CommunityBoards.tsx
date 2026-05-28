@@ -28,7 +28,7 @@ const CommunityBoards = () => {
 		refetch: getNewsArticlesRefetch,
 	} = useQuery(GET_BOARD_ARTICLES, {
 		fetchPolicy: 'network-only',
-		variables: { input: { ...searchCommunity, limit: 6, Search: { articleCategory: BoardArticleCategory.NEWS } } },
+		variables: { input: { ...searchCommunity, limit: 6, search: { articleCategory: BoardArticleCategory.NEWS } } },
 		notifyOnNetworkStatusChange: true,
 		onCompleted: (data: T) => {
 			setNewsArticles(data?.getBoardArticles?.list);
@@ -42,7 +42,7 @@ const CommunityBoards = () => {
 		refetch: getFreeArticlesRefetch,
 	} = useQuery(GET_BOARD_ARTICLES, {
 		fetchPolicy: 'network-only',
-		variables: { input: { ...searchCommunity, limit: 3, Search: { articleCategory: BoardArticleCategory.FREE } } },
+		variables: { input: { ...searchCommunity, limit: 3, search: { articleCategory: BoardArticleCategory.FREE } } },
 		notifyOnNetworkStatusChange: true,
 		onCompleted: (data: T) => {
 			setFreeArticles(data?.getBoardArticles?.list);

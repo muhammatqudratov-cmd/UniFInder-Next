@@ -2,23 +2,23 @@ import React, { useState } from 'react';
 import { NextPage } from 'next';
 import useDeviceDetect from '../../hooks/useDeviceDetect';
 import { Pagination, Stack, Typography } from '@mui/material';
-import PropertyCard from '../property/PropertyCard';
-import { Property } from '../../types/property/property';
+import UniversityCard from '../university/UniversityCard';
+import { University } from '../../types/university/university';
 import { T } from '../../types/common';
 import { useMutation, useQuery } from '@apollo/client';
 import { GET_FAVORITES } from '../../../apollo/user/query';
-import { LIKE_TARGET_PROPERTY } from '../../../apollo/user/mutation';
+import { LIKE_TARGET_UNIVERSITY } from '../../../apollo/user/mutation';
 import { sweetMixinErrorAlert } from '../../sweetAlert';
 import { Messages } from '../../config';
 
 const MyFavorites: NextPage = () => {
 	const device = useDeviceDetect();
-	const [myFavorites, setMyFavorites] = useState<Property[]>([]);
+	const [myFavorites, setMyFavorites] = useState<University[]>([]);
 	const [total, setTotal] = useState<number>(0);
 	const [searchFavorites, setSearchFavorites] = useState<T>({ page: 1, limit: 6 });
 
 	/** APOLLO REQUESTS **/
-	const [likeTargetProperty] = useMutation(LIKE_TARGET_PROPERTY);
+	const [likeTargetUniversity] = useMutation(LIKE_TARGET_UNIVERSITY);
 	const {
 		loading: getFavoritesLoading,
 		data: getFavoritesData,
@@ -39,18 +39,18 @@ const MyFavorites: NextPage = () => {
 		setSearchFavorites({ ...searchFavorites, page: value });
 	};
 
-	const likePropertyHandler = async (user: any, id: string) => {
+	const likeUniversityHandler = async (user: any, id: string) => {
 		try {
 			if (!id) return;
 			if (!user._id) throw new Error(Messages.error2);
 
-			await likeTargetProperty({
+			await likeTargetUniversity({
 				variables: {
 					input: id,
 				},
 			});
 		} catch (error: any) {
-			console.log('Err: LikePropertyHandler', error.message);
+			console.log('Err: LikeUniversityHandler', error.message);
 			sweetMixinErrorAlert(error.message).then();
 		}
 	};
@@ -68,8 +68,8 @@ const MyFavorites: NextPage = () => {
 				</Stack>
 				<Stack className="favorites-list-box">
 					{myFavorites?.length ? (
-						myFavorites?.map((property: Property) => {
-							return <PropertyCard property={property} likePropertyHandler={likePropertyHandler} myFavorites={true} />;
+						myFavorites?.map((university: University) => {
+							return <UniversityCard university={university} likeUniversityHandler={likeUniversityHandler} myFavorites={true} />;
 						})
 					) : (
 						<div className={'no-data'}>
@@ -91,7 +91,7 @@ const MyFavorites: NextPage = () => {
 						</Stack>
 						<Stack className="total-result">
 							<Typography>
-								Total {total} favorite property{total > 1 ? 'ies' : 'y'}
+								Total {total} favorite university{total > 1 ? 'ies' : 'y'}
 							</Typography>
 						</Stack>
 					</Stack>
