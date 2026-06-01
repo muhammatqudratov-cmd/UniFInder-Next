@@ -25,7 +25,7 @@ const UniversityCard = (props: UniversityCardType) => {
 	const user = useReactiveVar(userVar);
 	const imagePath: string = university?.universityImages[0]
 		? `${REACT_APP_API_URL}/${university?.universityImages[0]}`
-		: '/img/banner/header1.svg';
+		: '/img/banner/incheon.jpg';
 
 	if (device === 'mobile') {
 		return <div>UNIVERSITY CARD</div>;
