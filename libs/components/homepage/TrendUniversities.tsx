@@ -3,6 +3,9 @@ import { Stack, Box } from '@mui/material';
 import useDeviceDetect from '../../hooks/useDeviceDetect';
 import WestIcon from '@mui/icons-material/West';
 import EastIcon from '@mui/icons-material/East';
+import { useRouter } from 'next/router';
+import { FocusCards } from '../ui/FocusCards';
+import { REACT_APP_API_URL } from '../../config';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay, Navigation, Pagination } from 'swiper';
 import { University } from '../../types/university/university';
@@ -23,6 +26,7 @@ interface TrendUniversitiesProps {
 const TrendUniversities = (props: TrendUniversitiesProps) => {
 	const { initialInput } = props;
 	const device = useDeviceDetect();
+	const router = useRouter();
 	const [trendUniversities, setTrendUniversities] = useState<University[]>([]);
 
 	/** APOLLO REQUESTS **/
@@ -113,27 +117,13 @@ const TrendUniversities = (props: TrendUniversitiesProps) => {
 								Trends Empty
 							</Box>
 						) : (
-							<Swiper
-								className={'trend-university-swiper'}
-								slidesPerView={'auto'}
-								spaceBetween={15}
-								modules={[Autoplay, Navigation, Pagination]}
-								navigation={{
-									nextEl: '.swiper-trend-next',
-									prevEl: '.swiper-trend-prev',
-								}}
-								pagination={{
-									el: '.swiper-trend-pagination',
-								}}
-							>
-								{trendUniversities.map((university: University) => {
-									return (
-										<SwiperSlide key={university._id} className={'trend-university-slide'}>
-											<TrendUniversityCard university={university} likeUniversityHandler={likeUniversityHandler} />
-										</SwiperSlide>
-									);
-								})}
-							</Swiper>
+							<FocusCards
+								cards={trendUniversities.slice(0, 4).map((university) => ({
+									title: university.universityName,
+									src: `${REACT_APP_API_URL}/${university?.universityImages?.[0]}`,
+									onClick: () => router.push({ pathname: '/university/detail', query: { id: university._id } }),
+								}))}
+							/>
 						)}
 					</Stack>
 				</Stack>

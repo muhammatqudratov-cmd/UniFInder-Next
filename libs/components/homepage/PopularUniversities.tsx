@@ -5,6 +5,9 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay, Navigation, Pagination } from 'swiper';
 import WestIcon from '@mui/icons-material/West';
 import EastIcon from '@mui/icons-material/East';
+import { useRouter } from 'next/router';
+import { FocusCards } from '../ui/FocusCards';
+import { REACT_APP_API_URL } from '../../config';
 import PopularUniversityCard from './PopularUniversityCard';
 import { University } from '../../types/university/university';
 import Link from 'next/link';
@@ -20,6 +23,7 @@ interface PopularUniversitiesProps {
 const PopularUniversities = (props: PopularUniversitiesProps) => {
 	const { initialInput } = props;
 	const device = useDeviceDetect();
+	const router = useRouter();
 	const [popularUniversities, setPopularUniversities] = useState<University[]>([]);
 
 	/** APOLLO REQUESTS **/
@@ -86,27 +90,13 @@ const PopularUniversities = (props: PopularUniversitiesProps) => {
 						</Box>
 					</Stack>
 					<Stack className={'card-box'}>
-						<Swiper
-							className={'popular-university-swiper'}
-							slidesPerView={'auto'}
-							spaceBetween={25}
-							modules={[Autoplay, Navigation, Pagination]}
-							navigation={{
-								nextEl: '.swiper-popular-next',
-								prevEl: '.swiper-popular-prev',
-							}}
-							pagination={{
-								el: '.swiper-popular-pagination',
-							}}
-						>
-							{popularUniversities.map((university: University) => {
-								return (
-									<SwiperSlide key={university._id} className={'popular-university-slide'}>
-										<PopularUniversityCard university={university} />
-									</SwiperSlide>
-								);
-							})}
-						</Swiper>
+						<FocusCards
+							cards={popularUniversities.slice(0, 4).map((university) => ({
+								title: university.universityName,
+								src: `${REACT_APP_API_URL}/${university?.universityImages?.[0]}`,
+								onClick: () => router.push({ pathname: '/university/detail', query: { id: university._id } }),
+							}))}
+						/>
 					</Stack>
 					<Stack className={'pagination-box'}>
 						<WestIcon className={'swiper-popular-prev'} />

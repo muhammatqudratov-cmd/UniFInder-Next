@@ -3,6 +3,9 @@ import { Stack, Box } from '@mui/material';
 import useDeviceDetect from '../../hooks/useDeviceDetect';
 import WestIcon from '@mui/icons-material/West';
 import EastIcon from '@mui/icons-material/East';
+import { useRouter } from 'next/router';
+import { FocusCards } from '../ui/FocusCards';
+import { REACT_APP_API_URL } from '../../config';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay, Navigation, Pagination } from 'swiper';
 import TopUniversityCard from './TopUniversityCard';
@@ -22,6 +25,7 @@ interface TopUniversitiesProps {
 const TopUniversities = (props: TopUniversitiesProps) => {
 	const { initialInput } = props;
 	const device = useDeviceDetect();
+	const router = useRouter();
 	const [topUniversities, setTopUniversities] = useState<University[]>([]);
 
 	/** APOLLO REQUESTS **/
@@ -103,27 +107,13 @@ const TopUniversities = (props: TopUniversitiesProps) => {
 						</Box>
 					</Stack>
 					<Stack className={'card-box'}>
-						<Swiper
-							className={'top-university-swiper'}
-							slidesPerView={'auto'}
-							spaceBetween={15}
-							modules={[Autoplay, Navigation, Pagination]}
-							navigation={{
-								nextEl: '.swiper-top-next',
-								prevEl: '.swiper-top-prev',
-							}}
-							pagination={{
-								el: '.swiper-top-pagination',
-							}}
-						>
-							{topUniversities.map((university: University) => {
-								return (
-									<SwiperSlide className={'top-university-slide'} key={university?._id}>
-										<TopUniversityCard university={university} likeUniversityHandler={likeUniversityHandler} />
-									</SwiperSlide>
-								);
-							})}
-						</Swiper>
+						<FocusCards
+							cards={topUniversities.slice(0, 4).map((university) => ({
+								title: university.universityName,
+								src: `${REACT_APP_API_URL}/${university?.universityImages?.[0]}`,
+								onClick: () => router.push({ pathname: '/university/detail', query: { id: university._id } }),
+							}))}
+						/>
 					</Stack>
 				</Stack>
 			</Stack>
