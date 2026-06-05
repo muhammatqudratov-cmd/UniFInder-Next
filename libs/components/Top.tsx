@@ -161,7 +161,7 @@ const Top = () => {
 		);
 	} else {
 		return (
-			<Stack className={'navbar'}>
+			<Stack className={`navbar ${colorChange || bgColor ? 'scrolled-nav' : ''}`}>
 				<Stack className={`navbar-main ${colorChange ? 'transparent' : ''} ${bgColor ? 'transparent' : ''}`}>
 					<Stack className={'container'} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', height: '70px' }}>
 						<Box component={'div'} className={'logo-box'}>
