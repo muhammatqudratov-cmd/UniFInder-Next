@@ -6,6 +6,7 @@ import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay, Navigation, Pagination } from 'swiper';
 import TopAgentCard from './TopAgentCard';
+import { AnimatedTooltip } from '../ui/AnimatedTooltip';
 import { Member } from '../../types/member/member';
 import { AgentsInquiry } from '../../types/member/member.input';
 import { T } from '../../types/common';
@@ -67,7 +68,7 @@ const TopAgents = (props: TopAgentsProps) => {
 		);
 	} else {
 		return (
-			<Stack className={'top-agents'}>
+			<Stack className={'top-agents'} style={{ background: '#f8f9fa', padding: '80px 0' }}>
 				<Stack className={'container'}>
 					<Stack className={'info-box'}>
 						<Box component={'div'} className={'left'}>
@@ -81,34 +82,17 @@ const TopAgents = (props: TopAgentsProps) => {
 							</div>
 						</Box>
 					</Stack>
-					<Stack className={'wrapper'}>
-						<Box component={'div'} className={'switch-btn swiper-agents-prev'}>
-							<ArrowBackIosNewIcon />
-						</Box>
-						<Box component={'div'} className={'card-wrapper'}>
-							<Swiper
-								className={'top-agents-swiper'}
-								slidesPerView={'auto'}
-								spaceBetween={29}
-								modules={[Autoplay, Navigation, Pagination]}
-								navigation={{
-									nextEl: '.swiper-agents-next',
-									prevEl: '.swiper-agents-prev',
-								}}
-							>
-								{topAgents.map((agent: Member) => {
-									return (
-										<SwiperSlide className={'top-agents-slide'} key={agent?._id}>
-											<TopAgentCard agent={agent} key={agent?.memberNick} />
-										</SwiperSlide>
-									);
-								})}
-							</Swiper>
-						</Box>
-						<Box component={'div'} className={'switch-btn swiper-agents-next'}>
-							<ArrowBackIosNewIcon />
-						</Box>
-					</Stack>
+					<div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '48px', paddingTop: '60px', width: '100%' }}>
+						<AnimatedTooltip
+							items={topAgents.map((agent) => ({
+								_id: agent._id,
+								memberNick: agent.memberNick,
+								memberType: agent.memberType,
+								memberImage: agent.memberImage,
+								onClick: () => router.push({ pathname: '/agent/detail', query: { agentId: agent._id } }),
+							}))}
+						/>
+					</div>
 				</Stack>
 			</Stack>
 		);
