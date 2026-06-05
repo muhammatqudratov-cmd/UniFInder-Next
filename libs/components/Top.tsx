@@ -163,32 +163,56 @@ const Top = () => {
 		return (
 			<Stack className={'navbar'}>
 				<Stack className={`navbar-main ${colorChange ? 'transparent' : ''} ${bgColor ? 'transparent' : ''}`}>
-					<Stack className={'container'}>
+					<Stack className={'container'} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', height: '70px' }}>
 						<Box component={'div'} className={'logo-box'}>
 							<Link href={'/'}>
-								<img src="/img/logo/logoWhite.svg" alt="" />
+								<img src="/img/logo/logoWhite.svg" alt="" style={{ height: '32px', width: 'auto' }} />
 							</Link>
 						</Box>
 						<Box component={'div'} className={'router-box'}>
 							<Link href={'/'}>
-								<div>{t('Home')}</div>
+								<div
+									style={{ color: '#ffffff', fontSize: '14px', opacity: 0.8, transition: 'opacity 0.2s' }}
+									onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.opacity = '1'; (e.currentTarget as HTMLDivElement).style.color = '#f5c518'; }}
+									onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.opacity = '0.8'; (e.currentTarget as HTMLDivElement).style.color = '#ffffff'; }}
+								>{t('Home')}</div>
 							</Link>
 							<Link href={'/university'}>
-								<div>{t('Universities')}</div>
+								<div
+									style={{ color: '#ffffff', fontSize: '14px', opacity: 0.8, transition: 'opacity 0.2s' }}
+									onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.opacity = '1'; (e.currentTarget as HTMLDivElement).style.color = '#f5c518'; }}
+									onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.opacity = '0.8'; (e.currentTarget as HTMLDivElement).style.color = '#ffffff'; }}
+								>{t('Universities')}</div>
 							</Link>
 							<Link href={'/agent'}>
-								<div> {t('Agents')} </div>
+								<div
+									style={{ color: '#ffffff', fontSize: '14px', opacity: 0.8, transition: 'opacity 0.2s' }}
+									onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.opacity = '1'; (e.currentTarget as HTMLDivElement).style.color = '#f5c518'; }}
+									onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.opacity = '0.8'; (e.currentTarget as HTMLDivElement).style.color = '#ffffff'; }}
+								> {t('Agents')} </div>
 							</Link>
 							<Link href={'/community?articleCategory=FREE'}>
-								<div> {t('Community')} </div>
+								<div
+									style={{ color: '#ffffff', fontSize: '14px', opacity: 0.8, transition: 'opacity 0.2s' }}
+									onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.opacity = '1'; (e.currentTarget as HTMLDivElement).style.color = '#f5c518'; }}
+									onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.opacity = '0.8'; (e.currentTarget as HTMLDivElement).style.color = '#ffffff'; }}
+								> {t('Community')} </div>
 							</Link>
 							{user?._id && (
 								<Link href={'/mypage'}>
-									<div> {t('My Page')} </div>
+									<div
+										style={{ color: '#ffffff', fontSize: '14px', opacity: 0.8, transition: 'opacity 0.2s' }}
+										onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.opacity = '1'; (e.currentTarget as HTMLDivElement).style.color = '#f5c518'; }}
+										onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.opacity = '0.8'; (e.currentTarget as HTMLDivElement).style.color = '#ffffff'; }}
+									> {t('My Page')} </div>
 								</Link>
 							)}
 							<Link href={'/cs'}>
-								<div> {t('CS')} </div>
+								<div
+									style={{ color: '#ffffff', fontSize: '14px', opacity: 0.8, transition: 'opacity 0.2s' }}
+									onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.opacity = '1'; (e.currentTarget as HTMLDivElement).style.color = '#f5c518'; }}
+									onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.opacity = '0.8'; (e.currentTarget as HTMLDivElement).style.color = '#ffffff'; }}
+								> {t('CS')} </div>
 							</Link>
 						</Box>
 						<Box component={'div'} className={'user-box'}>
@@ -200,6 +224,7 @@ const Top = () => {
 												user?.memberImage ? `${REACT_APP_API_URL}/${user?.memberImage}` : '/img/profile/defaultUser.svg'
 											}
 											alt=""
+											style={{ width: '34px', height: '34px', borderRadius: '50%', objectFit: 'cover', border: '2px solid rgba(245,197,24,0.5)', cursor: 'pointer' }}
 										/>
 									</div>
 
@@ -220,7 +245,7 @@ const Top = () => {
 								</>
 							) : (
 								<Link href={'/account/join'}>
-									<div className={'join-box'}>
+									<div className={'join-box'} style={{ background: '#f5c518', color: '#0d1117', borderRadius: '999px', padding: '8px 18px', fontSize: '13px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}>
 										<AccountCircleOutlinedIcon />
 										<span>
 											{t('Login')} / {t('Register')}
@@ -279,7 +304,7 @@ const Top = () => {
 									</MenuItem>
 								</StyledMenu>
 							</div>
-						</Box>
+					</Box>
 					</Stack>
 				</Stack>
 			</Stack>
