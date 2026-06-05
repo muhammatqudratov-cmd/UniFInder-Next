@@ -4,9 +4,12 @@ import useDeviceDetect from '../../libs/hooks/useDeviceDetect';
 import withLayoutBasic from '../../libs/components/layout/LayoutBasic';
 import { Box, Button, Checkbox, FormControlLabel, FormGroup, Stack } from '@mui/material';
 import { useRouter } from 'next/router';
-import { logIn, signUp } from '../../libs/auth';
-import { sweetMixinErrorAlert } from '../../libs/sweetAlert';
+import { useMutation } from '@apollo/client';
+import { logIn, signUp, updateStorage, updateUserInfo } from '../../libs/auth';
+import { sweetMixinErrorAlert, sweetTopSmallSuccessAlert, sweetErrorHandling } from '../../libs/sweetAlert';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
+import TelegramLoginButton from '../../components/TelegramLoginButton';
+import { TELEGRAM_LOGIN } from '../../apollo/user/mutation';
 
 export const getStaticProps = async ({ locale }: any) => ({
 	props: {
@@ -19,8 +22,37 @@ const Join: NextPage = () => {
 	const device = useDeviceDetect();
 	const [input, setInput] = useState({ nick: '', password: '', phone: '', type: 'USER' });
 	const [loginView, setLoginView] = useState<boolean>(true);
+	const [telegramLogin] = useMutation(TELEGRAM_LOGIN);
 
 	/** HANDLERS **/
+	const handleTelegramAuth = async (telegramUser: any) => {
+		try {
+			const { data } = await telegramLogin({
+				variables: {
+					input: {
+						id: telegramUser.id,
+						first_name: telegramUser.first_name,
+						last_name: telegramUser.last_name ?? null,
+						username: telegramUser.username ?? null,
+						photo_url: telegramUser.photo_url ?? null,
+						auth_date: telegramUser.auth_date,
+						hash: telegramUser.hash,
+					},
+				},
+			});
+
+			const member = data?.telegramLogin;
+			if (member?.accessToken) {
+				updateStorage({ jwtToken: member.accessToken });
+				updateUserInfo(member.accessToken);
+				await sweetTopSmallSuccessAlert('Telegram orqali muvaffaqiyatli kirdingiz!');
+				await router.push(`${router.query.referrer ?? '/'}`);
+			}
+		} catch (err) {
+			console.error('Telegram login error:', err);
+			await sweetErrorHandling(err);
+		}
+	};
 	const viewChangeHandler = (state: boolean) => {
 		setLoginView(state);
 	};
@@ -184,6 +216,12 @@ const Join: NextPage = () => {
 									>
 										SIGNUP
 									</Button>
+								)}
+								{loginView && (
+									<>
+										<div style={{ textAlign: 'center', margin: '16px 0', color: '#999' }}></div>
+										<TelegramLoginButton onAuth={handleTelegramAuth} />
+									</>
 								)}
 							</Box>
 							<Box className={'ask-info'}>
