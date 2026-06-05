@@ -6,7 +6,7 @@ import { Autoplay, Navigation, Pagination } from 'swiper';
 import WestIcon from '@mui/icons-material/West';
 import EastIcon from '@mui/icons-material/East';
 import { useRouter } from 'next/router';
-import { FocusCards } from '../ui/FocusCards';
+import { LayoutGrid } from '../ui/LayoutGrid';
 import { REACT_APP_API_URL } from '../../config';
 import PopularUniversityCard from './PopularUniversityCard';
 import { University } from '../../types/university/university';
@@ -90,10 +90,13 @@ const PopularUniversities = (props: PopularUniversitiesProps) => {
 						</Box>
 					</Stack>
 					<Stack className={'card-box'}>
-						<FocusCards
-							cards={popularUniversities.slice(0, 4).map((university) => ({
+						<LayoutGrid
+							cards={popularUniversities.slice(0, 4).map((university, index) => ({
+								id: index + 1,
 								title: university.universityName,
-								src: `${REACT_APP_API_URL}/${university?.universityImages?.[0]}`,
+								description: university.universityAddress,
+								thumbnail: `${REACT_APP_API_URL}/${university?.universityImages?.[0]}`,
+								span: index === 0 || index === 3 ? 'wide' : 'normal',
 								onClick: () => router.push({ pathname: '/university/detail', query: { id: university._id } }),
 							}))}
 						/>
