@@ -14,6 +14,7 @@ import { T } from '../../types/common';
 import { LIKE_TARGET_UNIVERSITY } from '../../../apollo/user/mutation';
 import { sweetMixinErrorAlert, sweetTopSmallSuccessAlert } from '../../sweetAlert';
 import { Message } from '../../enums/common.enum';
+import TopUniversities from './TopUniversities';
 
 interface TrendUniversitiesProps {
 	initialInput: UniversitiesInquiry;
@@ -55,10 +56,7 @@ const TrendUniversities = (props: TrendUniversitiesProps) => {
 			sweetMixinErrorAlert(err.message).then();
 		}
 	};
-
-	if (trendUniversities) console.log('trendUniversities:', trendUniversities);
-	if (!trendUniversities) return null;
-
+	// RENDER
 	if (device === 'mobile') {
 		return (
 			<Stack className={'trend-universities'}>
@@ -148,7 +146,7 @@ TrendUniversities.defaultProps = {
 	initialInput: {
 		page: 1,
 		limit: 8,
-		sort: 'universityLikes',
+		sort: 'universityRank',
 		direction: 'DESC',
 		search: {},
 	},
