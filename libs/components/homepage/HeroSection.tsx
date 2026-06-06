@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { useRouter } from 'next/router';
 
 const WORDS = ['Future', 'Dream', 'University', 'Career', 'Path'];
 
@@ -37,6 +38,7 @@ function useTyping() {
 }
 
 export default function HeroSection() {
+  const router = useRouter();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const typedText = useTyping();
   const [cursorVisible, setCursorVisible] = useState(true);
@@ -92,7 +94,7 @@ export default function HeroSection() {
       const z1 = y * sinX + z * cosX;
       const x2 = x * cosY + z1 * sinY;
       const z2 = -x * sinY + z1 * cosY;
-      return { x: canvas.width / 2 + x2 * R, y: canvas.height / 2 - 20 + y1 * R, z: z2 };
+      return { x: (canvas!.width) / 2 + x2 * R, y: (canvas!.height) / 2 - 20 + y1 * R, z: z2 };
     }
 
     let animId: number;
@@ -153,7 +155,7 @@ export default function HeroSection() {
           Discover top universities in South Korea. Find your perfect match.
         </p>
         <button
-          onClick={() => window.scrollTo({ top: 700, behavior: 'smooth' })}
+          onClick={() => router.push('/university')}
           style={{ background: '#f5c518', color: '#0d1117', border: 'none', borderRadius: '8px', padding: '14px 36px', fontSize: '16px', fontWeight: 700, cursor: 'pointer' }}
         >
           Explore Universities
