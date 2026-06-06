@@ -94,8 +94,8 @@ export const light = {
 		},
 		MuiCssBaseline: {
 			styleOverrides: {
-				html: { height: '100%' },
-				body: { background: '#fff', height: '100%', minHeight: '100%' },
+				html: { height: '100%', background: '#e8e0d5' },
+				body: { background: '#e8e0d5', height: '100%', minHeight: '100%' },
 				p: {
 					margin: '0',
 				},

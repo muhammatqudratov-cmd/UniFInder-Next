@@ -73,7 +73,7 @@ const PopularUniversities = (props: PopularUniversitiesProps) => {
 		);
 	} else {
 		return (
-			<Stack className={'popular-universities'}>
+			<Stack className={'popular-universities'} style={{ background: '#e8e0d5', padding: '80px 0' }}>
 				<Stack className={'container'}>
 					<Stack className={'info-box'}>
 						<Box component={'div'} className={'left'}>

@@ -68,7 +68,7 @@ const TopAgents = (props: TopAgentsProps) => {
 		);
 	} else {
 		return (
-			<Stack className={'top-agents'} style={{ background: '#f8f9fa', padding: '80px 0' }}>
+			<Stack className={'top-agents'} style={{ background: '#e8e0d5', padding: '80px 0' }}>
 				<Stack className={'container'}>
 					<Stack className={'info-box'}>
 						<Box component={'div'} className={'left'}>
