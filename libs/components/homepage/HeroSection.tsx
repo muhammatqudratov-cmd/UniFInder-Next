@@ -49,86 +49,90 @@ export default function HeroSection() {
   }, []);
 
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
+    const cv = canvasRef.current;
+    if (!cv) return;
+    const cx = cv.getContext('2d');
+    if (!cx) return;
 
-    const resize = () => {
-      canvas.width = canvas.offsetWidth;
-      canvas.height = canvas.offsetHeight;
-    };
+    const resize = () => { cv.width = cv.offsetWidth; cv.height = cv.offsetHeight; };
     resize();
     window.addEventListener('resize', resize);
 
-    const NODES = 120;
-    const pts: { ox: number; oy: number; oz: number }[] = [];
-    const edges: [number, number][] = [];
+    const COLS: [number,number,number][] = [
+      [66,133,244],[52,168,83],[251,188,4],[234,67,53],
+      [138,180,248],[129,201,149],[197,138,249],[120,217,236],
+      [255,160,120],[100,200,255],
+    ];
 
-    for (let i = 0; i < NODES; i++) {
-      const phi = Math.acos(1 - 2 * (i + 0.5) / NODES);
-      const theta = Math.PI * (1 + Math.sqrt(5)) * i;
-      pts.push({
-        ox: Math.sin(phi) * Math.cos(theta),
-        oy: Math.sin(phi) * Math.sin(theta),
-        oz: Math.cos(phi),
-      });
-    }
+    const orbs = Array.from({ length: 80 }, () => {
+      const c = COLS[Math.floor(Math.random() * COLS.length)];
+      return {
+        x: Math.random() * cv.width,
+        y: Math.random() * cv.height,
+        vy: 0.5 + Math.random() * 1.5,
+        vx: (Math.random() - 0.5) * 0.4,
+        r: 2 + Math.random() * 5,
+        cr: c[0], cg: c[1], cb: c[2],
+        alpha: 0.5 + Math.random() * 0.5,
+        t: Math.random() * 6.28,
+        ts: 0.02 + Math.random() * 0.02,
+      };
+    });
 
-    for (let i = 0; i < NODES; i++) {
-      for (let j = i + 1; j < NODES; j++) {
-        const dx = pts[i].ox - pts[j].ox;
-        const dy = pts[i].oy - pts[j].oy;
-        const dz = pts[i].oz - pts[j].oz;
-        if (Math.sqrt(dx*dx + dy*dy + dz*dz) < 0.42) edges.push([i, j]);
-      }
-    }
-
-    let rotX = 0.3, rotY = 0;
-    const R = 200;
-
-    function project(x: number, y: number, z: number) {
-      const cosX = Math.cos(rotX), sinX = Math.sin(rotX);
-      const cosY = Math.cos(rotY), sinY = Math.sin(rotY);
-      const y1 = y * cosX - z * sinX;
-      const z1 = y * sinX + z * cosX;
-      const x2 = x * cosY + z1 * sinY;
-      const z2 = -x * sinY + z1 * cosY;
-      return { x: (canvas!.width) / 2 + x2 * R, y: (canvas!.height) / 2 - 20 + y1 * R, z: z2 };
-    }
+    const trails = Array.from({ length: 25 }, () => {
+      const c = COLS[Math.floor(Math.random() * COLS.length)];
+      return {
+        x: Math.random() * cv.width,
+        y: Math.random() * cv.height,
+        vy: 1 + Math.random() * 2,
+        len: 40 + Math.random() * 100,
+        cr: c[0], cg: c[1], cb: c[2],
+        alpha: 0.3 + Math.random() * 0.4,
+        w: 0.5 + Math.random() * 1,
+      };
+    });
 
     let animId: number;
-    const animate = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      rotY += 0.003;
-      rotX += 0.0008;
+    const frame = () => {
+      const W = cv.width; const H = cv.height;
+      cx.clearRect(0, 0, W, H);
+      cx.fillStyle = '#0a0a14';
+      cx.fillRect(0, 0, W, H);
 
-      const projected = pts.map((p) => project(p.ox, p.oy, p.oz));
+      const rg = cx.createRadialGradient(W/2, H/2, 0, W/2, H/2, W * 0.55);
+      rg.addColorStop(0, 'rgba(66,133,244,0.07)');
+      rg.addColorStop(0.6, 'rgba(52,168,83,0.04)');
+      rg.addColorStop(1, 'rgba(0,0,0,0)');
+      cx.fillStyle = rg;
+      cx.fillRect(0, 0, W, H);
 
-      edges.forEach(([i, j]) => {
-        const a = projected[i], b = projected[j];
-        const avgZ = (a.z + b.z) / 2;
-        const alpha = ((avgZ + 1) / 2) * 0.2;
-        ctx.beginPath();
-        ctx.moveTo(a.x, a.y);
-        ctx.lineTo(b.x, b.y);
-        ctx.strokeStyle = `rgba(245,197,24,${alpha})`;
-        ctx.lineWidth = 0.4;
-        ctx.stroke();
+      trails.forEach(t => {
+        t.y -= t.vy;
+        if (t.y + t.len < 0) { t.y = H + t.len; t.x = Math.random() * W; }
+        const lg = cx.createLinearGradient(t.x, t.y, t.x, t.y + t.len);
+        lg.addColorStop(0, `rgba(${t.cr},${t.cg},${t.cb},${t.alpha})`);
+        lg.addColorStop(1, `rgba(${t.cr},${t.cg},${t.cb},0)`);
+        cx.beginPath(); cx.moveTo(t.x, t.y); cx.lineTo(t.x, t.y + t.len);
+        cx.strokeStyle = lg; cx.lineWidth = t.w; cx.stroke();
       });
 
-      projected.forEach((p) => {
-        const alpha = (p.z + 1) / 2;
-        const size = 0.8 + alpha * 1.4;
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, size, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(245,197,24,${alpha * 0.7})`;
-        ctx.fill();
+      orbs.forEach(o => {
+        o.y -= o.vy; o.x += o.vx; o.t += o.ts;
+        if (o.y + o.r < 0) { o.y = H + o.r; o.x = Math.random() * W; }
+        if (o.x < 0) o.x = W; if (o.x > W) o.x = 0;
+        const a = o.alpha * (0.7 + 0.3 * Math.sin(o.t));
+        const rr = o.r * (0.9 + 0.1 * Math.sin(o.t));
+        const g = cx.createRadialGradient(o.x, o.y, 0, o.x, o.y, rr * 3);
+        g.addColorStop(0, `rgba(${o.cr},${o.cg},${o.cb},${a * 0.4})`);
+        g.addColorStop(1, `rgba(${o.cr},${o.cg},${o.cb},0)`);
+        cx.beginPath(); cx.arc(o.x, o.y, rr * 3, 0, 6.28); cx.fillStyle = g; cx.fill();
+        cx.beginPath(); cx.arc(o.x, o.y, rr, 0, 6.28);
+        cx.fillStyle = `rgba(${o.cr},${o.cg},${o.cb},${a})`; cx.fill();
       });
 
-      animId = requestAnimationFrame(animate);
+      animId = requestAnimationFrame(frame);
     };
-    animate();
+    frame();
 
     return () => {
       cancelAnimationFrame(animId);
