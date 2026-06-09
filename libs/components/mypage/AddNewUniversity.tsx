@@ -97,7 +97,7 @@ const AddUniversity = ({ initialValues, ...props }: any) => {
 				if (/^\d+$/.test(key)) formData.append(`${key}`, selectedFiles[key]);
 			}
 
-			const response = await axios.post(`${process.env.NEXT_APP_API_GRAPHQL_URL}`, formData, {
+			const response = await axios.post(`${process.env.NEXT_PUBLIC_API_GRAPHQL_URL}`, formData, {
 				headers: {
 					'Content-Type': 'multipart/form-data',
 					'apollo-require-preflight': true,
@@ -211,9 +211,9 @@ const AddUniversity = ({ initialValues, ...props }: any) => {
 										type="text"
 										className="description-input"
 										placeholder={'Price'}
-										value={insertUniversityData.universityTuition}
+										value={insertUniversityData.universityTuition || ''}
 										onChange={({ target: { value } }) =>
-											setInsertUniversityData({ ...insertUniversityData, universityTuition: parseInt(value) })
+											setInsertUniversityData({ ...insertUniversityData, universityTuition: parseInt(value) || 0 })
 										}
 									/>
 								</Stack>

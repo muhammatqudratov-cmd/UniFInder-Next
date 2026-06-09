@@ -1,3 +1,5 @@
+Go outside of project and read uni-finder/docs.md first
+
 # Uni-Finder Frontend — Agent Reference
 
 ## What is Uni-Finder?
@@ -10,27 +12,28 @@ The codebase was originally a real-estate platform (Nestar). University fields (
 
 ## Full Tech Stack
 
-| Layer | Technology |
-|---|---|
-| Framework | Next.js 14.2.0 — **Pages Router** (no App Router) |
-| Language | TypeScript 4.6.2, strict mode |
-| UI components | MUI v5 (`@mui/material`, `@mui/icons-material`, `@mui/lab`) |
-| Styling | SCSS (global files) + MUI ThemeProvider (`scss/MaterialTheme/`) |
-| GraphQL client | Apollo Client v3 with reactive vars (`makeVar`) |
-| File upload | `apollo-upload-client` |
-| Real-time | WebSocket via `subscriptions-transport-ws` + custom `LoggingWebSocket` class |
-| Auth | JWT in `localStorage` (`accessToken`), decoded with `jwt-decode` |
-| i18n | `next-i18next` 14 — locales: `en`, `kr`, `ru` |
-| Alerts | SweetAlert2 (`libs/sweetAlert.ts` wrappers) |
-| Carousel | Swiper 8 |
-| Rich text | `@toast-ui/react-editor` |
-| 3D hero | `@react-three/fiber`, `@react-three/drei`, `three` |
-| Date formatting | `moment` |
-| Number formatting | `numeral` |
-| Linting | ESLint + `eslint-config-next` |
-| Formatting | Prettier — tabs, singleQuote, trailingComma all, printWidth 120 |
+| Layer             | Technology                                                                   |
+| ----------------- | ---------------------------------------------------------------------------- |
+| Framework         | Next.js 14.2.0 — **Pages Router** (no App Router)                            |
+| Language          | TypeScript 4.6.2, strict mode                                                |
+| UI components     | MUI v5 (`@mui/material`, `@mui/icons-material`, `@mui/lab`)                  |
+| Styling           | SCSS (global files) + MUI ThemeProvider (`scss/MaterialTheme/`)              |
+| GraphQL client    | Apollo Client v3 with reactive vars (`makeVar`)                              |
+| File upload       | `apollo-upload-client`                                                       |
+| Real-time         | WebSocket via `subscriptions-transport-ws` + custom `LoggingWebSocket` class |
+| Auth              | JWT in `localStorage` (`accessToken`), decoded with `jwt-decode`             |
+| i18n              | `next-i18next` 14 — locales: `en`, `kr`, `ru`                                |
+| Alerts            | SweetAlert2 (`libs/sweetAlert.ts` wrappers)                                  |
+| Carousel          | Swiper 8                                                                     |
+| Rich text         | `@toast-ui/react-editor`                                                     |
+| 3D hero           | `@react-three/fiber`, `@react-three/drei`, `three`                           |
+| Date formatting   | `moment`                                                                     |
+| Number formatting | `numeral`                                                                    |
+| Linting           | ESLint + `eslint-config-next`                                                |
+| Formatting        | Prettier — tabs, singleQuote, trailingComma all, printWidth 120              |
 
 **Environment variables** (`.env.development`, exposed in `next.config.js`):
+
 ```
 REACT_APP_API_URL=http://localhost:3004
 REACT_APP_API_GRAPHQL_URL=http://localhost:3004/graphql
@@ -169,12 +172,14 @@ REACT_APP_API_WS=ws://localhost:3004
 ## Coding Conventions
 
 ### TypeScript
+
 - Strict mode is enabled. Use `T` from `libs/types/common.ts` only for Apollo `onCompleted(data: T)` callbacks.
 - All interfaces mirror the GraphQL schema. Put them in `libs/types/{domain}/`.
 - All enums mirror the backend. Put them in `libs/enums/{domain}.enum.ts`.
 - Use `// @ts-ignore` sparingly with an explanatory comment.
 
 ### Page components
+
 - Every page is a `NextPage` functional component.
 - Wrap with a layout HOC as the default export: `export default withLayoutBasic(MyPage);`
 - Use `useDeviceDetect()` to branch mobile vs desktop. Mobile branches may return a placeholder — that is intentional.
@@ -183,7 +188,9 @@ REACT_APP_API_WS=ws://localhost:3004
 - Set `defaultProps` on the page component for initial query filters.
 
 ### Section structure inside pages
+
 Keep these comment-delimited sections in every page component:
+
 ```tsx
 /** APOLLO REQUESTS **/
 /** LIFECYCLE **/
@@ -191,6 +198,7 @@ Keep these comment-delimited sections in every page component:
 ```
 
 ### Apollo
+
 - Queries → `apollo/user/query.ts` or `apollo/admin/query.ts`. Never inline `gql` inside components.
 - `fetchPolicy: 'network-only'` for mutations and any query that must always be fresh.
 - `fetchPolicy: 'cache-and-network'` for secondary queries inside detail pages.
@@ -198,6 +206,7 @@ Keep these comment-delimited sections in every page component:
 - After a mutation that changes a list, call the list query's `refetch`.
 
 ### SCSS
+
 - New page SCSS files go in `scss/pc/{page}/{name}.scss` and must be imported in `scss/pc/main.scss`.
 - Always use `font-family: $font;` (never hardcode `'Poppins'`).
 - `.container` = `width: 1300px; margin: 0 auto; display: flex;` — used on every page.
@@ -205,16 +214,18 @@ Keep these comment-delimited sections in every page component:
 - No inline styles except for dynamic values (e.g., `backgroundImage` from a prop).
 
 ### Naming conventions
-| Thing | Convention |
-|---|---|
-| Page files | `index.tsx` for lists, `detail.tsx` for detail |
-| Components | PascalCase (`UniversityCard.tsx`) |
-| GQL const | SCREAMING_SNAKE (`GET_UNIVERSITIES`) |
-| GQL operation | PascalCase (`GetUniversities`) |
-| Event handlers | camelCase + `Handler` (`likeUniversityHandler`, `sortingClickHandler`) |
+
+| Thing           | Convention                                                             |
+| --------------- | ---------------------------------------------------------------------- |
+| Page files      | `index.tsx` for lists, `detail.tsx` for detail                         |
+| Components      | PascalCase (`UniversityCard.tsx`)                                      |
+| GQL const       | SCREAMING_SNAKE (`GET_UNIVERSITIES`)                                   |
+| GQL operation   | PascalCase (`GetUniversities`)                                         |
+| Event handlers  | camelCase + `Handler` (`likeUniversityHandler`, `sortingClickHandler`) |
 | State variables | camelCase, descriptive (`searchFilter`, `universities`, `currentPage`) |
 
 ### Prettier (from `.prettierrc`)
+
 - Tabs, tabWidth 2
 - Single quotes
 - Trailing commas everywhere
