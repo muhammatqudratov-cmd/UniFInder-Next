@@ -1,0 +1,144 @@
+@import 'variables.scss';
+
+@keyframes revealText {
+	from { clip-path: inset(0 100% 0 0); }
+	to   { clip-path: inset(0 0% 0 0); }
+}
+
+@keyframes slideLeft {
+	from { transform: translateX(-40px); opacity: 0; }
+	to   { transform: translateX(0);    opacity: 1; }
+}
+
+@keyframes slideRight {
+	from { transform: translateX(40px); opacity: 0; }
+	to   { transform: translateX(0);   opacity: 1; }
+}
+
+@keyframes glowPulse {
+	0%, 100% { opacity: 1; }
+	50%       { opacity: 0.5; }
+}
+
+@keyframes floatBadge {
+	0%, 100% { transform: translateY(0); }
+	50%       { transform: translateY(-4px); }
+}
+
+@keyframes tickerScroll {
+	from { transform: translateX(0); }
+	to   { transform: translateX(-50%); }
+}
+
+.section-header {
+	background: #2c2c2a;
+	border-radius: 20px;
+	padding: 28px 32px 24px;
+	overflow: hidden;
+	margin-bottom: 36px;
+
+	&__inner {
+		display: flex;
+		flex-direction: row;
+		justify-content: space-between;
+		align-items: center;
+	}
+
+	&__left {
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
+	}
+
+	&__label {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+	}
+
+	&__dot {
+		width: 8px;
+		height: 8px;
+		border-radius: 50%;
+		background: #1d9e75;
+		flex-shrink: 0;
+		animation: glowPulse 1.5s ease-in-out infinite;
+	}
+
+	&__label-text {
+		font-size: 11px;
+		color: #1d9e75;
+		letter-spacing: 2px;
+		text-transform: uppercase;
+		font-family: $font;
+		font-weight: 600;
+	}
+
+	&__title {
+		font-size: 36px;
+		font-weight: 500;
+		color: #f1efe8;
+		margin: 0;
+		font-family: $font;
+		line-height: 1.1;
+		clip-path: inset(0 100% 0 0);
+		animation: revealText 0.9s cubic-bezier(0.4, 0, 0.2, 1) 0.2s forwards;
+	}
+
+	&__subtitle {
+		font-size: 13px;
+		color: #888780;
+		margin: 0;
+		font-family: $font;
+		animation: slideLeft 0.6s ease 0.4s both;
+	}
+
+	&__right {
+		flex-shrink: 0;
+		margin-left: 24px;
+		animation: slideRight 0.6s ease 0.3s both;
+	}
+
+	&__badge {
+		background: #185fa5;
+		color: #e6f1fb;
+		border-radius: 30px;
+		padding: 8px 18px;
+		font-size: 13px;
+		font-weight: 500;
+		font-family: $font;
+		white-space: nowrap;
+		display: inline-flex;
+		align-items: center;
+		gap: 6px;
+		animation: floatBadge 3s ease-in-out infinite;
+	}
+
+	&__ticker-wrap {
+		border-top: 1px solid #444441;
+		padding-top: 14px;
+		margin-top: 16px;
+		overflow: hidden;
+	}
+
+	&__ticker {
+		display: flex;
+		flex-direction: row;
+		white-space: nowrap;
+		width: max-content;
+		animation: tickerScroll 12s linear infinite;
+	}
+
+	&__ticker-item {
+		font-size: 12px;
+		color: #888780;
+		font-family: $font;
+		padding-right: 32px;
+
+		&::before {
+			content: '•';
+			margin-right: 8px;
+			color: #1d9e75;
+		}
+	}
+}
