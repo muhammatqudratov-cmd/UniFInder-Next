@@ -319,17 +319,17 @@ const HeaderFilter = (props: HeaderFilterProps) => {
 	} else {
 		return (
 			<>
-				<Stack className={'search-box'}>
+				<Stack className={'search-box'} style={{ width: '100%', padding: '4px 8px', minHeight: 'unset' }} sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', width: '780px', maxWidth: '90vw', borderRadius: '14px', padding: '4px 6px', background: 'white', boxShadow: '0 4px 16px rgba(0,0,0,0.07)', gap: '0px' }}>
 					<Stack className={'select-box'}>
-						<Box component={'div'} className={`box ${openLocation ? 'on' : ''}`} onClick={locationStateChangeHandler}>
+						<Box component={'div'} className={`box ${openLocation ? 'on' : ''}`} onClick={locationStateChangeHandler} sx={{ flex: 1, padding: '6px 10px', minWidth: 0 }}>
 							<span>{searchFilter?.search?.locationList ? searchFilter?.search?.locationList[0] : t('Location')} </span>
 							<ExpandMoreIcon />
 						</Box>
-						<Box className={`box ${openType ? 'on' : ''}`} onClick={typeStateChangeHandler}>
+						<Box className={`box ${openType ? 'on' : ''}`} onClick={typeStateChangeHandler} sx={{ flex: 1, padding: '6px 10px', minWidth: 0 }}>
 							<span> {searchFilter?.search?.typeList ? searchFilter?.search?.typeList[0] : t('University type')} </span>
 							<ExpandMoreIcon />
 						</Box>
-						<Box className={`box ${openRooms ? 'on' : ''}`} onClick={roomStateChangeHandler}>
+						<Box className={`box ${openRooms ? 'on' : ''}`} onClick={roomStateChangeHandler} sx={{ flex: 1, padding: '6px 10px', minWidth: 0 }}>
 							<span>
 								{searchFilter?.search?.facultiesList
 									? `${searchFilter?.search?.facultiesList[0]} ${
@@ -345,7 +345,7 @@ const HeaderFilter = (props: HeaderFilterProps) => {
 							<img src="/img/icons/tune.svg" alt="" />
 							<span>{t('Advanced')}</span>
 						</Box>
-						<Box className={'search-btn'} onClick={pushSearchHandler}>
+						<Box className={'search-btn'} onClick={pushSearchHandler} sx={{ padding: '10px 18px', borderRadius: '10px', flexShrink: 0, whiteSpace: 'nowrap' }}>
 							<img src="/img/icons/search_white.svg" alt="" />
 						</Box>
 					</Stack>

@@ -164,54 +164,70 @@ const Top = () => {
 			<Stack className={`navbar ${colorChange || bgColor ? 'scrolled-nav' : ''}`}>
 				<Stack className={`navbar-main ${colorChange ? 'transparent' : ''} ${bgColor ? 'transparent' : ''}`}>
 					<Stack className={'container'} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', height: '70px' }}>
-						<Box component={'div'} className={'logo-box'}>
-							<Link href={'/'}>
-								<img src="/img/logo/logoWhite.svg" alt="" style={{ height: '32px', width: 'auto' }} />
-							</Link>
-						</Box>
+						<div className="uni-logo" onClick={() => router.push('/')} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
+							<div style={{
+								width: '32px',
+								height: '32px',
+								borderRadius: '50%',
+								background: 'linear-gradient(135deg, #E8856A, #C4B5D9)',
+								display: 'flex',
+								alignItems: 'center',
+								justifyContent: 'center',
+								fontSize: '14px',
+								color: 'white',
+								fontWeight: '700',
+								flexShrink: 0,
+							}}>⊙</div>
+							<span style={{
+								fontSize: '17px',
+								fontWeight: '700',
+								color: '#1C1B18',
+								letterSpacing: '-0.3px',
+							}}>UniFinder</span>
+						</div>
 						<Box component={'div'} className={'router-box'}>
 							<Link href={'/'}>
 								<div
-									style={{ color: '#ffffff', fontSize: '14px', opacity: 0.8, transition: 'opacity 0.2s' }}
-									onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.opacity = '1'; (e.currentTarget as HTMLDivElement).style.color = '#f5c518'; }}
-									onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.opacity = '0.8'; (e.currentTarget as HTMLDivElement).style.color = '#ffffff'; }}
+									style={{ color: '#57564f', fontSize: '14px', opacity: 0.9, transition: 'opacity 0.2s' }}
+									onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.opacity = '1'; (e.currentTarget as HTMLDivElement).style.color = '#1c1b18'; }}
+									onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.opacity = '0.9'; (e.currentTarget as HTMLDivElement).style.color = '#57564f'; }}
 								>{t('Home')}</div>
 							</Link>
 							<Link href={'/university'}>
 								<div
-									style={{ color: '#ffffff', fontSize: '14px', opacity: 0.8, transition: 'opacity 0.2s' }}
-									onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.opacity = '1'; (e.currentTarget as HTMLDivElement).style.color = '#f5c518'; }}
-									onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.opacity = '0.8'; (e.currentTarget as HTMLDivElement).style.color = '#ffffff'; }}
+									style={{ color: '#57564f', fontSize: '14px', opacity: 0.9, transition: 'opacity 0.2s' }}
+									onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.opacity = '1'; (e.currentTarget as HTMLDivElement).style.color = '#1c1b18'; }}
+									onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.opacity = '0.9'; (e.currentTarget as HTMLDivElement).style.color = '#57564f'; }}
 								>{t('Universities')}</div>
 							</Link>
 							<Link href={'/agent'}>
 								<div
-									style={{ color: '#ffffff', fontSize: '14px', opacity: 0.8, transition: 'opacity 0.2s' }}
-									onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.opacity = '1'; (e.currentTarget as HTMLDivElement).style.color = '#f5c518'; }}
-									onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.opacity = '0.8'; (e.currentTarget as HTMLDivElement).style.color = '#ffffff'; }}
+									style={{ color: '#57564f', fontSize: '14px', opacity: 0.9, transition: 'opacity 0.2s' }}
+									onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.opacity = '1'; (e.currentTarget as HTMLDivElement).style.color = '#1c1b18'; }}
+									onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.opacity = '0.9'; (e.currentTarget as HTMLDivElement).style.color = '#57564f'; }}
 								> {t('Agents')} </div>
 							</Link>
 							<Link href={'/community?articleCategory=FREE'}>
 								<div
-									style={{ color: '#ffffff', fontSize: '14px', opacity: 0.8, transition: 'opacity 0.2s' }}
-									onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.opacity = '1'; (e.currentTarget as HTMLDivElement).style.color = '#f5c518'; }}
-									onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.opacity = '0.8'; (e.currentTarget as HTMLDivElement).style.color = '#ffffff'; }}
+									style={{ color: '#57564f', fontSize: '14px', opacity: 0.9, transition: 'opacity 0.2s' }}
+									onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.opacity = '1'; (e.currentTarget as HTMLDivElement).style.color = '#1c1b18'; }}
+									onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.opacity = '0.9'; (e.currentTarget as HTMLDivElement).style.color = '#57564f'; }}
 								> {t('Community')} </div>
 							</Link>
 							{user?._id && (
 								<Link href={'/mypage'}>
 									<div
-										style={{ color: '#ffffff', fontSize: '14px', opacity: 0.8, transition: 'opacity 0.2s' }}
-										onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.opacity = '1'; (e.currentTarget as HTMLDivElement).style.color = '#f5c518'; }}
-										onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.opacity = '0.8'; (e.currentTarget as HTMLDivElement).style.color = '#ffffff'; }}
+										style={{ color: '#57564f', fontSize: '14px', opacity: 0.9, transition: 'opacity 0.2s' }}
+										onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.opacity = '1'; (e.currentTarget as HTMLDivElement).style.color = '#1c1b18'; }}
+										onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.opacity = '0.9'; (e.currentTarget as HTMLDivElement).style.color = '#57564f'; }}
 									> {t('My Page')} </div>
 								</Link>
 							)}
 							<Link href={'/cs'}>
 								<div
-									style={{ color: '#ffffff', fontSize: '14px', opacity: 0.8, transition: 'opacity 0.2s' }}
-									onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.opacity = '1'; (e.currentTarget as HTMLDivElement).style.color = '#f5c518'; }}
-									onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.opacity = '0.8'; (e.currentTarget as HTMLDivElement).style.color = '#ffffff'; }}
+									style={{ color: '#57564f', fontSize: '14px', opacity: 0.9, transition: 'opacity 0.2s' }}
+									onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.opacity = '1'; (e.currentTarget as HTMLDivElement).style.color = '#1c1b18'; }}
+									onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.opacity = '0.9'; (e.currentTarget as HTMLDivElement).style.color = '#57564f'; }}
 								> {t('CS')} </div>
 							</Link>
 						</Box>
@@ -224,7 +240,7 @@ const Top = () => {
 												user?.memberImage ? `${REACT_APP_API_URL}/${user?.memberImage}` : '/img/profile/defaultUser.svg'
 											}
 											alt=""
-											style={{ width: '34px', height: '34px', borderRadius: '50%', objectFit: 'cover', border: '2px solid rgba(245,197,24,0.5)', cursor: 'pointer' }}
+											style={{ width: '34px', height: '34px', borderRadius: '50%', objectFit: 'cover', border: '2px solid rgba(28,27,24,0.15)', cursor: 'pointer' }}
 										/>
 									</div>
 
@@ -245,7 +261,7 @@ const Top = () => {
 								</>
 							) : (
 								<Link href={'/account/join'}>
-									<div className={'join-box'} style={{ background: '#f5c518', color: '#0d1117', borderRadius: '999px', padding: '8px 18px', fontSize: '13px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}>
+									<div className={'join-box'} style={{ background: '#1c1b18', color: 'white', borderRadius: '24px', padding: '8px 18px', fontSize: '13px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}>
 										<AccountCircleOutlinedIcon />
 										<span>
 											{t('Login')} / {t('Register')}

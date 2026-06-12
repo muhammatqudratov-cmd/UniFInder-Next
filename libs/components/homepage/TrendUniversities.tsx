@@ -3,6 +3,8 @@ import { Stack, Box } from '@mui/material';
 import useDeviceDetect from '../../hooks/useDeviceDetect';
 import WestIcon from '@mui/icons-material/West';
 import EastIcon from '@mui/icons-material/East';
+import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
+import FavoriteIcon from '@mui/icons-material/Favorite';
 import { useRouter } from 'next/router';
 import { LayoutGrid } from '../ui/LayoutGrid';
 import { REACT_APP_API_URL } from '../../config';
@@ -12,8 +14,9 @@ import { University } from '../../types/university/university';
 import { UniversitiesInquiry } from '../../types/university/university.input';
 import TrendUniversityCard from './TrendUniversityCard';
 import { GET_UNIVERSITIES } from '../../../apollo/user/query';
-import { useMutation, useQuery } from '@apollo/client';
+import { useMutation, useQuery, useReactiveVar } from '@apollo/client';
 import { T } from '../../types/common';
+import { userVar } from '../../../apollo/store';
 import { LIKE_TARGET_UNIVERSITY } from '../../../apollo/user/mutation';
 import { sweetMixinErrorAlert, sweetTopSmallSuccessAlert } from '../../sweetAlert';
 import { Message } from '../../enums/common.enum';
@@ -27,6 +30,7 @@ const TrendUniversities = (props: TrendUniversitiesProps) => {
 	const { initialInput } = props;
 	const device = useDeviceDetect();
 	const router = useRouter();
+	const user = useReactiveVar(userVar);
 	const [trendUniversities, setTrendUniversities] = useState<University[]>([]);
 
 	/** APOLLO REQUESTS **/
@@ -95,42 +99,72 @@ const TrendUniversities = (props: TrendUniversitiesProps) => {
 			</Stack>
 		);
 	} else {
+		const grads = ['grad-sage', 'grad-lav', 'grad-coral', 'grad-lav2'];
 		return (
-			<Stack className={'trend-universities'}>
-				<Stack className={'container'}>
-					<Stack className={'info-box'}>
-						<Box component={'div'} className={'left'}>
-							<span>Trend Universities</span>
-							<p>Trend is based on likes</p>
+			<div className="trend-universities">
+				<div className="trend-section-header">
+					<div>
+						<h2>Trend Universities</h2>
+						<p>Trending now, based on likes</p>
+					</div>
+					<div className="trend-nav-arrows">
+						<button className={'swiper-trend-prev'}>←</button>
+						<button className={'swiper-trend-next'}>→</button>
+					</div>
+				</div>
+
+				<div className="trend-cards-grid">
+					{trendUniversities.length === 0 ? (
+						<Box component={'div'} className={'empty-list'}>
+							Trends Empty
 						</Box>
-						<Box component={'div'} className={'right'}>
-							<div className={'pagination-box'}>
-								<WestIcon className={'swiper-trend-prev'} />
-								<div className={'swiper-trend-pagination'}></div>
-								<EastIcon className={'swiper-trend-next'} />
-							</div>
-						</Box>
-					</Stack>
-					<Stack className={'card-box'}>
-						{trendUniversities.length === 0 ? (
-							<Box component={'div'} className={'empty-list'}>
-								Trends Empty
-							</Box>
-						) : (
-							<LayoutGrid
-								cards={trendUniversities.slice(0, 4).map((university, index) => ({
-									id: index + 1,
-									title: university.universityName,
-									description: university.universityAddress,
-									thumbnail: `${REACT_APP_API_URL}/${university?.universityImages?.[0]}`,
-									span: index === 0 || index === 3 ? 'wide' : 'normal',
-									onClick: () => router.push({ pathname: '/university/detail', query: { id: university._id } }),
-								}))}
-							/>
-						)}
-					</Stack>
-				</Stack>
-			</Stack>
+					) : (
+						trendUniversities.map((university: University, index: number) => {
+							const grad = grads[index % 4];
+							return (
+								<div
+									key={university._id}
+									className="trend-uni-card"
+									onClick={() => router.push({ pathname: '/university/detail', query: { id: university._id } })}
+								>
+									<div className="trend-card-image">
+										{university.universityImages?.[0] ? (
+											<img
+												src={`${REACT_APP_API_URL}/${university.universityImages[0]}`}
+												alt={university.universityName}
+												style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+											/>
+										) : (
+											<div className={`trend-card-gradient ${grad}`}></div>
+										)}
+										<span className="trend-card-badge">{university.universityType}</span>
+										<button
+											className={`trend-card-heart${university?.meLiked && university?.meLiked[0]?.myFavorite ? ' liked' : ''}`}
+											onClick={(e) => { e.stopPropagation(); likeUniversityHandler(user, university._id); }}
+										>
+											{university?.meLiked && university?.meLiked[0]?.myFavorite
+												? <FavoriteIcon style={{ fontSize: 16, color: '#E8856A' }} />
+												: <FavoriteBorderIcon style={{ fontSize: 16, color: '#8E8C83' }} />
+											}
+										</button>
+									</div>
+									<div className="trend-card-body">
+										<h3>{university.universityName}</h3>
+										<div className="trend-card-location">📍 {university.universityLocation}</div>
+										<div className="trend-card-footer">
+											<div className="trend-card-rating">
+												<span className="star">👁</span>
+												<span className="count">{university.universityViews || '—'}</span>
+											</div>
+											<div className="trend-card-likes">♡ {university.universityLikes || '—'}</div>
+										</div>
+									</div>
+								</div>
+							);
+						})
+					)}
+				</div>
+			</div>
 		);
 	}
 };
@@ -139,7 +173,7 @@ TrendUniversities.defaultProps = {
 	initialInput: {
 		page: 1,
 		limit: 8,
-		sort: 'universityRank',
+		sort: 'createdAt',
 		direction: 'DESC',
 		search: {},
 	},

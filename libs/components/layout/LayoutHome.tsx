@@ -4,7 +4,7 @@ import Head from 'next/head';
 import Top from '../Top';
 import Footer from '../Footer';
 import { Stack } from '@mui/material';
-import HeroSection from '../homepage/HeroSection';
+import { useRouter } from 'next/router';
 import HeaderFilter from '../homepage/HeaderFilter';
 import { userVar } from '../../../apollo/store';
 import { useReactiveVar } from '@apollo/client';
@@ -18,6 +18,7 @@ const withLayoutMain = (Component: any) => {
 	return (props: any) => {
 		const device = useDeviceDetect();
 		const user = useReactiveVar(userVar);
+		const router = useRouter();
 
 		/** LIFECYCLES **/
 		useEffect(() => {
@@ -61,12 +62,30 @@ const withLayoutMain = (Component: any) => {
 							<Top />
 						</Stack>
 
-						<Stack className={'header-main'}>
-							<HeroSection />
-							<Stack className={'container'}>
-								<HeaderFilter />
-							</Stack>
-						</Stack>
+						<section className="hero-section">
+							<div className="hero-orbs">
+								<div className="hero-orb orb-coral"></div>
+								<div className="hero-orb orb-sage"></div>
+								<div className="hero-orb orb-lav"></div>
+							</div>
+							<div className="hero-content">
+								<div className="hero-tag">The ultimate guide to universities</div>
+								<h1 className="hero-title">
+									Find your campus<br />
+									in <span className="hero-accent">South Korea</span>
+								</h1>
+								<p className="hero-sub">
+									Compare top universities, connect with trusted agents, and plan your move — all in one calm, clear place.
+								</p>
+								<div className="hero-buttons">
+									<button className="hero-btn-primary">🎓 Explore Universities</button>
+									<button className="hero-btn-secondary">👤 Talk to an agent</button>
+								</div>
+								<div className="hero-search-card">
+									<HeaderFilter />
+								</div>
+							</div>
+						</section>
 
 						<Stack id={'main'}>
 							<Component {...props} />
