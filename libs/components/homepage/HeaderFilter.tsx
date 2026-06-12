@@ -319,7 +319,7 @@ const HeaderFilter = (props: HeaderFilterProps) => {
 	} else {
 		return (
 			<>
-				<Stack className={'search-box'} style={{ width: '100%', padding: '4px 8px', minHeight: 'unset' }} sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', width: '780px', maxWidth: '90vw', borderRadius: '14px', padding: '4px 6px', background: 'white', boxShadow: '0 4px 16px rgba(0,0,0,0.07)', gap: '0px' }}>
+				<Stack className={'search-box'} style={{ flexDirection: 'row', alignItems: 'center', background: 'white', borderRadius: '16px', padding: '5px 6px', boxShadow: '0 6px 24px rgba(0,0,0,0.09)', width: '820px', maxWidth: '92vw', position: 'relative', gap: 0 }}>
 					<Stack className={'select-box'}>
 						<Box component={'div'} className={`box ${openLocation ? 'on' : ''}`} onClick={locationStateChangeHandler} sx={{ flex: 1, padding: '6px 10px', minWidth: 0 }}>
 							<span>{searchFilter?.search?.locationList ? searchFilter?.search?.locationList[0] : t('Location')} </span>
