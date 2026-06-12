@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
-import { Stack, Box } from '@mui/material';
+import { Stack } from '@mui/material';
 import useDeviceDetect from '../../hooks/useDeviceDetect';
-import WestIcon from '@mui/icons-material/West';
-import EastIcon from '@mui/icons-material/East';
+import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
+import FavoriteIcon from '@mui/icons-material/Favorite';
 import { useRouter } from 'next/router';
-import { LayoutGrid } from '../ui/LayoutGrid';
 import { REACT_APP_API_URL } from '../../config';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay, Navigation, Pagination } from 'swiper';
@@ -91,35 +90,57 @@ const TopUniversities = (props: TopUniversitiesProps) => {
 		);
 	} else {
 		return (
-			<Stack className={'top-universities'}>
-				<Stack className={'container'}>
-					<Stack className={'info-box'}>
-						<Box component={'div'} className={'left'}>
-							<span>Top universities</span>
-							<p>Check out our Top Universities</p>
-						</Box>
-						<Box component={'div'} className={'right'}>
-							<div className={'pagination-box'}>
-								<WestIcon className={'swiper-top-prev'} />
-								<div className={'swiper-top-pagination'}></div>
-								<EastIcon className={'swiper-top-next'} />
+			<div className="top-universities">
+				<div className="top-section-header">
+					<div>
+						<h2>Top Universities</h2>
+						<p>Check out our highest-rated universities</p>
+					</div>
+					<div className="top-nav-arrows">
+						<button>←</button>
+						<button>→</button>
+					</div>
+				</div>
+
+				<div className="top-cards-grid">
+					{topUniversities.map((university: University, index: number) => (
+						<div
+							key={university._id}
+							className="top-uni-card"
+							onClick={() => router.push({ pathname: '/university/detail', query: { id: university._id } })}
+						>
+							<div className="top-card-image">
+								{university.universityImages?.[0] ? (
+									<img
+										src={`${REACT_APP_API_URL}/${university.universityImages[0]}`}
+										alt={university.universityName}
+									/>
+								) : (
+									<div style={{ width: '100%', height: '100%', background: 'linear-gradient(135deg, #f4f3ef, #e8e0d5)' }} />
+								)}
+								<span className="top-card-badge">{university.universityType}</span>
+								<button
+									className={`top-card-heart${university?.meLiked?.[0]?.myFavorite ? ' liked' : ''}`}
+									onClick={(e) => { e.stopPropagation(); }}
+								>
+									{university?.meLiked?.[0]?.myFavorite ? '♥' : '♡'}
+								</button>
 							</div>
-						</Box>
-					</Stack>
-					<Stack className={'card-box'}>
-						<LayoutGrid
-							cards={topUniversities.slice(0, 4).map((university, index) => ({
-								id: index + 1,
-								title: university.universityName,
-								description: university.universityAddress,
-								thumbnail: `${REACT_APP_API_URL}/${university?.universityImages?.[0]}`,
-								span: index === 0 || index === 3 ? 'wide' : 'normal',
-								onClick: () => router.push({ pathname: '/university/detail', query: { id: university._id } }),
-							}))}
-						/>
-					</Stack>
-				</Stack>
-			</Stack>
+							<div className="top-card-body">
+								<h3>{university.universityName}</h3>
+								<div className="top-card-location">📍 {university.universityLocation}</div>
+								<div className="top-card-footer">
+									<div className="top-card-rating">
+										<span className="star">★</span>
+										<span className="count">{university.universityViews || '—'}</span>
+									</div>
+									<div className="top-card-likes">♡ {university.universityLikes || '—'}</div>
+								</div>
+							</div>
+						</div>
+					))}
+				</div>
+			</div>
 		);
 	}
 };

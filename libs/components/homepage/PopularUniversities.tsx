@@ -101,12 +101,6 @@ const PopularUniversities = (props: PopularUniversitiesProps) => {
 									<div style={{ width: '100%', height: '100%', background: 'linear-gradient(135deg, #f0ede8, #e8e0d5)' }} />
 								)}
 								<span className="popular-card-badge">{university.universityType}</span>
-								<button
-									className={`popular-card-heart${university?.meLiked?.[0]?.myFavorite ? ' liked' : ''}`}
-									onClick={(e) => { e.stopPropagation(); }}
-								>
-									{university?.meLiked?.[0]?.myFavorite ? '♥' : '♡'}
-								</button>
 							</div>
 							<div className="popular-card-body">
 								<h3>{university.universityName}</h3>
