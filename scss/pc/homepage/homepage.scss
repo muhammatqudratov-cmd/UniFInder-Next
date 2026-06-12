@@ -279,12 +279,12 @@
 			}
 		}
 		.popular-universities {
-			padding: 80px 0px;
+			padding: 72px 48px;
 			width: 100%;
 			height: auto;
-			display: flex;
-			flex-direction: row;
-			background: #e8e0d5;
+			display: block;
+			background: white;
+			box-sizing: border-box;
 			.container {
 				flex-direction: column;
 				align-items: center;
@@ -1461,4 +1461,158 @@
 	gap: 4px;
 	font-size: 12px;
 	color: #8e8c83;
+}
+
+/* ── Popular Universities ── */
+.popular-universities {
+  padding: 72px 48px;
+  background: white;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.popular-section-header {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 32px;
+}
+.popular-section-header h2 {
+  font-size: 36px;
+  font-weight: 800;
+  color: #1c1b18;
+  letter-spacing: -0.5px;
+  margin: 0 0 6px;
+}
+.popular-section-header p {
+  font-size: 14px;
+  color: #8e8c83;
+  margin: 0;
+}
+.popular-see-all {
+  font-size: 13px;
+  font-weight: 600;
+  color: #57564f;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 8px;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+.popular-see-all:hover {
+  color: #e8856a;
+}
+
+.popular-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+  width: 100%;
+}
+
+.popular-uni-card {
+  background: white;
+  border-radius: 18px;
+  overflow: hidden;
+  border: 1px solid #e9e7e0;
+  cursor: pointer;
+  transition: transform 0.25s, box-shadow 0.25s;
+}
+.popular-uni-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.08);
+}
+.popular-card-image {
+  position: relative;
+  height: 180px;
+  overflow: hidden;
+}
+.popular-card-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.popular-card-badge {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(8px);
+  border-radius: 20px;
+  padding: 4px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #1c1b18;
+}
+.popular-card-heart {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: white;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: all 0.2s;
+  color: #8e8c83;
+  font-size: 16px;
+}
+.popular-card-heart.liked {
+  background: #fbede7;
+  color: #e8856a;
+}
+
+.popular-card-body {
+  padding: 16px;
+}
+.popular-card-body h3 {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1c1b18;
+  margin: 0 0 6px;
+}
+.popular-card-location {
+  font-size: 12px;
+  color: #8e8c83;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 14px;
+}
+.popular-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.popular-card-rating {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #1c1b18;
+}
+.popular-card-rating .star {
+  color: #f4b400;
+}
+.popular-card-rating .count {
+  font-weight: 400;
+  color: #8e8c83;
+  font-size: 11px;
+}
+.popular-card-likes {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: #8e8c83;
 }

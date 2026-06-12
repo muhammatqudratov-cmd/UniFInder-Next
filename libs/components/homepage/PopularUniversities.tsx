@@ -73,41 +73,56 @@ const PopularUniversities = (props: PopularUniversitiesProps) => {
 		);
 	} else {
 		return (
-			<Stack className={'popular-universities'} style={{ background: '#e8e0d5', padding: '80px 0' }}>
-				<Stack className={'container'}>
-					<Stack className={'info-box'}>
-						<Box component={'div'} className={'left'}>
-							<span>Popular universities</span>
-							<p>Popularity is based on views</p>
-						</Box>
-						<Box component={'div'} className={'right'}>
-							<div className={'more-box'}>
-								<Link href={'/university'}>
-									<span>See All Categories</span>
-								</Link>
-								<img src="/img/icons/rightup.svg" alt="" />
+			<div className="popular-universities">
+				<div className="popular-section-header">
+					<div>
+						<h2>Popular Universities</h2>
+						<p>Popularity is based on views this month</p>
+					</div>
+					<span className="popular-see-all" onClick={() => router.push('/university')}>
+						See all categories ↗
+					</span>
+				</div>
+
+				<div className="popular-cards-grid">
+					{popularUniversities.map((university: University, index: number) => (
+						<div
+							key={university._id}
+							className="popular-uni-card"
+							onClick={() => router.push({ pathname: '/university/detail', query: { id: university._id } })}
+						>
+							<div className="popular-card-image">
+								{university.universityImages?.[0] ? (
+									<img
+										src={`${REACT_APP_API_URL}/${university.universityImages[0]}`}
+										alt={university.universityName}
+									/>
+								) : (
+									<div style={{ width: '100%', height: '100%', background: 'linear-gradient(135deg, #f0ede8, #e8e0d5)' }} />
+								)}
+								<span className="popular-card-badge">{university.universityType}</span>
+								<button
+									className={`popular-card-heart${university?.meLiked?.[0]?.myFavorite ? ' liked' : ''}`}
+									onClick={(e) => { e.stopPropagation(); }}
+								>
+									{university?.meLiked?.[0]?.myFavorite ? '♥' : '♡'}
+								</button>
 							</div>
-						</Box>
-					</Stack>
-					<Stack className={'card-box'}>
-						<LayoutGrid
-							cards={popularUniversities.slice(0, 4).map((university, index) => ({
-								id: index + 1,
-								title: university.universityName,
-								description: university.universityAddress,
-								thumbnail: `${REACT_APP_API_URL}/${university?.universityImages?.[0]}`,
-								span: index === 0 || index === 3 ? 'wide' : 'normal',
-								onClick: () => router.push({ pathname: '/university/detail', query: { id: university._id } }),
-							}))}
-						/>
-					</Stack>
-					<Stack className={'pagination-box'}>
-						<WestIcon className={'swiper-popular-prev'} />
-						<div className={'swiper-popular-pagination'}></div>
-						<EastIcon className={'swiper-popular-next'} />
-					</Stack>
-				</Stack>
-			</Stack>
+							<div className="popular-card-body">
+								<h3>{university.universityName}</h3>
+								<div className="popular-card-location">📍 {university.universityLocation}</div>
+								<div className="popular-card-footer">
+									<div className="popular-card-rating">
+										<span className="star">★</span>
+										<span className="count">{university.universityViews || '—'}</span>
+									</div>
+									<div className="popular-card-likes">♡ {university.universityLikes || '—'}</div>
+								</div>
+							</div>
+						</div>
+					))}
+				</div>
+			</div>
 		);
 	}
 };
