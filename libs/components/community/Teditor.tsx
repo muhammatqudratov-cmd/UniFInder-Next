@@ -10,6 +10,8 @@ import { T } from '../../types/common';
 import '@toast-ui/editor/dist/toastui-editor.css';
 import { sweetErrorHandling, sweetTopSuccessAlert } from '../../sweetAlert';
 import { Message } from '../../enums/common.enum';
+import { useMutation } from '@apollo/client';
+import { CREATE_BOARD_ARTICLE } from '../../../apollo/user/mutation';
 
 const TuiEditor = () => {
 	const editorRef = useRef<Editor>(null),
@@ -18,6 +20,7 @@ const TuiEditor = () => {
 	const [articleCategory, setArticleCategory] = useState<BoardArticleCategory>(BoardArticleCategory.FREE);
 
 	/** APOLLO REQUESTS **/
+	const [createBoardArticleMutation] = useMutation(CREATE_BOARD_ARTICLE);
 
 	const memoizedValues = useMemo(() => {
 		const articleTitle = '',
@@ -81,22 +84,25 @@ const TuiEditor = () => {
 	const handleRegisterButton = async () => {
 		try {
 			const editor = editorRef.current;
-			const articleContent = editor?.getInstance().getHTML();
+			const articleContent = editor?.getInstance().getHTML() ?? '';
 
-			if (memoizedValues.articleContent === '' && memoizedValues.articleTitle === '') {
+			if (memoizedValues.articleTitle === '' || articleContent === '') {
 				throw new Error(Message.INSERT_ALL_INPUTS);
 			}
 
+			const input = {
+				articleTitle: memoizedValues.articleTitle,
+				articleCategory: articleCategory,
+				articleContent: articleContent,
+				articleImage: memoizedValues.articleImage ?? '',
+			};
+
+			await createBoardArticleMutation({ variables: { input } });
 			await sweetTopSuccessAlert('Article is created successfully', 700);
-			await router.push({
-				pathname: '/mypage',
-				query: {
-					category: 'myArticles',
-				},
-			});
-		} catch (error: any) {
-			console.log(error);
-			sweetErrorHandling(new Error(Message.INSERT_ALL_INPUTS)).then();
+			await router.push({ pathname: '/mypage', query: { category: 'myArticles' } });
+		} catch (err: any) {
+			console.log('ERROR:', err.message);
+			await sweetErrorHandling(err);
 		}
 	};
 

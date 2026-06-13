@@ -10,12 +10,13 @@ import { Autoplay, Navigation, Pagination } from 'swiper';
 import TopUniversityCard from './TopUniversityCard';
 import { UniversitiesInquiry } from '../../types/university/university.input';
 import { University } from '../../types/university/university';
-import { useMutation, useQuery } from '@apollo/client';
+import { useMutation, useQuery, useReactiveVar } from '@apollo/client';
 import { GET_UNIVERSITIES } from '../../../apollo/user/query';
 import { T } from '../../types/common';
 import { LIKE_TARGET_UNIVERSITY } from '../../../apollo/user/mutation';
 import { sweetMixinErrorAlert, sweetTopSmallSuccessAlert } from '../../sweetAlert';
 import { Message } from '../../enums/common.enum';
+import { userVar } from '../../../apollo/store';
 
 interface TopUniversitiesProps {
 	initialInput: UniversitiesInquiry;
@@ -25,6 +26,7 @@ const TopUniversities = (props: TopUniversitiesProps) => {
 	const { initialInput } = props;
 	const device = useDeviceDetect();
 	const router = useRouter();
+	const user = useReactiveVar(userVar);
 	const [topUniversities, setTopUniversities] = useState<University[]>([]);
 
 	/** APOLLO REQUESTS **/
@@ -121,9 +123,12 @@ const TopUniversities = (props: TopUniversitiesProps) => {
 								<span className="top-card-badge">{university.universityType}</span>
 								<button
 									className={`top-card-heart${university?.meLiked?.[0]?.myFavorite ? ' liked' : ''}`}
-									onClick={(e) => { e.stopPropagation(); }}
+									onClick={(e) => { e.stopPropagation(); likeUniversityHandler(user, university._id); }}
 								>
-									{university?.meLiked?.[0]?.myFavorite ? '♥' : '♡'}
+									{university?.meLiked?.[0]?.myFavorite
+										? <FavoriteIcon style={{ fontSize: 16, color: '#E8856A' }} />
+										: <FavoriteBorderIcon style={{ fontSize: 16, color: '#8E8C83' }} />
+									}
 								</button>
 							</div>
 							<div className="top-card-body">

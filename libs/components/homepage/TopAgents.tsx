@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/router';
-import { Stack, Box } from '@mui/material';
+import { Stack } from '@mui/material';
 import useDeviceDetect from '../../hooks/useDeviceDetect';
-import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
 import { Swiper, SwiperSlide } from 'swiper/react';
-import { Autoplay, Navigation, Pagination } from 'swiper';
+import { Autoplay } from 'swiper';
 import TopAgentCard from './TopAgentCard';
-import { AnimatedTooltip } from '../ui/AnimatedTooltip';
+import { REACT_APP_API_URL } from '../../config';
 import { Member } from '../../types/member/member';
 import { AgentsInquiry } from '../../types/member/member.input';
 import { T } from '../../types/common';
@@ -67,34 +66,66 @@ const TopAgents = (props: TopAgentsProps) => {
 			</Stack>
 		);
 	} else {
+		const avatarColors = ['av-coral', 'av-lav', 'av-sage'];
 		return (
-			<Stack className={'top-agents'} style={{ background: '#e8e0d5', padding: '80px 0' }}>
-				<Stack className={'container'}>
-					<Stack className={'info-box'}>
-						<Box component={'div'} className={'left'}>
-							<span>Top Agents</span>
-							<p>Our Top Agents always ready to serve you</p>
-						</Box>
-						<Box component={'div'} className={'right'}>
-							<div className={'more-box'}>
-								<span>See All Agents</span>
-								<img src="/img/icons/rightup.svg" alt="" />
-							</div>
-						</Box>
-					</Stack>
-					<div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '48px', paddingTop: '60px', width: '100%' }}>
-						<AnimatedTooltip
-							items={topAgents.map((agent) => ({
-								_id: agent._id,
-								memberNick: agent.memberNick,
-								memberType: agent.memberType,
-								memberImage: agent.memberImage,
-								onClick: () => router.push({ pathname: '/agent/detail', query: { agentId: agent._id } }),
-							}))}
-						/>
+			<div className="top-agents">
+				<div className="agents-section-header">
+					<div>
+						<h2>Top Agents</h2>
+						<p>Our top agents are always ready to serve you</p>
 					</div>
-				</Stack>
-			</Stack>
+					<span className="agents-see-all" onClick={() => router.push('/agent')}>
+						See All Agents →
+					</span>
+				</div>
+
+				<div className="agents-grid">
+					{topAgents.map((agent: Member, index: number) => (
+						<div
+							key={agent._id}
+							className="agent-card"
+							onClick={() => router.push({ pathname: '/agent/detail', query: { agentId: agent._id } })}
+						>
+							<div className={`agent-avatar ${avatarColors[index % avatarColors.length]}`}>
+								{agent.memberImage
+									? <img src={`${REACT_APP_API_URL}/${agent.memberImage}`} alt={agent.memberNick} />
+									: agent.memberNick?.charAt(0).toUpperCase()
+								}
+							</div>
+							<div className="agent-name">{agent.memberFullName || agent.memberNick}</div>
+							<div className="agent-company">{agent.memberType}</div>
+							<div className="agent-rating">
+								<span className="star">★</span>
+								<span>{agent.memberRank?.toFixed(1) || '—'}</span>
+								<span className="count">({agent.memberLikes || 0})</span>
+							</div>
+							<div className="agent-stats">
+								<div className="stat-item">
+									<span className="stat-val">{agent.memberLikes || 0}</span>
+									<span className="stat-lbl">Students</span>
+								</div>
+								<div className="stat-item">
+									<span className="stat-val">{agent.memberViews || 0}</span>
+									<span className="stat-lbl">Views</span>
+								</div>
+								<div className="stat-item">
+									<span className="stat-val">{agent.memberRank || 0}</span>
+									<span className="stat-lbl">Rank</span>
+								</div>
+							</div>
+							<button
+								className="agent-btn"
+								onClick={(e) => {
+									e.stopPropagation();
+									router.push({ pathname: '/agent/detail', query: { agentId: agent._id } });
+								}}
+							>
+								View Profile
+							</button>
+						</div>
+					))}
+				</div>
+			</div>
 		);
 	}
 };
@@ -102,7 +133,7 @@ const TopAgents = (props: TopAgentsProps) => {
 TopAgents.defaultProps = {
 	initialInput: {
 		page: 1,
-		limit: 10,
+		limit: 8,
 		sort: 'memberRank',
 		direction: 'DESC',
 		search: {},

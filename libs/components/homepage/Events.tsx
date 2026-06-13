@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { Stack, Box } from '@mui/material';
+import { useRouter } from 'next/router';
 import useDeviceDetect from '../../hooks/useDeviceDetect';
 
 interface EventData {
@@ -192,35 +192,53 @@ const EventCard = ({ event }: { event: EventData }) => {
 
 const Events = () => {
     const device = useDeviceDetect();
+    const router = useRouter();
+    const grads = ['grad-coral', 'grad-lav', 'grad-sage', 'grad-lav2'];
 
     if (device === 'mobile') {
         return <div>EVENTS</div>;
     }
 
     return (
-        <Stack style={{ background: '#0d1117', padding: '80px 0' }}>
-            <Stack className={'container'} style={{ flexDirection: 'column' }}>
-                <Box style={{ marginBottom: '36px' }}>
-                    <Box style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
-                        <Box style={{ width: '28px', height: '2px', background: '#f5c518' }} />
-                        <span style={{ color: '#f5c518', fontSize: '11px', letterSpacing: '3px', textTransform: 'uppercase' }}>
-                            Discover Korea
-                        </span>
-                    </Box>
-                    <Box component={'h2'} style={{ color: '#fff', fontSize: '32px', fontWeight: 500, margin: '0 0 6px' }}>
-                        Events & Festivals
-                    </Box>
-                    <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '13px', margin: 0 }}>
-                        Events waiting your attention!
-                    </p>
-                </Box>
-                <Box style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', perspective: '1000px' }}>
-                    {eventsData.map((event) => (
-                        <EventCard key={event.eventTitle} event={event} />
-                    ))}
-                </Box>
-            </Stack>
-        </Stack>
+        <div className="events">
+            <div className="events-section-header">
+                <div>
+                    <div className="events-tag">Discover Korea</div>
+                    <h2>Events & Festivals</h2>
+                    <p>Experiences worth planning your semester around</p>
+                </div>
+                <div className="events-nav-arrows">
+                    <button>←</button>
+                    <button>→</button>
+                </div>
+            </div>
+
+            <div className="events-grid">
+                {eventsData.map((event, index) => (
+                    <div
+                        key={event.eventTitle}
+                        className="event-card"
+                        onClick={() => router.push('/community')}
+                    >
+                        <div className={`event-gradient ${grads[index % 4]}`} />
+                        <div
+                            className="event-image-bg"
+                            style={{ backgroundImage: `url(${event.imageSrc})` }}
+                        />
+                        <div className="event-overlay" />
+                        <span className="event-badge">{event.city}</span>
+                        <div className="event-body">
+                            <div className="event-date">📅 {event.description.slice(0, 40)}…</div>
+                            <div className="event-title">{event.eventTitle}</div>
+                            <div className="event-footer">
+                                <span>{event.code}</span>
+                                <span className="event-details">Details →</span>
+                            </div>
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </div>
     );
 };
 

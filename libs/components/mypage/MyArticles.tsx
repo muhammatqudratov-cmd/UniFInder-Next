@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { NextPage } from 'next';
 import useDeviceDetect from '../../hooks/useDeviceDetect';
 import { Pagination, Stack, Typography } from '@mui/material';
@@ -19,8 +19,16 @@ const MyArticles: NextPage = ({ initialInput, ...props }: T) => {
 		...initialInput,
 		search: { memberId: user._id },
 	});
-	const [boardArticles, setBoardArticles] = useState<BoardArticle[]>([]);
 	const [totalCount, setTotalCount] = useState<number>(0);
+
+	useEffect(() => {
+		if (user?._id) {
+			setSearchCommunity((prev: any) => ({
+				...prev,
+				search: { memberId: user._id },
+			}));
+		}
+	}, [user?._id]);
 
 	/** APOLLO REQUESTS **/
 	const [likeTargetBoardArticle] = useMutation(LIKE_TARGET_BOARD_ARTICLE);
@@ -33,11 +41,18 @@ const MyArticles: NextPage = ({ initialInput, ...props }: T) => {
 		fetchPolicy: 'network-only',
 		variables: { input: searchCommunity },
 		notifyOnNetworkStatusChange: true,
+		skip: !user?._id,
 		onCompleted: (data: T) => {
-			setBoardArticles(data?.getBoardArticles?.list);
 			setTotalCount(data?.getBoardArticles?.metaCounter[0]?.total);
 		},
 	});
+
+	const boardArticles: BoardArticle[] = getBoardArticlesData?.getBoardArticles?.list ?? [];
+
+	console.log('BOARD ARTICLES:', boardArticles);
+	console.log('USER ID:', user?._id);
+	console.log('SKIP VALUE:', !user?._id);
+	console.log('RAW DATA:', getBoardArticlesData);
 	/** HANDLERS **/
 	const paginationHandler = (e: T, value: number) => {
 		setSearchCommunity({ ...searchCommunity, page: value });
