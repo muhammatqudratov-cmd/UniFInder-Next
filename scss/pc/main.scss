@@ -1082,3 +1082,14 @@ body::-webkit-scrollbar {
 	border-radius: 2px;
 	margin-right: 8px;
 }
+
+/* Override legacy dark footer — new newsletter-section handles its own background */
+#footer {
+  background: transparent !important;
+  padding: 0 !important;
+}
+
+.footer-container {
+  background: transparent !important;
+  display: none !important;
+}

@@ -166,24 +166,18 @@ const Top = () => {
 					<Stack className={'container'} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', height: '70px' }}>
 						<div className="uni-logo" onClick={() => router.push('/')} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
 							<div style={{
-								width: '32px',
-								height: '32px',
+								width: '28px',
+								height: '28px',
 								borderRadius: '50%',
-								background: 'linear-gradient(135deg, #E8856A, #C4B5D9)',
+								border: '2px solid #1C1B18',
 								display: 'flex',
 								alignItems: 'center',
 								justifyContent: 'center',
-								fontSize: '14px',
-								color: 'white',
-								fontWeight: '700',
 								flexShrink: 0,
-							}}>⊙</div>
-							<span style={{
-								fontSize: '17px',
-								fontWeight: '700',
-								color: '#1C1B18',
-								letterSpacing: '-0.3px',
-							}}>UniFinder</span>
+							}}>
+								<div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#E8856A' }}></div>
+							</div>
+							<span style={{ fontSize: '17px', fontWeight: '800', color: '#1C1B18' }}>UniFinder</span>
 						</div>
 						<Box component={'div'} className={'router-box'}>
 							<Link href={'/'}>

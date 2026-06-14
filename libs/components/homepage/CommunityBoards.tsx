@@ -1,17 +1,16 @@
 import React, { useState } from 'react';
-import Link from 'next/link';
 import useDeviceDetect from '../../hooks/useDeviceDetect';
-import { Stack, Typography } from '@mui/material';
-import CommunityCard from './CommunityCard';
 import { BoardArticle } from '../../types/board-article/board-article';
 import { GET_BOARD_ARTICLES } from '../../../apollo/user/query';
-import { Search } from '@mui/icons-material';
 import { useQuery } from '@apollo/client';
 import { BoardArticleCategory } from '../../enums/board-article.enum';
 import { T } from '../../types/common';
+import { useRouter } from 'next/router';
 
 const CommunityBoards = () => {
 	const device = useDeviceDetect();
+	const router = useRouter();
+	const [activeTab, setActiveTab] = useState<'NEWS' | 'FREE'>('NEWS');
 	const [searchCommunity, setSearchCommunity] = useState({
 		page: 1,
 		sort: 'articleViews',
@@ -49,45 +48,62 @@ const CommunityBoards = () => {
 		},
 	});
 
+	const displayedArticles = activeTab === 'NEWS' ? newsArticles : freeArticles;
+
 	if (device === 'mobile') {
 		return <div>COMMUNITY BOARDS (MOBILE)</div>;
 	} else {
 		return (
-			<Stack className={'community-board'}>
-				<Stack className={'container'}>
-					<Stack>
-						<Typography variant={'h1'}>COMMUNITY BOARD HIGHLIGHTS</Typography>
-					</Stack>
-					<Stack className="community-main">
-						<Stack className={'community-left'}>
-							<Stack className={'content-top'}>
-								<Link href={'/community?articleCategory=NEWS'}>
-									<span>News</span>
-								</Link>
-								<img src="/img/icons/arrowBig.svg" alt="" />
-							</Stack>
-							<Stack className={'card-wrap'}>
-								{newsArticles.map((article, index) => {
-									return <CommunityCard vertical={true} article={article} index={index} key={article?._id} />;
-								})}
-							</Stack>
-						</Stack>
-						<Stack className={'community-right'}>
-							<Stack className={'content-top'}>
-								<Link href={'/community?articleCategory=FREE'}>
-									<span>Free</span>
-								</Link>
-								<img src="/img/icons/arrowBig.svg" alt="" />
-							</Stack>
-							<Stack className={'card-wrap vertical'}>
-								{freeArticles.map((article, index) => {
-									return <CommunityCard vertical={false} article={article} index={index} key={article?._id} />;
-								})}
-							</Stack>
-						</Stack>
-					</Stack>
-				</Stack>
-			</Stack>
+			<div className="community-board">
+				<div className="community-header">
+					<div className="community-header-left">
+						<h2>Community Board</h2>
+						<p>What students are talking about right now</p>
+					</div>
+					<div className="community-tabs">
+						<button
+							className={`community-tab ${activeTab === 'NEWS' ? 'active' : ''}`}
+							onClick={() => setActiveTab('NEWS')}
+						>
+							News
+						</button>
+						<button
+							className={`community-tab ${activeTab === 'FREE' ? 'active' : ''}`}
+							onClick={() => setActiveTab('FREE')}
+						>
+							Free Board
+						</button>
+					</div>
+				</div>
+
+				<div className="community-grid">
+					{displayedArticles?.map((article: BoardArticle, index: number) => (
+						<div
+							key={article._id}
+							className="community-card"
+							onClick={() => router.push(`/community/detail?articleCategory=${article.articleCategory}&id=${article._id}`)}
+						>
+							<div className="community-card-tags">
+								<span className={`community-tag ${article.articleCategory === BoardArticleCategory.NEWS ? 'community-tag-news' : 'community-tag-free'}`}>
+									{article.articleCategory}
+								</span>
+								{article.articleViews > 50 && (
+									<span className="community-tag community-tag-hot">HOT</span>
+								)}
+							</div>
+							<div className="community-card-row">
+								<span className="community-card-num">{String(index + 1).padStart(2, '0')}</span>
+								<span className="community-card-title">{article.articleTitle}</span>
+								<span className="community-card-arrow">›</span>
+							</div>
+							<div className="community-card-meta">
+								<span>👁 {article.articleViews}</span>
+								<span>💬 {article.articleComments}</span>
+							</div>
+						</div>
+					))}
+				</div>
+			</div>
 		);
 	}
 };
