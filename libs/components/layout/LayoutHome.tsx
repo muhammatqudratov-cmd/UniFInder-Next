@@ -150,8 +150,8 @@ const withLayoutMain = (Component: any) => {
 									Compare top universities, connect with trusted agents, and plan your move — all in one calm, clear place.
 								</p>
 								<div className="hero-buttons">
-									<button className="hero-btn-primary">🎓 Explore Universities</button>
-									<button className="hero-btn-secondary">👤 Talk to an agent</button>
+									<button className="hero-btn-primary" onClick={() => router.push('/university')}>🎓 Explore Universities</button>
+									<button className="hero-btn-secondary" onClick={() => router.push('/agent')}>👤 Talk to an agent</button>
 								</div>
 								<div style={{ display: 'flex', justifyContent: 'center', width: '100%', position: 'relative', zIndex: 50 }}>
 									<HeaderFilter />
