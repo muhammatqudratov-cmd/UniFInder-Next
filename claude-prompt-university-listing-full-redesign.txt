@@ -1,0 +1,77 @@
+Redesign the visual styling of the Universities listing page to match the attached target design (white background, pill-style filters, colored gradient card placeholders with type badges, modern minimalist cards). This is a VISUAL-ONLY redesign across three files — `libs/components/university/Filter.tsx`, `libs/components/university/UniversityCard.tsx`, `pages/university/index.tsx`, and `scss/pc/university/university.scss`. Do NOT change any state variables, handler function bodies, GraphQL queries/mutations, router.push logic, or prop names — only change className/sx/inline styles, add purely presentational wrapper markup, and swap label text where noted. Every existing `onChange`/`onClick` handler must remain wired to the exact same function it currently calls.
+
+## 1. `scss/pc/university/university.scss` — global page restyle
+- Change `#university-list-page { background: #e8e0d5; }` → `background: #fff;` (or `#fafaf8`).
+- `.filter-main`: change `background: #e8e0d5;` → `#fff;`, add `border: 1px solid #ececec;`, soften `box-shadow` to `0 1px 3px rgba(24,26,32,0.04);`.
+- `.card-config`: change `background: #e8e0d5;` → `#fff;`, add `border: 1px solid #ececec; transition: transform .2s ease, box-shadow .2s ease;` and add a hover rule: `&:hover { transform: translateY(-4px); box-shadow: 0 8px 20px rgba(24,26,32,0.08); }`.
+- `.pagination-config .total-result p`: reduce `font-size: 24px` → `16px;` and `font-weight: 275` → `500;` so it reads like a caption, not a giant number (text content change is optional/cosmetic only, no logic).
+
+## 2. `libs/components/university/Filter.tsx` — pill-style filters
+Keep every `useState`, `useCallback`, and the entire `useEffect` block untouched. Only change the JSX returned in the `else` branch (PC view) as follows:
+
+a) **Section header pattern**: for the "Location" and "University Type" sections, change `<p className={'title'}>Location</p>` / `<Typography className={'title'}>University Type</Typography>` to uppercase section headers with a live count badge, e.g.:
+```tsx
+<Stack direction="row" justifyContent="space-between" alignItems="center">
+  <Typography className={'title'} sx={{ textTransform: 'uppercase', fontSize: '12px', letterSpacing: '0.5px' }}>Location</Typography>
+  {!!searchFilter?.search?.locationList?.length && (
+    <Typography sx={{ fontSize: '11px', color: '#8E8C83' }}>{searchFilter.search.locationList.length} selected</Typography>
+  )}
+</Stack>
+```
+Do the same pattern for "University Type" using `searchFilter?.search?.typeList?.length`.
+
+b) **Pill-style checkboxes**: for the Location and University Type `.map()` blocks, restyle each `<Stack className={'input-box'}>` row into a wrapping pill layout instead of a vertical checkbox list, WITHOUT removing the `<Checkbox>` element or changing its `value`/`checked`/`onChange` props (so all existing toggle logic keeps working). Change the container to `flex-direction: row; flex-wrap: wrap; gap: 8px;` (add this via a new SCSS class `.pill-group` applied to the parent Stack, replacing `.university-location`'s vertical layout), visually hide the native checkbox (`sx={{ position: 'absolute', opacity: 0, width: 0, height: 0 }}` on the `<Checkbox>`), and make the `<label>` the visible pill: rounded full (`border-radius: 20px`), padding `6px 14px`, border `1px solid #E8E8E4`, background `#fff`, text `#1C1B18`. Add a sibling-selector rule in SCSS so a checked checkbox highlights its label: `input:checked + label { background: #E8856A; border-color: #E8856A; color: #fff; }` (note: MUI Checkbox renders an `<input type="checkbox">` internally — verify the generated DOM has the input directly adjacent to the label, or alternatively pass `checked` state down via a conditional className on the label like `className={isSelected ? 'pill-active' : ''}` using the same boolean already used in the `checked` prop, which is simpler and safer — prefer this conditional-className approach over CSS sibling selectors if there's any doubt about DOM adjacency).
+
+c) **Faculties segmented buttons**: in the `Any/1/2/3/4/5+` `Button` group, keep `onClick={() => universityRoomSelectHandler(...)}` exactly as-is on every button. Change the `sx` active/inactive styling from border-only to filled pill: when active (the same boolean condition already used for the border), set `backgroundColor: '#E8856A', color: '#fff', border: 'none'`; when inactive, `backgroundColor: 'transparent', color: '#1C1B18', border: '1px solid #E8E8E4'`. Round all buttons fully (`borderRadius: '20px'`) and add `marginRight: '6px'` instead of the current connected-segment look.
+
+d) **Dormitory / Scholarship toggles**: replace the `<Checkbox>` in these two sections with MUI's `<Switch>` component, keeping `checked`, `value`, and `onChange={universityOptionSelectHandler}` props identical (Switch accepts the same `checked`/`onChange` signature as Checkbox, so `e.target.checked` and `e.target.value` continue to work unchanged inside `universityOptionSelectHandler`). Move the `<Typography>` label to the left of the Switch and use `justifyContent: 'space-between'` on the row so it reads "Has Dormitory" ... toggle, matching the target design.
+
+e) **Campus Size / Tuition Range**: purely cosmetic — round the `Select` and number `input` corners to `8px`, lighten borders to `#E8E8E4`, no logic change needed (already functionally correct).
+
+## 3. `libs/components/university/UniversityCard.tsx` — card visuals
+Keep `imagePath`, `likeUniversityHandler`, `myFavorites`, `meLiked` logic, and the `<Link>` routes completely unchanged. Only change:
+
+a) Add a type badge in the top-left of `.top`, using the existing `university.universityType` field (it already exists on the `University` type and is used elsewhere in Filter.tsx as `UniversityType`). Replace/extend the current rank-based badge block:
+```tsx
+{university?.universityType && (
+  <Box component={'div'} className={`top-badge type-${university.universityType?.toLowerCase()}`}>
+    <Typography>{university.universityType}</Typography>
+  </Box>
+)}
+{university && university?.universityRank > 0 && (
+  <Box component={'div'} className={'top-badge rank-badge'}>
+    <img src="/img/icons/electricity.svg" alt="" />
+    <Typography>TOP</Typography>
+  </Box>
+)}
+```
+(If both can appear at once, stack them with a small gap via SCSS — `.top-badge.rank-badge { top: 58px; }` — so they don't overlap.)
+
+b) Move `.price-box` to the bottom-right instead of bottom-left: in SCSS change `left: 20px;` → `right: 20px;` under `.card-config .top .price-box`.
+
+c) Relabel the type-buttons row from generic "Rent"/"Barter" to the actual fields they represent — change the two `<Typography>` text children from `Rent` → `Dormitory` and `Barter` → `Scholarship` (purely a text-content change; the underlying condition `university.universityDormitory ? '' : 'disabled-type'` and `university.universityScholarship ? '' : 'disabled-type'` stays exactly the same). Style `.disabled-type` to also get `text-decoration: line-through;` in the SCSS, and the enabled state to look like a small pill badge: add `sx={{ backgroundColor: 'rgba(168,197,160,0.15)', color: '#5a8a52', padding: '3px 8px', borderRadius: '6px' }}` when NOT disabled (i.e. when the className is `''`), keeping the disabled branch styled muted/struck-through as before.
+
+## 4. `scss/pc/university/university.scss` — new supporting rules
+Add these new rules (additive, don't remove existing ones):
+```scss
+.top-badge {
+  &.type-national { background: #E8856A; }
+  &.type-private { background: #C4B5D9; }
+  &.type-science { background: #A8C5A0; }
+  &.type-art { background: #E8856A; }
+  &.type-polytechnic { background: #8E8C83; }
+}
+.card-config .top {
+  background: linear-gradient(135deg, rgba(232,133,106,0.12), rgba(168,197,160,0.12));
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(45deg, rgba(0,0,0,0.02) 0 2px, transparent 2px 8px);
+    pointer-events: none;
+  }
+}
+```
+This gives the image area a subtle tinted/striped placeholder look behind the real `<img>` without altering the `<img>` element, its `src`, or the fallback-image logic in the component.
+
+After these changes, verify: every filter still updates `searchFilter` and triggers the same `router.push` calls as before, the like/view counters and routing on `UniversityCard` still work identically, and pagination/sort logic in `pages/university/index.tsx` is untouched — only colors, spacing, borders, and label text changed.

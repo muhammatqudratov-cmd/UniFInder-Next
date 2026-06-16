@@ -1,0 +1,73 @@
+Add entrance animations to the Universities page hero banner text in `libs/components/layout/LayoutBasic.tsx` and `scss/pc/main.scss`. Scope this strictly to the rich `/university` layout (the branch that renders `.eyebrow`, `.lead`, `.stats-row` — i.e. only when `memoizedValues.stats` exists). Do NOT change any GraphQL, routing, or logic, and do NOT affect the fallback `<strong>`/`<span>` markup used by all other pages (`/agent`, `/mypage`, `/community`, `/cs`, etc.).
+
+Goal:
+1. The title (`<strong>{t(memoizedValues.title)}</strong>`) and the paragraph (`<p className={'lead'}>...</p>`) should animate in with a fade + slide-up effect on mount (start ~16px below final position and opacity 0, ending at translateY(0) and opacity 1), title animating first, paragraph following with a small delay (~150ms stagger).
+2. The three stats numbers (`240+`, `18k`, `9.4★`) should count up from 0 to their real value over about 900ms when the banner mounts, instead of just appearing statically. Keep the `+`, `k`, and `★` suffixes — only the numeric portion animates (e.g. animate 0 → 240 for "240+", 0 → 18 for "18k", 0 → 9.4 with one decimal for "9.4★").
+
+Implementation:
+1. In `LayoutBasic.tsx`, change the `stats` data shape from `{ value: string; label: string }[]` to also carry numeric animation info, OR keep `value` as the display string and derive the animated number with a small parser — simplest approach: add a `numericValue: number` and `suffix: string` field to each stat object for `/university`:
+   ```
+   stats = [
+     { numericValue: 240, suffix: '+', decimals: 0, label: 'Universities' },
+     { numericValue: 18, suffix: 'k', decimals: 0, label: 'Programs' },
+     { numericValue: 9.4, suffix: '★', decimals: 1, label: 'Avg. rating' },
+   ]
+   ```
+   Update the TypeScript type for `stats` accordingly (it's a local field inside the `useMemo` return, not used elsewhere, so this is safe).
+
+2. Create a small reusable `CountUpStat` component (can be defined locally at the bottom of `LayoutBasic.tsx` or in a new file `libs/components/layout/CountUpStat.tsx`):
+   ```tsx
+   const CountUpStat = ({ target, suffix, decimals = 0, duration = 900 }: { target: number; suffix: string; decimals?: number; duration?: number }) => {
+     const [value, setValue] = useState(0);
+     useEffect(() => {
+       let start: number | null = null;
+       const step = (timestamp: number) => {
+         if (start === null) start = timestamp;
+         const progress = Math.min((timestamp - start) / duration, 1);
+         setValue(target * progress);
+         if (progress < 1) requestAnimationFrame(step);
+       };
+       const raf = requestAnimationFrame(step);
+       return () => cancelAnimationFrame(raf);
+     }, [target, duration]);
+     return <strong>{value.toFixed(decimals)}{suffix}</strong>;
+   };
+   ```
+   Import `useState`/`useEffect` (already imported at the top of the file) and use this component inside the `.stats-row` map instead of the static `<strong>{s.value}</strong>`:
+   ```tsx
+   <Stack className={'stat'}>
+     <CountUpStat target={s.numericValue} suffix={s.suffix} decimals={s.decimals} />
+     <span>{s.label}</span>
+   </Stack>
+   ```
+
+3. For the fade+slide-up entrance on the title and paragraph, add a `mounted` boolean state in the `LayoutBasic` PC render (`const [heroVisible, setHeroVisible] = useState(false);` plus `useEffect(() => { setHeroVisible(true); }, []);`), then add a conditional class:
+   ```tsx
+   <strong className={heroVisible ? 'fade-in-up' : ''}>{t(memoizedValues.title)}</strong>
+   ...
+   <p className={`lead ${heroVisible ? 'fade-in-up delay-1' : ''}`}>{t(memoizedValues.desc)}</p>
+   ```
+   Only apply this `heroVisible` class toggling within the `stats`-truthy branch (rich `/university` layout) — leave the plain fallback `<strong>`/`<span>` for other pages without these classes.
+
+4. In `scss/pc/main.scss`, inside `.header-basic .container`, add:
+   ```scss
+   .fade-in-up {
+     opacity: 0;
+     transform: translateY(16px);
+     animation: heroFadeUp 0.6s ease forwards;
+   }
+   .delay-1 {
+     animation-delay: 0.15s;
+   }
+   ```
+   and define the keyframes once near the top of the file (or directly above `.header-basic`):
+   ```scss
+   @keyframes heroFadeUp {
+     to {
+       opacity: 1;
+       transform: translateY(0);
+     }
+   }
+   ```
+
+5. Verify: on `/university` page load, the title fades/slides up first, the paragraph follows ~150ms later, and the three stat numbers animate from 0 up to 240+, 18k, and 9.4★ respectively over ~0.9s. All other pages using `.header-basic` must remain completely static and unchanged, since they never set `stats` and therefore never render `CountUpStat` or the `fade-in-up` classes.

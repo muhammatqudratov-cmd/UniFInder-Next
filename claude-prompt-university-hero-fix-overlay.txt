@@ -1,0 +1,26 @@
+Fix a visual bug in the Universities page hero banner (`.header-basic` in `libs/components/layout/LayoutBasic.tsx` + `scss/pc/main.scss`). Do NOT touch any logic, GraphQL, routing, or the markup structure added previously (eyebrow/stats/lead) — this is purely about fixing the background darkness/contrast.
+
+Problem: the banner is dark at the top but fades into a light beige/cream color toward the bottom, and the white text (title, paragraph, stats) becomes washed out / low-contrast in that lighter area. This happens because the underlying `bgImage` photo is light-colored and the current inset `box-shadow` darkening trick (set inline in `LayoutBasic.tsx`: `boxShadow: 'inset 10px 40px 150px 40px rgb(24 22 36)'`) does not cover the full height evenly, so the photo shows through unobscured near the bottom.
+
+Fix:
+1. In `LayoutBasic.tsx`, remove the inline `boxShadow` darkening hack from the `style` prop on the `.header-basic` Stack (keep `backgroundImage` and `backgroundSize: 'cover'`).
+2. Instead, add a dedicated overlay element as the FIRST child inside `.header-basic`, before `.container`, e.g. `<Stack className={'overlay'} />`, absolutely positioned to cover the entire banner (`position: absolute; inset: 0;`), sitting behind `.container` (`.container` needs `position: relative; z-index: 1;` and `.overlay` needs `z-index: 0;`).
+3. In `scss/pc/main.scss` inside `.header-basic`, add:
+   ```
+   position: relative;
+   overflow: hidden;
+   .overlay {
+     position: absolute;
+     inset: 0;
+     z-index: 0;
+     background: linear-gradient(180deg, rgba(16,15,13,0.92) 0%, rgba(16,15,13,0.88) 55%, rgba(16,15,13,0.95) 100%),
+       radial-gradient(circle at 80% 60%, rgba(232,133,106,0.18), transparent 55%);
+   }
+   .container {
+     position: relative;
+     z-index: 1;
+   }
+   ```
+   This guarantees the dark overlay covers 100% of the banner height uniformly (top to bottom, including any extra height added by the stats row), regardless of how light or dark the underlying photo is, so text stays consistently high-contrast white everywhere.
+4. Double check `.eyebrow`, `.lead`, `.stats-row .stat span` colors still read clearly against this overlay (they should, since they were already designed for a dark background) — no color changes needed there.
+5. Verify this overlay fix applies to ALL pages using `.header-basic` (since they share the same component), and confirm other pages (`/agent`, `/mypage`, `/community`, `/cs`, etc.) still look correctly dark/legible — they should look the same as before or slightly more consistent, since this overlay just replaces the old box-shadow trick with full, even coverage.

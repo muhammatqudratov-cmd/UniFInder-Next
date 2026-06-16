@@ -1,0 +1,110 @@
+Redesign the dark hero banner at the top of the Universities page ONLY, in `libs/components/layout/LayoutBasic.tsx` and `scss/pc/main.scss` (`.header-basic` block, around line 440). Do NOT touch any GraphQL queries, mutations, state, routing, or logic anywhere — this is a visual/markup-only change, and it must be scoped so every other page using this same shared layout (`/agent`, `/agent/detail`, `/mypage`, `/community`, `/community/detail`, `/cs`, `/account/join`, `/member`) renders exactly as it does today, with zero visual change.
+
+Context: `LayoutBasic.tsx` builds a `memoizedValues` object `{ title, desc, bgImage }` based on `router.pathname`, then renders:
+```
+<Stack className={`header-basic ${authHeader && 'auth'}`} style={{...}}>
+  <Stack className={'container'}>
+    <strong>{t(memoizedValues.title)}</strong>
+    <span>{t(memoizedValues.desc)}</span>
+  </Stack>
+</Stack>
+```
+
+1. In `LayoutBasic.tsx`, extend `memoizedValues` with two new OPTIONAL fields: `eyebrow?: string` and `stats?: { value: string; label: string }[]`. Only populate them for the `case '/university':` branch:
+   - `eyebrow = 'FIND YOUR FUTURE CAMPUS'`
+   - `desc` for this case becomes a longer paragraph: `'Explore 240+ institutions, compare programs, dormitories and scholarships — all in one place. We are glad to see you again!'`
+   - `stats = [{ value: '240+', label: 'Universities' }, { value: '18k', label: 'Programs' }, { value: '9.4★', label: 'Avg. rating' }]`
+   - Leave every other `case` branch (`/agent`, `/agent/detail`, `/mypage`, `/community`, `/community/detail`, `/cs`, `/account/join`, `/member`) completely untouched — they simply won't set `eyebrow`/`stats`, so those fields stay `undefined`.
+
+2. In the PC (non-mobile) render branch, update the `.container` markup to conditionally render the richer layout only when `memoizedValues.stats` exists, otherwise fall back to the exact current markup (`<strong>` + `<span>`) so all other pages are pixel-identical to today:
+```
+<Stack className={'container'}>
+  {memoizedValues.stats ? (
+    <>
+      <Stack className={'eyebrow'}><span className={'dash'} />{t(memoizedValues.eyebrow)}</Stack>
+      <strong>{t(memoizedValues.title)}</strong>
+      <p className={'lead'}>{t(memoizedValues.desc)}</p>
+      <Stack className={'stats-row'}>
+        {memoizedValues.stats.map((s, i) => (
+          <React.Fragment key={s.label}>
+            {i > 0 && <span className={'stat-divider'} />}
+            <Stack className={'stat'}>
+              <strong>{s.value}</strong>
+              <span>{s.label}</span>
+            </Stack>
+          </React.Fragment>
+        ))}
+      </Stack>
+    </>
+  ) : (
+    <>
+      <strong>{t(memoizedValues.title)}</strong>
+      <span>{t(memoizedValues.desc)}</span>
+    </>
+  )}
+</Stack>
+```
+
+3. In `scss/pc/main.scss`, inside the existing `.header-basic { ... }` block (do not remove `position: relative`, `width: 100%`, `&.auth`, or the existing `.container strong/span` rules — those still apply to all other pages):
+   - Change `justify-content: center;` to `justify-content: flex-start;` and add `align-items: center;` only when NOT `.auth` (keep `.auth` behavior as-is) — simplest: change the base `.container` to be left-aligned via `align-self: flex-start; margin-left: 12%;` instead of editing the parent flex.
+   - Update background to a warm dark gradient consistent with the design system instead of the flat black: `background: radial-gradient(circle at 80% 60%, rgba(232,133,106,0.18), transparent 55%), linear-gradient(135deg, #1c1b18 0%, #100f0d 70%);` — keep this behind the existing `bgImage`/inset box-shadow logic in the TSX (the inline `backgroundImage`/`boxShadow` style already darkens the photo heavily, so this gradient mainly shows on pages with no/faint bgImage; do not remove the existing inline style logic).
+   - Add new nested rules:
+     ```
+     .eyebrow {
+       flex-direction: row;
+       align-items: center;
+       gap: 10px;
+       margin-bottom: 18px;
+       color: #E8856A;
+       font-family: $font;
+       font-size: 13px;
+       font-weight: 600;
+       letter-spacing: 1.5px;
+       text-transform: uppercase;
+       .dash {
+         width: 18px;
+         height: 1px;
+         background: #E8856A;
+         display: inline-block;
+       }
+     }
+     .lead {
+       max-width: 480px;
+       margin-top: 16px;
+       color: rgba(255,255,255,0.65);
+       font-family: $font;
+       font-size: 16px;
+       font-weight: 400;
+       line-height: 1.6;
+     }
+     .stats-row {
+       flex-direction: row;
+       align-items: center;
+       gap: 24px;
+       margin-top: 36px;
+       .stat {
+         flex-direction: column;
+         gap: 2px;
+         strong {
+           color: #fff;
+           font-family: $font;
+           font-size: 26px;
+           font-weight: 700;
+         }
+         span {
+           color: rgba(255,255,255,0.5);
+           font-family: $font;
+           font-size: 12px;
+           font-weight: 400;
+         }
+       }
+       .stat-divider {
+         width: 1px;
+         height: 32px;
+         background: rgba(255,255,255,0.18);
+       }
+     }
+     ```
+   - Reduce the main `<strong>` (title) font size for the `/university` rich layout to `42px` and keep `font-weight: 800;` — but only if this can be scoped to the new richer layout without affecting other pages' `<strong>` (e.g. via a `.container.has-stats strong { font-size: 42px; }` modifier class added to the Stack when `stats` exists, rather than changing the shared `.container strong` rule globally).
+
+Keep all existing translation calls (`t(...)`), the `authHeader` logic, `Top`, `Footer`, `Chat` components, and the mobile branch completely unchanged.

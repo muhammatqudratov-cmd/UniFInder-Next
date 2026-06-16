@@ -1,0 +1,10 @@
+Slightly increase font sizes in the Universities page hero banner (`scss/pc/main.scss`, inside `.header-basic .container`). Visual-only change, do not touch logic, markup structure, or any other page.
+
+Update these existing rules:
+- `.eyebrow`: `font-size: 13px;` → `font-size: 14px;`
+- title `<strong>` for the rich `/university` layout (the `.container.has-stats strong` or equivalent modifier rule added earlier): `font-size: 42px;` → `font-size: 50px;`
+- `.lead`: `font-size: 16px;` → `font-size: 18px;`
+- `.stats-row .stat strong`: `font-size: 26px;` → `font-size: 32px;`
+- `.stats-row .stat span`: `font-size: 12px;` → `font-size: 13px;`
+
+Keep all colors, weights, spacing, and animations exactly as they are — only the font-size values change. Do not modify the fallback `<strong>`/`<span>` styles used by other pages (`/agent`, `/mypage`, `/community`, `/cs`, etc.).
