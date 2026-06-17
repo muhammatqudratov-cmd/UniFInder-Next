@@ -222,7 +222,7 @@ const UniversityDetail: NextPage = ({ initialComment, ...props }: any) => {
 															<circle cx="3" cy="3" r="3" fill="#EB6753" />
 														</svg>
 													</Stack>
-													<Typography className={'buy-rent'}>Barter</Typography>
+													<Typography className={'buy-rent'}>Scholarship</Typography>
 												</>
 											)}
 
@@ -233,7 +233,7 @@ const UniversityDetail: NextPage = ({ initialComment, ...props }: any) => {
 															<circle cx="3" cy="3" r="3" fill="#EB6753" />
 														</svg>
 													</Stack>
-													<Typography className={'buy-rent'}>rent</Typography>
+													<Typography className={'buy-rent'}>Dormitory</Typography>
 												</>
 											)}
 										</Stack>
@@ -259,10 +259,10 @@ const UniversityDetail: NextPage = ({ initialComment, ...props }: any) => {
 									</Stack>
 									<Stack className={'bottom-box'}>
 										<Stack className="option">
-											<img src="/img/icons/bed.svg" alt="" /> <Typography>{university?.universityCapacity} bed</Typography>
+											<img src="/img/icons/bed.svg" alt="" /> <Typography>{university?.universityCapacity} students</Typography>
 										</Stack>
 										<Stack className="option">
-											<img src="/img/icons/room.svg" alt="" /> <Typography>{university?.universityFaculties} room</Typography>
+											<img src="/img/icons/room.svg" alt="" /> <Typography>{university?.universityFaculties} faculties</Typography>
 										</Stack>
 										<Stack className="option">
 											<img src="/img/icons/expand.svg" alt="" /> <Typography>{university?.universityCampusSize} m2</Typography>
@@ -323,7 +323,7 @@ const UniversityDetail: NextPage = ({ initialComment, ...props }: any) => {
 											</svg>
 										</Stack>
 										<Stack className={'option-includes'}>
-											<Typography className={'title'}>Bedroom</Typography>
+											<Typography className={'title'}>Capacity</Typography>
 											<Typography className={'option-data'}>{university?.universityCapacity}</Typography>
 										</Stack>
 									</Stack>
@@ -332,7 +332,7 @@ const UniversityDetail: NextPage = ({ initialComment, ...props }: any) => {
 											<img src={'/img/icons/room.svg'} />
 										</Stack>
 										<Stack className={'option-includes'}>
-											<Typography className={'title'}>Room</Typography>
+											<Typography className={'title'}>Faculties</Typography>
 											<Typography className={'option-data'}>{university?.universityFaculties}</Typography>
 										</Stack>
 									</Stack>
@@ -350,7 +350,7 @@ const UniversityDetail: NextPage = ({ initialComment, ...props }: any) => {
 											</svg>
 										</Stack>
 										<Stack className={'option-includes'}>
-											<Typography className={'title'}>Year Build</Typography>
+											<Typography className={'title'}>Founded</Typography>
 											<Typography className={'option-data'}>{moment(university?.createdAt).format('YYYY')}</Typography>
 										</Stack>
 									</Stack>
@@ -378,7 +378,7 @@ const UniversityDetail: NextPage = ({ initialComment, ...props }: any) => {
 											</svg>
 										</Stack>
 										<Stack className={'option-includes'}>
-											<Typography className={'title'}>Size</Typography>
+											<Typography className={'title'}>Campus Size</Typography>
 											<Typography className={'option-data'}>{university?.universityCampusSize} m2</Typography>
 										</Stack>
 									</Stack>
@@ -416,17 +416,17 @@ const UniversityDetail: NextPage = ({ initialComment, ...props }: any) => {
 													<Typography className={'data'}>{university?.universityCampusSize} m2</Typography>
 												</Box>
 												<Box component={'div'} className={'info'}>
-													<Typography className={'title'}>Rooms</Typography>
+													<Typography className={'title'}>Faculties</Typography>
 													<Typography className={'data'}>{university?.universityFaculties}</Typography>
 												</Box>
 												<Box component={'div'} className={'info'}>
-													<Typography className={'title'}>Bedrooms</Typography>
+													<Typography className={'title'}>Capacity</Typography>
 													<Typography className={'data'}>{university?.universityCapacity}</Typography>
 												</Box>
 											</Stack>
 											<Stack className={'right'}>
 												<Box component={'div'} className={'info'}>
-													<Typography className={'title'}>Year Built</Typography>
+													<Typography className={'title'}>Founded</Typography>
 													<Typography className={'data'}>{moment(university?.createdAt).format('YYYY')}</Typography>
 												</Box>
 												<Box component={'div'} className={'info'}>
@@ -436,7 +436,7 @@ const UniversityDetail: NextPage = ({ initialComment, ...props }: any) => {
 												<Box component={'div'} className={'info'}>
 													<Typography className={'title'}>University Options</Typography>
 													<Typography className={'data'}>
-														For {university?.universityScholarship && 'Barter'} {university?.universityDormitory && 'Rent'}
+														For {university?.universityScholarship && 'Scholarship'} {university?.universityDormitory && 'Dormitory'}
 													</Typography>
 												</Box>
 											</Stack>
@@ -582,7 +582,9 @@ const UniversityDetail: NextPage = ({ initialComment, ...props }: any) => {
 								</Stack>
 								<Stack className={'info-box'}>
 									<Typography className={'sub-title'}>Message</Typography>
-									<textarea placeholder={'Hello, I am interested in \n' + '[Renovated university at  floor]'}></textarea>
+									<textarea
+										placeholder={`Hello, I am interested in \n${university?.universityName ?? 'this university'}`}
+									></textarea>
 								</Stack>
 								<Stack className={'info-box'}>
 									<Button className={'send-message'}>

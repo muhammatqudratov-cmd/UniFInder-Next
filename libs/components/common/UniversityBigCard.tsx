@@ -52,11 +52,11 @@ const UniversityBigCard = (props: UniversityBigCardProps) => {
 					<div className={'options'}>
 						<div>
 							<img src="/img/icons/bed.svg" alt="" />
-							<span>{university?.universityCapacity} bed</span>
+							<span>{university?.universityCapacity} students</span>
 						</div>
 						<div>
 							<img src="/img/icons/room.svg" alt="" />
-							<span>{university?.universityFaculties} rooms</span>
+							<span>{university?.universityFaculties} faculties</span>
 						</div>
 						<div>
 							<img src="/img/icons/expand.svg" alt="" />

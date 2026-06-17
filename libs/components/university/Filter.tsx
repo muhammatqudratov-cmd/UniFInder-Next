@@ -11,6 +11,8 @@ import {
 	MenuItem,
 	Tooltip,
 	IconButton,
+	Switch,
+	Box,
 } from '@mui/material';
 import useDeviceDetect from '../../hooks/useDeviceDetect';
 import { UniversityLocation, UniversityType } from '../../enums/university.enum';
@@ -42,6 +44,7 @@ const Filter = (props: FilterType) => {
 	const [universityType, setUniversityType] = useState<UniversityType[]>(Object.values(UniversityType));
 	const [searchText, setSearchText] = useState<string>('');
 	const [showMore, setShowMore] = useState<boolean>(false);
+	const [citySearchText, setCitySearchText] = useState<string>('');
 
 	/** LIFECYCLE **/
 	useEffect(() => {
@@ -512,6 +515,9 @@ const Filter = (props: FilterType) => {
 		[searchFilter],
 	);
 
+	const visibleLocations = universityLocation.filter((loc) => loc.toLowerCase().includes(citySearchText.toLowerCase()));
+	const formatLocationLabel = (loc: string) => loc.replace('_', ' ');
+
 	const refreshHandler = async () => {
 		try {
 			setSearchText('');
@@ -570,12 +576,25 @@ const Filter = (props: FilterType) => {
 					</Stack>
 				</Stack>
 				<Stack className={'find-your-home'} mb={'30px'}>
-					<p className={'title'} style={{ textShadow: '0px 3px 4px #b9b9b9' }}>
-						Location
-					</p>
+					<Stack direction="row" justifyContent="space-between" alignItems="center">
+						<Typography className={'title'} sx={{ textTransform: 'uppercase', fontSize: '12px', letterSpacing: '0.5px' }}>
+							Location
+						</Typography>
+						{!!searchFilter?.search?.locationList?.length && (
+							<Typography sx={{ fontSize: '11px', color: '#8E8C83' }}>
+								{searchFilter.search.locationList.length} selected
+							</Typography>
+						)}
+					</Stack>
+					<OutlinedInput
+						value={citySearchText}
+						onChange={(e: any) => setCitySearchText(e.target.value)}
+						placeholder={'Search city'}
+						className={'city-search-input'}
+						fullWidth
+					/>
 					<Stack
 						className={`university-location`}
-						style={{ height: showMore ? '253px' : '115px' }}
 						onMouseEnter={() => setShowMore(true)}
 						onMouseLeave={() => {
 							if (!searchFilter?.search?.locationList) {
@@ -583,52 +602,80 @@ const Filter = (props: FilterType) => {
 							}
 						}}
 					>
-						{universityLocation.map((location: string) => {
+						{visibleLocations.map((location: string) => {
+							const isSelected = (searchFilter?.search?.locationList || []).includes(location as UniversityLocation);
 							return (
-								<Stack className={'input-box'} key={location}>
+								<Box component={'div'} key={location} sx={{ position: 'relative' }}>
 									<Checkbox
 										id={location}
 										className="university-checkbox"
 										color="default"
 										size="small"
 										value={location}
-										checked={(searchFilter?.search?.locationList || []).includes(location as UniversityLocation)}
+										checked={isSelected}
 										onChange={universityLocationSelectHandler}
+										sx={{ position: 'absolute', opacity: 0, width: 0, height: 0, padding: 0 }}
 									/>
-									<label htmlFor={location} style={{ cursor: 'pointer' }}>
-										<Typography className="university-type">{location}</Typography>
+									<label
+										htmlFor={location}
+										className={`pill-label${isSelected ? ' pill-active' : ''}`}
+										style={{ cursor: 'pointer' }}
+									>
+										{formatLocationLabel(location)}
 									</label>
-								</Stack>
+								</Box>
 							);
 						})}
 					</Stack>
 				</Stack>
 				<Stack className={'find-your-home'} mb={'30px'}>
-					<Typography className={'title'}>University Type</Typography>
-					{universityType.map((type: string) => (
-						<Stack className={'input-box'} key={type}>
-							<Checkbox
-								id={type}
-								className="university-checkbox"
-								color="default"
-								size="small"
-								value={type}
-								onChange={universityTypeSelectHandler}
-								checked={(searchFilter?.search?.typeList || []).includes(type as UniversityType)}
-							/>
-							<label style={{ cursor: 'pointer' }}>
-								<Typography className="university_type">{type}</Typography>
-							</label>
-						</Stack>
-					))}
+					<Stack direction="row" justifyContent="space-between" alignItems="center">
+						<Typography className={'title'} sx={{ textTransform: 'uppercase', fontSize: '12px', letterSpacing: '0.5px' }}>
+							University Type
+						</Typography>
+						{!!searchFilter?.search?.typeList?.length && (
+							<Typography sx={{ fontSize: '11px', color: '#8E8C83' }}>
+								{searchFilter.search.typeList.length} selected
+							</Typography>
+						)}
+					</Stack>
+					<Stack className={'pill-group'}>
+						{universityType.map((type: string) => {
+							const isSelected = (searchFilter?.search?.typeList || []).includes(type as UniversityType);
+							return (
+								<Box component={'div'} key={type} sx={{ position: 'relative' }}>
+									<Checkbox
+										id={type}
+										className="university-checkbox"
+										color="default"
+										size="small"
+										value={type}
+										onChange={universityTypeSelectHandler}
+										checked={isSelected}
+										sx={{ position: 'absolute', opacity: 0, width: 0, height: 0, padding: 0 }}
+									/>
+									<label
+										htmlFor={type}
+										className={`pill-label${isSelected ? ' pill-active' : ''}`}
+										style={{ cursor: 'pointer' }}
+									>
+										{type}
+									</label>
+								</Box>
+							);
+						})}
+					</Stack>
 				</Stack>
 				<Stack className={'find-your-home'} mb={'30px'}>
 					<Typography className={'title'}>Faculties</Typography>
 					<Stack className="button-group">
 						<Button
 							sx={{
-								borderRadius: '12px 0 0 12px',
-								border: !searchFilter?.search?.facultiesList ? '2px solid #181A20' : '1px solid #b9b9b9',
+								borderRadius: '20px',
+								marginRight: '6px',
+								backgroundColor: !searchFilter?.search?.facultiesList ? '#E8856A' : 'transparent',
+								color: !searchFilter?.search?.facultiesList ? '#fff' : '#1C1B18',
+								border: !searchFilter?.search?.facultiesList ? 'none' : '1px solid #E8E8E4',
 							}}
 							onClick={() => universityRoomSelectHandler(0)}
 						>
@@ -636,9 +683,11 @@ const Filter = (props: FilterType) => {
 						</Button>
 						<Button
 							sx={{
-								borderRadius: 0,
-								border: searchFilter?.search?.facultiesList?.includes(1) ? '2px solid #181A20' : '1px solid #b9b9b9',
-								borderLeft: searchFilter?.search?.facultiesList?.includes(1) ? undefined : 'none',
+								borderRadius: '20px',
+								marginRight: '6px',
+								backgroundColor: searchFilter?.search?.facultiesList?.includes(1) ? '#E8856A' : 'transparent',
+								color: searchFilter?.search?.facultiesList?.includes(1) ? '#fff' : '#1C1B18',
+								border: searchFilter?.search?.facultiesList?.includes(1) ? 'none' : '1px solid #E8E8E4',
 							}}
 							onClick={() => universityRoomSelectHandler(1)}
 						>
@@ -646,9 +695,11 @@ const Filter = (props: FilterType) => {
 						</Button>
 						<Button
 							sx={{
-								borderRadius: 0,
-								border: searchFilter?.search?.facultiesList?.includes(2) ? '2px solid #181A20' : '1px solid #b9b9b9',
-								borderLeft: searchFilter?.search?.facultiesList?.includes(2) ? undefined : 'none',
+								borderRadius: '20px',
+								marginRight: '6px',
+								backgroundColor: searchFilter?.search?.facultiesList?.includes(2) ? '#E8856A' : 'transparent',
+								color: searchFilter?.search?.facultiesList?.includes(2) ? '#fff' : '#1C1B18',
+								border: searchFilter?.search?.facultiesList?.includes(2) ? 'none' : '1px solid #E8E8E4',
 							}}
 							onClick={() => universityRoomSelectHandler(2)}
 						>
@@ -656,9 +707,11 @@ const Filter = (props: FilterType) => {
 						</Button>
 						<Button
 							sx={{
-								borderRadius: 0,
-								border: searchFilter?.search?.facultiesList?.includes(3) ? '2px solid #181A20' : '1px solid #b9b9b9',
-								borderLeft: searchFilter?.search?.facultiesList?.includes(3) ? undefined : 'none',
+								borderRadius: '20px',
+								marginRight: '6px',
+								backgroundColor: searchFilter?.search?.facultiesList?.includes(3) ? '#E8856A' : 'transparent',
+								color: searchFilter?.search?.facultiesList?.includes(3) ? '#fff' : '#1C1B18',
+								border: searchFilter?.search?.facultiesList?.includes(3) ? 'none' : '1px solid #E8E8E4',
 							}}
 							onClick={() => universityRoomSelectHandler(3)}
 						>
@@ -666,10 +719,11 @@ const Filter = (props: FilterType) => {
 						</Button>
 						<Button
 							sx={{
-								borderRadius: 0,
-								border: searchFilter?.search?.facultiesList?.includes(4) ? '2px solid #181A20' : '1px solid #b9b9b9',
-								borderLeft: searchFilter?.search?.facultiesList?.includes(4) ? undefined : 'none',
-								borderRight: searchFilter?.search?.facultiesList?.includes(4) ? undefined : 'none',
+								borderRadius: '20px',
+								marginRight: '6px',
+								backgroundColor: searchFilter?.search?.facultiesList?.includes(4) ? '#E8856A' : 'transparent',
+								color: searchFilter?.search?.facultiesList?.includes(4) ? '#fff' : '#1C1B18',
+								border: searchFilter?.search?.facultiesList?.includes(4) ? 'none' : '1px solid #E8E8E4',
 							}}
 							onClick={() => universityRoomSelectHandler(4)}
 						>
@@ -677,8 +731,11 @@ const Filter = (props: FilterType) => {
 						</Button>
 						<Button
 							sx={{
-								borderRadius: '0 12px 12px 0',
-								border: searchFilter?.search?.facultiesList?.includes(5) ? '2px solid #181A20' : '1px solid #b9b9b9',
+								borderRadius: '20px',
+								marginRight: '6px',
+								backgroundColor: searchFilter?.search?.facultiesList?.includes(5) ? '#E8856A' : 'transparent',
+								color: searchFilter?.search?.facultiesList?.includes(5) ? '#fff' : '#1C1B18',
+								border: searchFilter?.search?.facultiesList?.includes(5) ? 'none' : '1px solid #E8E8E4',
 							}}
 							onClick={() => universityRoomSelectHandler(5)}
 						>
@@ -688,36 +745,30 @@ const Filter = (props: FilterType) => {
 				</Stack>
 				<Stack className={'find-your-home'} mb={'30px'}>
 					<Typography className={'title'}>Dormitory</Typography>
-					<Stack className={'input-box'}>
-						<Checkbox
+					<Stack className={'input-box'} direction="row" justifyContent="space-between" alignItems="center">
+						<label htmlFor={'Dormitory'} style={{ cursor: 'pointer' }}>
+							<Typography className="university-type">Has Dormitory</Typography>
+						</label>
+						<Switch
 							id={'Dormitory'}
-							className="university-checkbox"
-							color="default"
-							size="small"
 							value={'universityDormitory'}
 							checked={(searchFilter?.search?.options || []).includes('universityDormitory')}
 							onChange={universityOptionSelectHandler}
 						/>
-						<label htmlFor={'Dormitory'} style={{ cursor: 'pointer' }}>
-							<Typography className="university-type">Has Dormitory</Typography>
-						</label>
 					</Stack>
 				</Stack>
 				<Stack className={'find-your-home'} mb={'30px'}>
 					<Typography className={'title'}>Scholarship</Typography>
-					<Stack className={'input-box'}>
-						<Checkbox
+					<Stack className={'input-box'} direction="row" justifyContent="space-between" alignItems="center">
+						<label htmlFor={'Scholarship'} style={{ cursor: 'pointer' }}>
+							<Typography className="university-type">Has Scholarship</Typography>
+						</label>
+						<Switch
 							id={'Scholarship'}
-							className="university-checkbox"
-							color="default"
-							size="small"
 							value={'universityScholarship'}
 							checked={(searchFilter?.search?.options || []).includes('universityScholarship')}
 							onChange={universityOptionSelectHandler}
 						/>
-						<label htmlFor={'Scholarship'} style={{ cursor: 'pointer' }}>
-							<Typography className="university-type">Has Scholarship</Typography>
-						</label>
 					</Stack>
 				</Stack>
 				<Stack className={'find-your-home'} mb={'30px'}>
@@ -732,6 +783,7 @@ const Filter = (props: FilterType) => {
 								label="Min"
 								onChange={(e: any) => universityCampusSizeHandler(e, 'start')}
 								MenuProps={MenuProps}
+								sx={{ borderRadius: '8px', '& .MuiOutlinedInput-notchedOutline': { borderColor: '#E8E8E4' } }}
 							>
 								{universityCampusSize.map((square: number) => (
 									<MenuItem
@@ -754,6 +806,7 @@ const Filter = (props: FilterType) => {
 								label="Max"
 								onChange={(e: any) => universityCampusSizeHandler(e, 'end')}
 								MenuProps={MenuProps}
+								sx={{ borderRadius: '8px', '& .MuiOutlinedInput-notchedOutline': { borderColor: '#E8E8E4' } }}
 							>
 								{universityCampusSize.map((square: number) => (
 									<MenuItem

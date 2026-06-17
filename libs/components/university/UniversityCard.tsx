@@ -41,8 +41,13 @@ const UniversityCard = (props: UniversityCardType) => {
 					>
 						<img src={imagePath} alt="" />
 					</Link>
+					{university?.universityType && (
+						<Box component={'div'} className={`top-badge type-${university.universityType?.toLowerCase()}`}>
+							<Typography>{university.universityType}</Typography>
+						</Box>
+					)}
 					{university && university?.universityRank > 0 && (
-						<Box component={'div'} className={'top-badge'}>
+						<Box component={'div'} className={'top-badge rank-badge'}>
 							<img src="/img/icons/electricity.svg" alt="" />
 							<Typography>TOP</Typography>
 						</Box>
@@ -71,10 +76,10 @@ const UniversityCard = (props: UniversityCardType) => {
 					</Stack>
 					<Stack className="options">
 						<Stack className="option">
-							<img src="/img/icons/bed.svg" alt="" /> <Typography>{university.universityCapacity} bed</Typography>
+							<img src="/img/icons/bed.svg" alt="" /> <Typography>{university.universityCapacity} students</Typography>
 						</Stack>
 						<Stack className="option">
-							<img src="/img/icons/room.svg" alt="" /> <Typography>{university.universityFaculties} room</Typography>
+							<img src="/img/icons/room.svg" alt="" /> <Typography>{university.universityFaculties} faculties</Typography>
 						</Stack>
 						<Stack className="option">
 							<img src="/img/icons/expand.svg" alt="" /> <Typography>{university.universityCampusSize} m2</Typography>
@@ -84,16 +89,38 @@ const UniversityCard = (props: UniversityCardType) => {
 					<Stack className="type-buttons">
 						<Stack className="type">
 							<Typography
-								sx={{ fontWeight: 500, fontSize: '13px' }}
+								sx={
+									university.universityDormitory
+										? {
+												fontWeight: 500,
+												fontSize: '13px',
+												backgroundColor: 'rgba(168,197,160,0.15)',
+												color: '#5a8a52',
+												padding: '3px 8px',
+												borderRadius: '6px',
+										  }
+										: { fontWeight: 500, fontSize: '13px' }
+								}
 								className={university.universityDormitory ? '' : 'disabled-type'}
 							>
-								Rent
+								Dormitory
 							</Typography>
 							<Typography
-								sx={{ fontWeight: 500, fontSize: '13px' }}
+								sx={
+									university.universityScholarship
+										? {
+												fontWeight: 500,
+												fontSize: '13px',
+												backgroundColor: 'rgba(168,197,160,0.15)',
+												color: '#5a8a52',
+												padding: '3px 8px',
+												borderRadius: '6px',
+										  }
+										: { fontWeight: 500, fontSize: '13px' }
+								}
 								className={university.universityScholarship ? '' : 'disabled-type'}
 							>
-								Barter
+								Scholarship
 							</Typography>
 						</Stack>
 						{!recentlyVisited && (

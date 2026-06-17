@@ -116,6 +116,11 @@ const UniversityList: NextPage = ({ initialInput, ...props }: any) => {
 			case 'highest':
 				setSearchFilter({ ...searchFilter, sort: 'universityTuition', direction: Direction.DESC });
 				setFilterSortName('Highest Price');
+				break;
+			case 'popular':
+				setSearchFilter({ ...searchFilter, sort: 'universityViews', direction: Direction.DESC });
+				setFilterSortName('Most popular');
+				break;
 		}
 		setSortingOpen(false);
 		setAnchorEl(null);
@@ -158,6 +163,14 @@ const UniversityList: NextPage = ({ initialInput, ...props }: any) => {
 								>
 									Highest Price
 								</MenuItem>
+								<MenuItem
+									onClick={sortingHandler}
+									id={'popular'}
+									disableRipple
+									sx={{ boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px' }}
+								>
+									Most popular
+								</MenuItem>
 							</Menu>
 						</div>
 					</Box>
@@ -188,8 +201,9 @@ const UniversityList: NextPage = ({ initialInput, ...props }: any) => {
 											page={currentPage}
 											count={Math.ceil(total / searchFilter.limit)}
 											onChange={handlePaginationChange}
-											shape="circular"
+											shape="rounded"
 											color="primary"
+											sx={{ '& .Mui-selected': { backgroundColor: '#E8856A !important', color: '#fff' } }}
 										/>
 									</Stack>
 								)}
@@ -197,7 +211,8 @@ const UniversityList: NextPage = ({ initialInput, ...props }: any) => {
 								{universities.length !== 0 && (
 									<Stack className="total-result">
 										<Typography>
-											Total {total} university{total > 1 ? 'ies' : 'y'} available
+											Showing {Math.min((currentPage - 1) * searchFilter.limit + 1, total)}-
+											{Math.min(currentPage * searchFilter.limit, total)} of {total} universit{total === 1 ? 'y' : 'ies'}
 										</Typography>
 									</Stack>
 								)}
@@ -213,7 +228,7 @@ const UniversityList: NextPage = ({ initialInput, ...props }: any) => {
 UniversityList.defaultProps = {
 	initialInput: {
 		page: 1,
-		limit: 3,
+		limit: 6,
 		sort: 'createdAt',
 		direction: 'DESC',
 		search: {

@@ -1,0 +1,114 @@
+Redesign the university detail page (`pages/university/detail.tsx` + `scss/pc/university/detail.scss`) — the page that opens when a user clicks a university card — to match the "Claude Design" minimalist style already applied to the listing page (`pages/university/index.tsx`, `Filter.tsx`, `UniversityCard.tsx`). This is a visual-only pass: every query, mutation, state variable, handler (`likeUniversityHandler`, `commentPaginationChangeHandler`, `createCommentHandler`, `changeImageHandler`, swiper config, comment logic), and data binding must keep working exactly as today. Only class-level CSS in `detail.scss` changes, plus a couple of pure styling props in `detail.tsx` called out explicitly below.
+
+## 1. Unify the accent color
+The listing page uses coral `#E8856A` everywhere (pill-active, sort/pagination highlight, badges). This detail page still uses the older `#EB6753` red in two places. Replace:
+- `.buy-rent-box .buy-rent { color: #eb6753; }` → `color: #e8856a;`
+- `.right-config .send-message { background: #eb6753; }` → `background: #e8856a;` and add `&:hover { background: #d9714f; }`
+
+## 2. Card borders, radius, and shadow — match the listing page's card language
+Across `.prop-desc-config`, `.floor-plans-config`, `.address-config`, `.reviews-config`, replace the current `border: 1px solid #c4c4c4;` with the lighter, softer card style used elsewhere in the app:
+```scss
+border: 1px solid #ececec;
+box-shadow: 0px 1px 4px 0px rgba(24, 26, 32, 0.07);
+```
+`.leave-review-config` and `.right-config` already use a shadow — just change their border color from `#c4c4c4`/`rgba(196, 196, 196, 0.79)` to `#ececec` to match.
+
+## 3. Scholarship / Dormitory badges (top info row)
+Currently a plain colored dot + text. Turn it into a small rounded pill matching the `.pill-label` style from the listing filters, so it reads as a tag rather than a raw text label:
+```scss
+.buy-rent-box {
+	.circle { display: none; } // dot no longer needed once it's a pill
+	.buy-rent {
+		display: inline-block;
+		padding: 4px 12px;
+		border-radius: 20px;
+		background: rgba(232, 133, 106, 0.12);
+		color: #e8856a;
+		font-size: 13px;
+		font-weight: 600;
+	}
+}
+```
+
+## 4. Stat icon boxes (`.options-config .option .svg-box`)
+Soften the border and add a subtle tinted background so the graduation-cap/building/map icons added earlier stand out more:
+```scss
+.svg-box {
+	border: 1px solid #ececec;
+	background: #fafaf8;
+	border-radius: 12px;
+	transition: border-color 0.15s ease, background 0.15s ease;
+}
+.option:hover .svg-box {
+	border-color: #e8856a;
+	background: rgba(232, 133, 106, 0.08);
+}
+```
+
+## 5. Image gallery
+Add a hover-lift to the main image and a selected-state ring on the active thumbnail (no JS state change needed — `sub-img-box` already calls `changeImageHandler` on click, just add the CSS hover/active affordance):
+```scss
+.main-image img {
+	transition: transform 0.3s ease;
+}
+.sub-img-box {
+	border-radius: 12px;
+	border: 2px solid transparent;
+	transition: border-color 0.15s ease, opacity 0.15s ease;
+	opacity: 0.75;
+	&:hover { opacity: 1; }
+}
+```
+
+## 6. Contact sidebar (`.right-config`)
+Give inputs/textarea the same focus treatment as the filter inputs on the listing page (coral focus ring instead of plain black):
+```scss
+input:focus, textarea:focus {
+	border: 1px solid #e8856a !important;
+	box-shadow: 0 0 0 3px rgba(232, 133, 106, 0.12);
+}
+```
+
+## 7. Review section avatars and divider
+Replace the flat `border-bottom: 1px solid #c4c4c4;` on `.review-config` with `#ececec`, and give `.img-box` a 2px coral-tinted ring instead of the plain gray border:
+```scss
+.img-box {
+	border: 2px solid rgba(232, 133, 106, 0.2);
+}
+```
+
+## 8. Pagination styling consistency (small JSX prop change, not logic)
+In `detail.tsx`, the review `<MuiPagination>` (around line 491-497) currently uses `shape="circular"` with default MUI blue. Change only the styling props to match the listing page's rounded coral pagination:
+```tsx
+<MuiPagination
+	page={commentInquiry.page}
+	count={Math.ceil(commentTotal / commentInquiry.limit)}
+	onChange={commentPaginationChangeHandler}
+	shape="rounded"
+	color="primary"
+	sx={{ '& .Mui-selected': { backgroundColor: '#E8856A !important', color: '#fff' } }}
+/>
+```
+This only changes `shape` and adds `sx` — `page`, `count`, and `onChange` stay untouched.
+
+## 9. Similar/Destination universities carousel arrows
+Style `.swiper-similar-prev`/`.swiper-similar-next` (the `WestIcon`/`EastIcon` MUI icons) as small circular bordered buttons instead of bare icons, consistent with the rest of the minimalist design:
+```scss
+.pagination-box {
+	svg {
+		width: 36px;
+		height: 36px;
+		padding: 8px;
+		border-radius: 50%;
+		border: 1px solid #ececec;
+		cursor: pointer;
+		transition: border-color 0.15s ease, color 0.15s ease;
+		&:hover {
+			border-color: #e8856a;
+			color: #e8856a;
+		}
+	}
+}
+```
+
+Verify after implementing: liking a university, switching the main image via thumbnails, paginating reviews, submitting a comment, and the destination-universities carousel all behave exactly as before — only colors, borders, radii, shadows, and hover states changed.

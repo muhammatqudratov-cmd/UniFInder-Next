@@ -1,0 +1,51 @@
+Text-label-only changes in `pages/university/detail.tsx`. This file was built from a real-estate/property template and still uses property wording ("Bedroom", "Room", "Year Build", "Barter", "rent") even though the data is about universities. Do not touch any state, query, mutation, prop, or the underlying data fields (`university?.universityCapacity`, `university?.universityFaculties`, `university?.universityCampusSize`, `university?.createdAt`, `university?.universityScholarship`, `university?.universityDormitory`, `university?.universityType`) — only rename the visible label strings so they make sense for a university listing.
+
+## 1. Top info row — "Barter" / "rent" labels (lines ~225, ~236)
+These render next to the green dot when `universityScholarship` / `universityDormitory` are true. Currently mislabeled with property terms left over from the template. Change the displayed text only:
+```tsx
+{university?.universityScholarship && (
+  <>
+    <Stack className={'circle'}>...</Stack>
+    <Typography className={'buy-rent'}>Scholarship</Typography>
+  </>
+)}
+
+{university?.universityDormitory && (
+  <>
+    <Stack className={'circle'}>...</Stack>
+    <Typography className={'buy-rent'}>Dormitory</Typography>
+  </>
+)}
+```
+(Keep the `<Stack className={'circle'}>` svg dot exactly as-is — only the `Typography` text inside changes from `Barter`/`rent` to `Scholarship`/`Dormitory`.)
+
+## 2. Icon stat boxes under the title (the `.options-config` block, ~line 315-400)
+Rename the four `<Typography className={'title'}>` labels:
+- `'Bedroom'` → `'Capacity'` (still bound to `university?.universityCapacity`)
+- `'Room'` → `'Faculties'` (still bound to `university?.universityFaculties`)
+- `'Year Build'` → `'Founded'` (still bound to `moment(university?.createdAt).format('YYYY')`)
+- `'Size'` → `'Campus Size'` (still bound to `university?.universityCampusSize} m2`)
+- `'University Type'` stays as-is.
+
+## 3. "University Details" table (the `.info-box` block, ~line 408-443)
+Rename these `<Typography className={'title'}>` labels (data bindings unchanged):
+- `'Rooms'` → `'Faculties'`
+- `'Bedrooms'` → `'Capacity'`
+- `'Year Built'` → `'Founded'`
+- `'Price'`, `'University Size'`, `'University Type'` stay as-is.
+- `'University Options'` row: keep the title, but fix the value text which still says "Barter"/"Rent":
+```tsx
+<Typography className={'data'}>
+  For {university?.universityScholarship && 'Scholarship'} {university?.universityDormitory && 'Dormitory'}
+</Typography>
+```
+
+## 4. Contact form placeholder (~line 585)
+Currently a generic property placeholder. Make it reference the actual university being viewed instead of leftover "[Renovated university at floor]" text:
+```tsx
+<textarea
+  placeholder={`Hello, I am interested in \n${university?.universityName ?? 'this university'}`}
+></textarea>
+```
+
+After these changes, verify the page still compiles and that every value shown (capacity number, faculties number, campus size, founded year, scholarship/dormitory availability) is unchanged — only the wording next to each value is now university-appropriate instead of real-estate wording.

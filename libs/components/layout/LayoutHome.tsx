@@ -42,7 +42,16 @@ const withLayoutMain = (Component: any) => {
 			window.addEventListener('resize', resize);
 
 			const colors = ['#E8856A', '#C4B5D9', '#A8C5A0'];
-			interface Particle { x: number; y: number; r: number; color: string; vy: number; vx: number; op: number; blur: boolean; }
+			interface Particle {
+				x: number;
+				y: number;
+				r: number;
+				color: string;
+				vy: number;
+				vx: number;
+				op: number;
+				blur: boolean;
+			}
 			const particles: Particle[] = [];
 
 			const spawn = () => {
@@ -94,7 +103,7 @@ const withLayoutMain = (Component: any) => {
 				<>
 					<Head>
 						<title>UniFinder</title>
-						<meta name={'title'} content={`Nestar`} />
+						<meta name={'title'} content={`UniFinder`} />
 					</Head>
 					<Stack id="mobile-wrap">
 						<Stack id={'top'}>
@@ -116,7 +125,7 @@ const withLayoutMain = (Component: any) => {
 				<>
 					<Head>
 						<title>UniFinder</title>
-						<meta name={'meta'} content={`Nestar`} />
+						<meta name={'meta'} content={`UniFinder`} />
 					</Head>
 					<Stack id="pc-wrap">
 						<Stack id={'top'}>
@@ -143,17 +152,25 @@ const withLayoutMain = (Component: any) => {
 							<div className="hero-content" style={{ position: 'relative', zIndex: 1 }}>
 								<div className="hero-tag">The ultimate guide to universities</div>
 								<h1 className="hero-title">
-									Find your campus<br />
+									Find your campus
+									<br />
 									in <span className="hero-accent">South Korea</span>
 								</h1>
 								<p className="hero-sub">
-									Compare top universities, connect with trusted agents, and plan your move — all in one calm, clear place.
+									Compare top universities, connect with trusted agents, and plan your move — all in one calm, clear
+									place.
 								</p>
 								<div className="hero-buttons">
-									<button className="hero-btn-primary" onClick={() => router.push('/university')}>🎓 Explore Universities</button>
-									<button className="hero-btn-secondary" onClick={() => router.push('/agent')}>👤 Talk to an agent</button>
+									<button className="hero-btn-primary" onClick={() => router.push('/university')}>
+										🎓 Explore Universities
+									</button>
+									<button className="hero-btn-secondary" onClick={() => router.push('/agent')}>
+										👤 Talk to an agent
+									</button>
 								</div>
-								<div style={{ display: 'flex', justifyContent: 'center', width: '100%', position: 'relative', zIndex: 50 }}>
+								<div
+									style={{ display: 'flex', justifyContent: 'center', width: '100%', position: 'relative', zIndex: 50 }}
+								>
 									<HeaderFilter />
 								</div>
 							</div>

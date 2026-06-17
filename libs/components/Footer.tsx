@@ -19,11 +19,11 @@ const Footer = () => {
 						</Box>
 						<Box component={'div'} className={'footer-box'}>
 							<span>total free customer care</span>
-							<p>+82 10 4867 2909</p>
+							<p>+82 10 5748 2425</p>
 						</Box>
 						<Box component={'div'} className={'footer-box'}>
 							<span>nee live</span>
-							<p>+82 10 4867 2909</p>
+							<p>+82 10 5748 2425</p>
 							<span>Support?</span>
 						</Box>
 						<Box component={'div'} className={'footer-box'}>
@@ -63,7 +63,7 @@ const Footer = () => {
 					</Stack>
 				</Stack>
 				<Stack className={'second'}>
-					<span>© Nestar - All rights reserved. Nestar {moment().year()}</span>
+					<span>© UniFinder - All rights reserved. UniFinder {moment().year()}</span>
 				</Stack>
 			</Stack>
 		);
@@ -76,11 +76,7 @@ const Footer = () => {
 						<p>Admissions news, scholarships and deadlines — a calm digest, once a month.</p>
 					</div>
 					<div className="newsletter-form">
-						<input
-							className="newsletter-input"
-							type="email"
-							placeholder="your@email.com"
-						/>
+						<input className="newsletter-input" type="email" placeholder="your@email.com" />
 						<button className="newsletter-btn">Subscribe</button>
 					</div>
 				</div>
@@ -89,30 +85,40 @@ const Footer = () => {
 					{/* Column 1 — Brand */}
 					<div>
 						<div className="footer-logo">
-							<div style={{
-								width: '28px',
-								height: '28px',
-								borderRadius: '50%',
-								border: '2px solid #1C1B18',
-								display: 'flex',
-								alignItems: 'center',
-								justifyContent: 'center',
-								flexShrink: 0,
-							}}>
+							<div
+								style={{
+									width: '28px',
+									height: '28px',
+									borderRadius: '50%',
+									border: '2px solid #1C1B18',
+									display: 'flex',
+									alignItems: 'center',
+									justifyContent: 'center',
+									flexShrink: 0,
+								}}
+							>
 								<div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#E8856A' }}></div>
 							</div>
 							<span className="footer-logo-text">UniFinder</span>
 						</div>
 						<div className="footer-contact-label">Total free customer care</div>
-						<div className="footer-contact-phone">+82 10 4867 2909</div>
+						<div className="footer-contact-phone">+82 10 5748 2425</div>
 						<div className="footer-contact-label">Need live support?</div>
-						<div className="footer-contact-phone">+82 10 4867 2909</div>
+						<div className="footer-contact-phone">+82 10 5748 2425</div>
 						<div className="footer-follow-label">Follow Us</div>
 						<div className="footer-social-row">
-							<button className="footer-social-btn"><FacebookOutlinedIcon fontSize="small" /></button>
-							<button className="footer-social-btn"><TelegramIcon fontSize="small" /></button>
-							<button className="footer-social-btn"><InstagramIcon fontSize="small" /></button>
-							<button className="footer-social-btn"><TwitterIcon fontSize="small" /></button>
+							<button className="footer-social-btn">
+								<FacebookOutlinedIcon fontSize="small" />
+							</button>
+							<button className="footer-social-btn">
+								<TelegramIcon fontSize="small" />
+							</button>
+							<button className="footer-social-btn">
+								<InstagramIcon fontSize="small" />
+							</button>
+							<button className="footer-social-btn">
+								<TwitterIcon fontSize="small" />
+							</button>
 						</div>
 					</div>
 
@@ -139,16 +145,26 @@ const Footer = () => {
 					{/* Column 4 — Discover */}
 					<div>
 						<div className="footer-col-title">Discover</div>
-						<span className="footer-col-link"><span className="footer-pin">📍</span> Seoul</span>
-						<span className="footer-col-link"><span className="footer-pin">📍</span> Gyeonggi-do</span>
-						<span className="footer-col-link"><span className="footer-pin">📍</span> Busan</span>
-						<span className="footer-col-link"><span className="footer-pin">📍</span> Daegu</span>
-						<span className="footer-col-link"><span className="footer-pin">📍</span> Jejudo</span>
+						<span className="footer-col-link">
+							<span className="footer-pin">📍</span> Seoul
+						</span>
+						<span className="footer-col-link">
+							<span className="footer-pin">📍</span> Gyeonggi-do
+						</span>
+						<span className="footer-col-link">
+							<span className="footer-pin">📍</span> Busan
+						</span>
+						<span className="footer-col-link">
+							<span className="footer-pin">📍</span> Daegu
+						</span>
+						<span className="footer-col-link">
+							<span className="footer-pin">📍</span> Jejudo
+						</span>
 					</div>
 				</div>
 
 				<div className="footer-bottom">
-					<span>© Nestar {moment().year()} · UniFinder. All rights reserved.</span>
+					<span>© UniFinder {moment().year()} · UniFinder. All rights reserved.</span>
 					<div className="footer-bottom-links">
 						<span className="footer-bottom-link">Privacy</span>
 						<span className="footer-bottom-link">Terms</span>

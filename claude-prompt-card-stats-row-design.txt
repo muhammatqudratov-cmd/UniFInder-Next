@@ -1,0 +1,68 @@
+Visual-only refinement. Do not touch any data binding, prop, query, or handler — `university.universityCapacity`, `university.universityFaculties`, and `university.universityCampusSize` must keep rendering exactly as they do today. This only restyles the "bed / room / m2" stats row on each university card so it reads as a light, secondary detail line (matching the minimalist target design) instead of bold dark text.
+
+Filter section note: `Filter.tsx`'s city search input, scrollable Location pill list, University Type pills, Faculties buttons, and Dormitory/Scholarship switches already match the target design from the previous prompts — no further changes needed there.
+
+## `scss/pc/university/university.scss` — restyle `.options` / `.option`
+
+Replace the current block:
+```scss
+.options {
+	flex-direction: row;
+	width: 100%;
+	height: 20px;
+	gap: 20px;
+	margin-bottom: 10px;
+	.option {
+		flex-direction: row;
+		gap: 5px;
+		align-items: center;
+		p {
+			color: #181a20;
+			font-family: $font;
+			font-size: 13px;
+			font-style: normal;
+			font-weight: 400;
+			line-height: normal;
+		}
+	}
+}
+```
+with:
+```scss
+.options {
+	flex-direction: row;
+	align-items: center;
+	width: 100%;
+	height: 20px;
+	gap: 14px;
+	margin-bottom: 10px;
+	.option {
+		flex-direction: row;
+		gap: 6px;
+		align-items: center;
+		img {
+			width: 14px;
+			height: 14px;
+			opacity: 0.55;
+		}
+		p {
+			color: #717171;
+			font-family: $font;
+			font-size: 13px;
+			font-style: normal;
+			font-weight: 400;
+			line-height: normal;
+		}
+		&:not(:last-child)::after {
+			content: '';
+			display: inline-block;
+			width: 1px;
+			height: 11px;
+			margin-left: 14px;
+			background: #e8e8e4;
+		}
+	}
+}
+```
+
+This keeps the same three `.option` blocks, the same icons (`bed.svg`, `room.svg`, `expand.svg`), and the same `<Typography>{university.universityCapacity} bed</Typography>` etc. text bindings in `UniversityCard.tsx` — only the icon size/opacity, text color (now matching the muted gray `.address` line below it), spacing, and a thin vertical divider between each stat are added, so the row reads as a quiet secondary detail line instead of bold black text. No JSX changes are required in `UniversityCard.tsx` for this step.

@@ -56,7 +56,7 @@ const MyFavorites: NextPage = () => {
 	};
 
 	if (device === 'mobile') {
-		return <div>NESTAR MY FAVORITES MOBILE</div>;
+		return <div>UNIFINDER MY FAVORITES MOBILE</div>;
 	} else {
 		return (
 			<div id="my-favorites-page">
@@ -69,7 +69,13 @@ const MyFavorites: NextPage = () => {
 				<Stack className="favorites-list-box">
 					{myFavorites?.length ? (
 						myFavorites?.map((university: University) => {
-							return <UniversityCard university={university} likeUniversityHandler={likeUniversityHandler} myFavorites={true} />;
+							return (
+								<UniversityCard
+									university={university}
+									likeUniversityHandler={likeUniversityHandler}
+									myFavorites={true}
+								/>
+							);
 						})
 					) : (
 						<div className={'no-data'}>

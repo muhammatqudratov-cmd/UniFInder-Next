@@ -7,7 +7,8 @@
 ---
 
 ## 🔧 BASE SYSTEM PROMPT
-*(Har bir promptning boshiga qo'shing)*
+
+_(Har bir promptning boshiga qo'shing)_
 
 ```
 ⚠️ CRITICAL RULE — DESIGN ONLY, NO LOGIC CHANGES:
@@ -74,7 +75,7 @@ STYLE NOTES:
 - University card images: dark editorial photography at 60% opacity over gradient
 - Hover on cards: scale-110 image with translateY(-4px) card lift
 - All interactive elements: 200ms ease-in-out transitions
-- App name: "Uni-Finder" (NOT Nestar)
+- App name: "Uni-Finder" (NOT UniFinder)
 ```
 
 ---
@@ -107,7 +108,7 @@ TOP PERFORMING UNIVERSITIES (bento grid, section below hero):
 - Eyebrow: "PREMIUM SELECTION" in Label Caps / #ffe5a0
 - Title: "Top Performing Universities" Headline LG
 - "VIEW ALL →" link right-aligned
-- Bento grid (3-col): 
+- Bento grid (3-col):
   - Card 1 (2-col wide, 400px tall): Seoul National University, Rank #1, Gwanak-gu Seoul — full cinematic campus photo (dusk, indigo sky, golden lights)
   - Card 2 (1-col, 400px): KAIST, Rank #2, Daejeon — futuristic metallic architecture, blue-toned
   - Card 3 (1-col, 400px): Korea University, Rank #3 — autumn foliage, gothic stone buildings
@@ -243,7 +244,7 @@ REVIEW / COMMENTS SECTION:
 - Pagination for comments
 
 SIMILAR UNIVERSITIES (below main content, full-width):
-- Title: "Similar Universities" 
+- Title: "Similar Universities"
 - Horizontal scroll row of 4 University Cards (same card design as list page, 280px wide)
 
 RIGHT SIDEBAR:
@@ -635,7 +636,7 @@ FAQ / NOTICE CRUD:
 - List table + "Add New" gold button
 - Inline edit row OR modal form (glass-dark modal, centered)
 
-All tables: 
+All tables:
 - bg glass (rgba(255,255,255,0.04))
 - Header row: surface-container-high bg, Label Caps text
 - Row hover: surface-container bg

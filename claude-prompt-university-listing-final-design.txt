@@ -1,0 +1,89 @@
+Good news: the previous redesign prompt has already been applied — `UniversityCard.tsx` and `university.scss` already have the type badges, right-aligned price box, pill-style Dormitory/Scholarship labels, card hover-lift, and gradient placeholder. This prompt covers ONLY what's still missing to match the newest, more detailed target screenshot: the open "Sort by" dropdown with 4 options, the "Search city" input inside the Location filter, the full 44-city list, and rounded pagination buttons. Scope stays the same as before — visual/additive changes only, every existing state variable, handler body, GraphQL query, and `router.push` call must keep working exactly as before.
+
+## 1. `libs/enums/university.enum.ts` — expand to the full city list
+Current `UniversityLocation` only has 9 cities, two misspelled (`CHONJU`, `DAEJON`). Replace with:
+
+```ts
+export enum UniversityLocation {
+	SEOUL = 'SEOUL',
+	INCHEON = 'INCHEON',
+	BUSAN = 'BUSAN',
+	DAEGU = 'DAEGU',
+	DAEJEON = 'DAEJEON',
+	GWANGJU = 'GWANGJU',
+	ULSAN = 'ULSAN',
+	SEJONG = 'SEJONG',
+	SUWON = 'SUWON',
+	YONGIN = 'YONGIN',
+	SEONGNAM = 'SEONGNAM',
+	GOYANG = 'GOYANG',
+	BUCHEON = 'BUCHEON',
+	ANSAN = 'ANSAN',
+	ANYANG = 'ANYANG',
+	PYEONGTAEK = 'PYEONGTAEK',
+	HWASEONG = 'HWASEONG',
+	GIMPO = 'GIMPO',
+	UIJEONGBU = 'UIJEONGBU',
+	PAJU = 'PAJU',
+	CHUNCHEON = 'CHUNCHEON',
+	WONJU = 'WONJU',
+	GANGNEUNG = 'GANGNEUNG',
+	CHEONGJU = 'CHEONGJU',
+	CHUNGJU = 'CHUNGJU',
+	CHEONAN = 'CHEONAN',
+	ASAN = 'ASAN',
+	GONGJU = 'GONGJU',
+	JEONJU = 'JEONJU',
+	IKSAN = 'IKSAN',
+	GUNSAN = 'GUNSAN',
+	MOKPO = 'MOKPO',
+	YEOSU = 'YEOSU',
+	SUNCHEON = 'SUNCHEON',
+	POHANG = 'POHANG',
+	GYEONGJU = 'GYEONGJU',
+	ANDONG = 'ANDONG',
+	GUMI = 'GUMI',
+	CHANGWON = 'CHANGWON',
+	JINJU = 'JINJU',
+	GIMHAE = 'GIMHAE',
+	TONGYEONG = 'TONGYEONG',
+	JEJU_CITY = 'JEJU_CITY',
+	SEOGWIPO = 'SEOGWIPO',
+}
+```
+Note: this enum is only consumed via `Object.values(UniversityLocation)` in `Filter.tsx` / `HeaderFilter.tsx` / `AddNewUniversity.tsx`, so expanding it is safe for the frontend. The two renamed values (`CHONJU`→`JEONJU`, `DAEJON`→`DAEJEON`) will only matter if a backend already has university records stored with the old spelling — if that's the case, keep `CHONJU = 'CHONJU'` and `DAEJON = 'DAEJON'` as extra entries alongside the corrected ones instead of deleting them, so existing data still matches a filter pill.
+
+`JEJU_CITY` will display as the literal string "JEJU_CITY" unless you add a tiny label formatter — see step 2b.
+
+## 2. `libs/components/university/Filter.tsx`
+Do not touch `universityLocationSelectHandler`, `universityTypeSelectHandler`, `universityRoomSelectHandler`, `universityOptionSelectHandler`, `universityCampusSizeHandler`, `universityTuitionHandler`, `refreshHandler`, or the `useEffect` cleanup logic.
+
+a) **City search box.** Add `const [citySearchText, setCitySearchText] = useState('');` (local-only, does not touch `searchFilter`/GraphQL). Render a small input directly above the Location pill list:
+```tsx
+<OutlinedInput
+  value={citySearchText}
+  onChange={(e: any) => setCitySearchText(e.target.value)}
+  placeholder={'Search city'}
+  className={'city-search-input'}
+  fullWidth
+/>
+```
+Compute `const visibleLocations = universityLocation.filter((loc) => loc.toLowerCase().includes(citySearchText.toLowerCase()));` and map over `visibleLocations` instead of `universityLocation` when rendering pills — each pill's `value`/`checked`/`onChange={universityLocationSelectHandler}` stays exactly as it is today, only the filtered array driving `.map()` changes.
+
+b) **Label formatting.** Add `const formatLocationLabel = (loc: string) => loc.replace('_', ' ');` and use `{formatLocationLabel(location)}` (instead of `{location}`) wherever a location pill's text is rendered. Combined with `text-transform: capitalize` in SCSS (step 4), `SEOUL` displays as "Seoul" and `JEJU_CITY` as "Jeju City" — the underlying enum value passed to the handler is untouched.
+
+c) **Scrollable city list instead of hover-expand.** With 44 cities, the current `.university-location` hover-to-expand (115px → 253px on `:hover`) no longer fits — the new search box above replaces that need. Remove the hover-expand interaction (delete the `:hover` height rule's reliance, no JS state is involved here since it's CSS-only `&:hover { height: 253px; }`) and instead make the SCSS rule a fixed-height scroll area: `.university-location { height: 140px; overflow-y: auto; overflow-x: hidden; }` (drop the `&:hover` block and `transition`). Add a thin scrollbar: `&::-webkit-scrollbar { width: 4px; } &::-webkit-scrollbar-thumb { background: #E8E8E4; border-radius: 2px; }`.
+
+## 3. `pages/university/index.tsx` — 4th sort option + rounded pagination
+a) The Sort Menu currently has 3 options (New / Lowest Price / Highest Price). Add a 4th, "Most popular", sorting by views — this is the one small intentional logic addition in this prompt:
+```tsx
+case 'popular':
+  setSearchFilter({ ...searchFilter, sort: 'universityViews', direction: Direction.DESC });
+  setFilterSortName('Most popular');
+  break;
+```
+with a matching `<MenuItem onClick={sortingHandler} id={'popular'} disableRipple>Most popular</MenuItem>` placed after the existing three.
+
+b) Change `<Pagination shape="circular" .../>` to `shape="rounded"` and style the active page with the brand coral: `sx={{ '& .Mui-selected': { backgroundColor: '#E8856A !important', color: '#fff' } }}`.
+
+Verify after implementing: typing in the city search box only changes which pills render (no effect on `searchFilter` or the URL), clicking any city/type pill still updates `searchFilter` exactly as before, and the only new behavior beyond styling is the added "Most popular" sort case.

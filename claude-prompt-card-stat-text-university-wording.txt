@@ -1,0 +1,25 @@
+The icon swap worked — cards and the detail page now show the graduation cap / building / map icons correctly. One piece is still leftover from the real-estate template: the text right next to the numbers still says "bed", "room"/"rooms", which doesn't make sense for a university. Only change the word after each number — do not touch the data bindings (`university.universityCapacity`, `university.universityFaculties`, `university.universityCampusSize`), the icons, or any other logic.
+
+## 1. `libs/components/university/UniversityCard.tsx` (around lines 79, 82, 85)
+```tsx
+<img src="/img/icons/bed.svg" alt="" /> <Typography>{university.universityCapacity} students</Typography>
+...
+<img src="/img/icons/room.svg" alt="" /> <Typography>{university.universityFaculties} faculties</Typography>
+...
+<img src="/img/icons/expand.svg" alt="" /> <Typography>{university.universityCampusSize} m2</Typography>
+```
+(only the words "bed" → "students" and "room" → "faculties" change; "m2" stays as-is since it's already a unit, not a real-estate term)
+
+## 2. `libs/components/common/UniversityBigCard.tsx` (around lines 54-63)
+```tsx
+<img src="/img/icons/bed.svg" alt="" />
+<span>{university?.universityCapacity} students</span>
+...
+<img src="/img/icons/room.svg" alt="" />
+<span>{university?.universityFaculties} faculties</span>
+...
+<span>{university?.universityCampusSize} m2</span>
+```
+(only "bed" → "students" and "rooms" → "faculties" change; the `m2` span is untouched)
+
+After this, every card (listing grid, destination/similar-universities carousel) and the detail page should consistently read "X students", "X faculties", "X m2" with the new icons — no remaining "bed"/"room" wording anywhere. No other file needs changes.

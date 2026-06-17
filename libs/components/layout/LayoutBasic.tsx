@@ -148,7 +148,7 @@ const withLayoutBasic = (Component: any) => {
 				<>
 					<Head>
 						<title>UniFinder</title>
-						<meta name={'title'} content={`Nestar`} />
+						<meta name={'title'} content={`UniFinder`} />
 					</Head>
 					<Stack id="mobile-wrap">
 						<Stack id={'top'}>
@@ -170,7 +170,7 @@ const withLayoutBasic = (Component: any) => {
 				<>
 					<Head>
 						<title>UniFinder</title>
-						<meta name={'title'} content={`Nestar`} />
+						<meta name={'title'} content={`UniFinder`} />
 					</Head>
 					<Stack id="pc-wrap">
 						<Stack id={'top'}>
@@ -192,22 +192,14 @@ const withLayoutBasic = (Component: any) => {
 											<span className={'dash'} />
 											{t(memoizedValues.eyebrow!)}
 										</Stack>
-										<strong className={heroVisible ? 'fade-in-up' : ''}>
-											{t(memoizedValues.title)}
-										</strong>
-										<p className={`lead${heroVisible ? ' fade-in-up delay-1' : ''}`}>
-											{t(memoizedValues.desc)}
-										</p>
+										<strong className={heroVisible ? 'fade-in-up' : ''}>{t(memoizedValues.title)}</strong>
+										<p className={`lead${heroVisible ? ' fade-in-up delay-1' : ''}`}>{t(memoizedValues.desc)}</p>
 										<Stack className={'stats-row'}>
 											{memoizedValues.stats.map((s, i) => (
 												<React.Fragment key={s.label}>
 													{i > 0 && <span className={'stat-divider'} />}
 													<Stack className={'stat'}>
-														<CountUpStat
-															target={s.numericValue}
-															suffix={s.suffix}
-															decimals={s.decimals}
-														/>
+														<CountUpStat target={s.numericValue} suffix={s.suffix} decimals={s.decimals} />
 														<span>{s.label}</span>
 													</Stack>
 												</React.Fragment>

@@ -52,7 +52,7 @@ const MyUniversities: NextPage = ({ initialInput, ...props }: any) => {
 	};
 
 	if (device === 'mobile') {
-		return <div>NESTAR UNIVERSITIES MOBILE</div>;
+		return <div>UNIFINDER UNIVERSITIES MOBILE</div>;
 	} else {
 		return (
 			<div id="member-universities-page">

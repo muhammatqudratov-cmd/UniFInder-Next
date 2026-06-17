@@ -1,0 +1,35 @@
+Good — the previous wording fix worked correctly: "Scholarship"/"Dormitory" labels and "Capacity"/"Faculties"/"Founded"/"Campus Size" titles are showing up fine, and no logic broke. The remaining issue is purely visual: the icons next to "5 bed / 5 room / 500 m2" on the cards (`UniversityCard.tsx`, `UniversityBigCard.tsx`) and on the detail page top stat row (`pages/university/detail.tsx`) are still literal real-estate icons (a bed, a door/room, a resize-window icon) because they're loaded from the image files `public/img/icons/bed.svg`, `public/img/icons/room.svg`, and `public/img/icons/expand.svg`.
+
+This task does NOT require touching any `.tsx` file. Every component already references these three files by their exact path (`/img/icons/bed.svg`, `/img/icons/room.svg`, `/img/icons/expand.svg`), so simply replacing the SVG artwork inside those three files updates every card and the detail page at once, with zero risk to logic, data bindings, or JSX.
+
+## 1. Overwrite `public/img/icons/bed.svg` (used for "Capacity") with a graduation-cap icon:
+```svg
+<svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M10 1L19 5.5L10 10L1 5.5L10 1Z" fill="black"/>
+<path d="M4.5 7.3V12C4.5 12 6.8 14 10 14C13.2 14 15.5 12 15.5 12V7.3L10 10L4.5 7.3Z" fill="black"/>
+<rect x="18.4" y="5.5" width="1.2" height="7" fill="black"/>
+<circle cx="19" cy="13" r="1" fill="black"/>
+</svg>
+```
+
+## 2. Overwrite `public/img/icons/room.svg` (used for "Faculties") with a faculty-building icon:
+```svg
+<svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M9.5 1L18 5.7V19H1V5.7L9.5 1Z" fill="black"/>
+<rect x="4" y="9" width="2.5" height="2.5" fill="white"/>
+<rect x="8.25" y="9" width="2.5" height="2.5" fill="white"/>
+<rect x="12.5" y="9" width="2.5" height="2.5" fill="white"/>
+<rect x="8.25" y="13.5" width="2.5" height="5.5" fill="white"/>
+</svg>
+```
+
+## 3. Overwrite `public/img/icons/expand.svg` (used for "Campus Size") with a campus-map icon:
+```svg
+<svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M1 3L7 1L13 3L19 1V17L13 19L7 17L1 19V3Z" fill="black"/>
+<path d="M7 1V17" stroke="white" stroke-width="1"/>
+<path d="M13 3V19" stroke="white" stroke-width="1"/>
+</svg>
+```
+
+These are simple original line/fill icons matching the flat black style already used elsewhere in `public/img/icons/` (e.g. `search.svg`). No component file, prop, or class name changes are needed — verify after the swap that the cards and detail page still render `{university.universityCapacity} bed`, `{university.universityFaculties} room`, `{university.universityCampusSize} m2` exactly as before, just with a graduation cap, building, and map icon instead of the old bed/room/resize icons.

@@ -1,0 +1,32 @@
+Found it — this row is a separate block from the "Capacity / Faculties / Founded / Campus Size" boxes lower on the page. It's the `.bottom-box` stack right under the title in `pages/university/detail.tsx` (around lines 260-270), which still has the old "bed"/"room" wording and wasn't covered by the earlier card-text fix (that one only touched `UniversityCard.tsx` and `UniversityBigCard.tsx`). Same rule as before: only change the trailing word, keep `university?.universityCapacity`, `university?.universityFaculties`, `university?.universityCampusSize`, the icons, and the className values exactly as they are.
+
+Replace:
+```tsx
+<Stack className={'bottom-box'}>
+	<Stack className="option">
+		<img src="/img/icons/bed.svg" alt="" /> <Typography>{university?.universityCapacity} bed</Typography>
+	</Stack>
+	<Stack className="option">
+		<img src="/img/icons/room.svg" alt="" /> <Typography>{university?.universityFaculties} room</Typography>
+	</Stack>
+	<Stack className="option">
+		<img src="/img/icons/expand.svg" alt="" /> <Typography>{university?.universityCampusSize} m2</Typography>
+	</Stack>
+</Stack>
+```
+with:
+```tsx
+<Stack className={'bottom-box'}>
+	<Stack className="option">
+		<img src="/img/icons/bed.svg" alt="" /> <Typography>{university?.universityCapacity} students</Typography>
+	</Stack>
+	<Stack className="option">
+		<img src="/img/icons/room.svg" alt="" /> <Typography>{university?.universityFaculties} faculties</Typography>
+	</Stack>
+	<Stack className="option">
+		<img src="/img/icons/expand.svg" alt="" /> <Typography>{university?.universityCampusSize} m2</Typography>
+	</Stack>
+</Stack>
+```
+
+After this, search the whole detail page for any other leftover instance of the literal words "bed" or "room" (case-insensitive) — there should be none left once this block is updated, since the lower "options-config" block and the "University Details" table were already fixed in earlier passes.

@@ -1,0 +1,38 @@
+The Universities listing page's filters, cards, sort menu, and pagination styling already match the target design — verified by reading `Filter.tsx`, `UniversityCard.tsx`, `university.scss`, and `pages/university/index.tsx`. The only remaining visual mismatch against the target screenshot (which shows "Showing 1-6 of 24 universities" with 6 cards per page and 4 pagination pages) is two small things in `pages/university/index.tsx`:
+
+1. **Items per page.** `UniversityList.defaultProps.initialInput.limit` is currently `3`. Change it to `6` so 6 cards render per page like the target design:
+```ts
+UniversityList.defaultProps = {
+	initialInput: {
+		page: 1,
+		limit: 6,
+		sort: 'createdAt',
+		direction: 'DESC',
+		search: {
+			squaresRange: { start: 0, end: 1000 },
+			pricesRange: { start: 0, end: 5000000 },
+		},
+	},
+};
+```
+This is a config-value-only change — no query/handler logic changes.
+
+2. **Result caption text.** Replace the current:
+```tsx
+<Stack className="total-result">
+	<Typography>
+		Total {total} university{total > 1 ? 'ies' : 'y'} available
+	</Typography>
+</Stack>
+```
+with a "Showing X-Y of Z universities" format matching the target, computed from existing state (no new state needed):
+```tsx
+<Stack className="total-result">
+	<Typography>
+		Showing {Math.min((currentPage - 1) * searchFilter.limit + 1, total)}-{Math.min(currentPage * searchFilter.limit, total)} of {total} universit{total === 1 ? 'y' : 'ies'}
+	</Typography>
+</Stack>
+```
+This only changes the displayed text — `total`, `currentPage`, and `searchFilter.limit` are all already-existing state/props, untouched otherwise.
+
+After this change, verify: with 24 total universities and limit 6, the page shows 6 cards, 4 pagination pages, and the caption reads "Showing 1-6 of 24 universities" on page 1, "Showing 7-12 of 24 universities" on page 2, etc. No other file needs changes — `Filter.tsx`'s pill filters, city search, `UniversityCard.tsx`'s badges/price-box/heart color, and the Sort menu's 4 options are already correct.
