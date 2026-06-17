@@ -1,0 +1,13 @@
+Context: small spacing-only tweak to the already-implemented Agents page hero (from `claude-prompt-agents-hero-landing.txt`). The heading block (eyebrow badge "AGENT DIRECTORY", "Meet the agents" / "behind {word}" heading, underline bar, stats row) currently sits too close to the top navbar. Push it down a bit for more breathing room. Do not touch any GraphQL/logic, the rotating-word behavior, the marquee, or any other page's hero — this is purely a `margin-top` adjustment in `scss/pc/main.scss`.
+
+## Change
+In `scss/pc/main.scss`, inside `.header-basic.agent-hero .agent-hero-container`, increase the existing `margin-top` value (currently `70px`) so the block sits lower, closer to vertically centered in the 557px-tall hero:
+```scss
+.agent-hero-container {
+	margin-top: 120px;
+	...
+}
+```
+Keep `margin-left: 12%` and every other property in `.agent-hero-container` exactly as already implemented — only the `margin-top` value changes (from `70px` to `120px`).
+
+Verify after implementing: the "AGENT DIRECTORY" badge, heading, underline bar, and stats row now sit lower in the hero with more visual gap from the navbar above, the rotating word still animates correctly, the marquee at the bottom edge is unaffected, and no other page's hero spacing changed.

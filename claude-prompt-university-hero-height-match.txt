@@ -1,0 +1,25 @@
+Context: make the Agents page (`/agent`) hero/landing section exactly the same height as the University page (`/university`) hero/landing section. This is the only change — do not touch any GraphQL query/mutation, do not change any text/content/animation already specified for the Agents hero, and do not change the University page at all (it already has the correct height and stays untouched).
+
+Background: in `scss/pc/main.scss`, the base rule is:
+```scss
+.header-basic {
+	height: 557px;
+	...
+	&.auth {
+		height: 300px;
+	}
+}
+```
+The University page hero uses this base height of `557px` (it has no separate height override). The Agents page hero (rendered via the new `.agent-hero` class from the Agents landing redesign) must use this same `557px` — not any other value.
+
+## Change
+In `scss/pc/main.scss`, inside `.header-basic`, find the `.agent-hero` block and make sure its height is set to match the base/University height exactly:
+```scss
+&.agent-hero {
+	height: 557px;
+	...
+}
+```
+If `.agent-hero` currently has any other height value (e.g. `480px`), change it to `557px` so it matches the University hero exactly. Do not change the base `.header-basic { height: 557px; }` rule or the `.auth` variant — only confirm/fix the value inside `.agent-hero`.
+
+Verify after implementing: open `/university` and `/agent` side by side — both hero sections are now exactly the same height (557px); nothing else about either page changed.

@@ -1,0 +1,43 @@
+Context: this prompt supersedes `claude-prompt-agents-page-design-system.txt` for the Agents list content area (search/sort toolbar, card grid, pagination) and locks in exact, pixel-precise values matching the attached reference screenshot. This is a visual-only change: do NOT touch any GraphQL query/mutation, state, sorting logic, search-filter logic, pagination logic, or the like-handler in `pages/agent/index.tsx` or `libs/components/common/AgentCard.tsx`. Only edit `scss/pc/agent/agent.scss` (for `.agent-list-page`) and `scss/pc/general.scss` (for the `.agent-general-card` rule rendered by `AgentCard.tsx`). Do not touch the hero banner above this content — that is covered by separate prompts.
+
+Design tokens (exact hex values, same system used across the project):
+```
+ink (headings/names):   #1C1B18
+ink-2 (body text):      #57564F
+ink-3 (muted/meta):     #8E8C83
+line (borders):         #E9E7E0
+surface:                 #FFFFFF
+surface-2 (page bg):     #FAFAF8
+coral (accent):          #E8856A
+coral-deep (hover):      #D2674C
+coral-tint (badge bg):   #FBEDE7
+font: keep existing `$font` (Poppins) — do not add new font families
+```
+
+## 1. Page background
+`.agent-list-page` background: `#FAFAF8`.
+
+## 2. Search + sort toolbar (`.filter`)
+- `.left input` (search field): compact pill — `width:270px; height:46px; padding:0 20px; border-radius:999px; border:1px solid #E9E7E0; background:#FFFFFF; color:#1C1B18; font-size:14px;` placeholder color `#8E8C83`. `:focus` → `border-color:#E8856A; box-shadow:0 0 0 3px rgba(232,133,106,.12); outline:none;`.
+- `.right span` ("Sort by"): `color:#8E8C83; font-size:13px; font-weight:500; margin-right:8px;`.
+- `.right button` (sort trigger, e.g. "Recent" + chevron): pill — `padding:9px 16px; border-radius:999px; border:1px solid #E9E7E0; background:#FFFFFF; color:#1C1B18; font-size:13px; font-weight:700;` hover → `border-color:#1C1B18;`. Keep the `Menu`/`MenuItem` (Recent/Oldest/Likes/Views) functionality exactly as-is; restyle only the `Menu` paper (`border-radius:14px; border:1px solid #E9E7E0; box-shadow:0 8px 24px rgba(28,27,24,.05); margin-top:8px;`) and each `MenuItem` (`font-size:13.5px; color:#1C1B18; padding:10px 16px;` hover background `#F4F3EF`).
+
+## 3. Card grid (`.card-wrap`)
+`display:flex; flex-wrap:wrap; gap:24px; margin-top:32px;` — even spacing on both axes, cards wrap naturally per row depending on viewport width.
+
+## 4. Agent card (`.agent-general-card`, rendered by `AgentCard.tsx`)
+- Wrapper: `width:200px; border-radius:16px; overflow:hidden; background:#FFFFFF; border:1px solid #E9E7E0; box-shadow:0 1px 2px rgba(28,27,24,.03); cursor:pointer; transition:transform .22s ease, box-shadow .22s ease;` hover → `transform:translateY(-3px); box-shadow:0 8px 24px rgba(28,27,24,.05);`.
+- `.agent-img`: `width:100%; height:165px; position:relative; background-color:#EFEDE7;` (keep the existing inline `backgroundImage`/default-avatar styling from `AgentCard.tsx` untouched — only the container's fixed size/radius/fallback background change here). The "{count} universities" overlay `<div>`: reposition `absolute; top:12px; left:12px;` and restyle as a small uppercase pill: `padding:4px 10px; border-radius:999px; background:#FBEDE7; color:#D2674C; font-size:10.5px; font-weight:700; letter-spacing:.02em;`.
+- `.agent-desc`: `padding:14px 16px 16px; display:flex; flex-direction:row; justify-content:space-between; align-items:flex-start;`.
+  - `.agent-info strong` (name): `color:#1C1B18; font-size:15px; font-weight:700; display:block;`.
+  - `.agent-info span` ("Agent" label): `color:#8E8C83; font-size:12px; font-weight:500; margin-top:2px; display:block;`.
+  - `.buttons`: icons `color:#8E8C83; font-size:18px;`, active/liked heart `color:#E8856A;`; `.view-cnt`: `color:#8E8C83; font-size:12.5px; font-weight:500; margin-left:2px;`.
+
+## 5. Pagination (`.pagination`)
+- MUI `Pagination` items restyled as rounded squares (not full circles): each item `width:36px; height:36px; border-radius:10px; border:1px solid #E9E7E0; background:#FFFFFF; color:#1C1B18; font-size:13.5px; font-weight:600;` hover (non-selected) → `border-color:#1C1B18;`.
+- `.Mui-selected` (current page, e.g. page 1) → `background-color:#E8856A !important; color:#FFFFFF !important; border-color:#E8856A !important;`.
+- The next-page arrow item (›) gets the same rounded-square treatment as the number items, icon color `#1C1B18` (or `#C9C7BD` / disabled style when there is no next page, e.g. on the last page — keep MUI's built-in disabled behavior, just restyle its visual to match: `opacity:.4; border-color:#E9E7E0; cursor:default;`).
+- `.pagination span` ("Total {n} agents available"): centered, `color:#8E8C83; font-size:13.5px; font-weight:500; margin-top:24px;`.
+- `.no-data` (empty state): centered, `gap:14px;`, message `color:#8E8C83; font-size:14px; font-weight:500;`, alert icon `opacity:.6;`.
+
+Verify after implementing: searching by typing + Enter still filters, the sort menu (Recent/Oldest/Likes/Views) still re-sorts and updates `filterSortName`, pagination still navigates pages and updates the URL query, liking an agent still calls the `LIKE_TARGET_MEMBER` mutation, refetches, and shows the success alert, and clicking a card still navigates to `/agent/detail` — only colors, spacing, sizes, and radii changed, no logic touched.

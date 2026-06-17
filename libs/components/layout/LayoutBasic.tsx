@@ -59,6 +59,8 @@ const withLayoutBasic = (Component: any) => {
 		const device = useDeviceDetect();
 		const [authHeader, setAuthHeader] = useState<boolean>(false);
 		const [heroVisible, setHeroVisible] = useState(false);
+		const [rotatingWordIndex, setRotatingWordIndex] = useState(0);
+		const [rotatingWordKey, setRotatingWordKey] = useState(0);
 		const user = useReactiveVar(userVar);
 
 		const memoizedValues = useMemo(() => {
@@ -66,7 +68,8 @@ const withLayoutBasic = (Component: any) => {
 				desc = '',
 				bgImage = '',
 				eyebrow: string | undefined = undefined,
-				stats: StatItem[] | undefined = undefined;
+				stats: StatItem[] | undefined = undefined,
+				marqueeItems: string[] | undefined = undefined;
 
 			switch (router.pathname) {
 				case '/university':
@@ -82,9 +85,28 @@ const withLayoutBasic = (Component: any) => {
 					];
 					break;
 				case '/agent':
-					title = 'Agents';
-					desc = 'Home / For Rent';
-					bgImage = '/img/banner/agents.webp';
+					title = 'Meet the agents';
+					desc = 'behind';
+					bgImage = '';
+					eyebrow = 'AGENT DIRECTORY';
+					stats = [
+						{ numericValue: 2, suffix: '', decimals: 0, label: 'Active agents' },
+						{ numericValue: 60, suffix: '+', decimals: 0, label: 'Universities covered' },
+					];
+					marqueeItems = [
+						'Cambridge',
+						'ETH Zürich',
+						'NUS',
+						'Harvard',
+						'Toronto',
+						'Melbourne',
+						'Tokyo',
+						'TUM',
+						'Imperial',
+						'Stanford',
+						'MIT',
+						'Oxford',
+					];
 					break;
 				case '/agent/detail':
 					title = 'Agent Page';
@@ -126,7 +148,7 @@ const withLayoutBasic = (Component: any) => {
 					break;
 			}
 
-			return { title, desc, bgImage, eyebrow, stats };
+			return { title, desc, bgImage, eyebrow, stats, marqueeItems };
 		}, [router.pathname]);
 
 		/** LIFECYCLES **/
@@ -140,6 +162,15 @@ const withLayoutBasic = (Component: any) => {
 			const id = requestAnimationFrame(() => setHeroVisible(true));
 			return () => cancelAnimationFrame(id);
 		}, [router.pathname]);
+
+		useEffect(() => {
+			if (!memoizedValues.marqueeItems) return;
+			const id = setInterval(() => {
+				setRotatingWordIndex((prev) => (prev + 1) % memoizedValues.marqueeItems!.length);
+				setRotatingWordKey((prev) => prev + 1);
+			}, 1400);
+			return () => clearInterval(id);
+		}, [memoizedValues.marqueeItems]);
 
 		/** HANDLERS **/
 
@@ -178,41 +209,84 @@ const withLayoutBasic = (Component: any) => {
 						</Stack>
 
 						<Stack
-							className={`header-basic ${authHeader && 'auth'}`}
-							style={{
-								backgroundImage: `url(${memoizedValues.bgImage})`,
-								backgroundSize: 'cover',
-							}}
+							className={`header-basic ${authHeader && 'auth'} ${memoizedValues.marqueeItems ? 'agent-hero' : ''}`}
+							style={
+								memoizedValues.bgImage
+									? { backgroundImage: `url(${memoizedValues.bgImage})`, backgroundSize: 'cover' }
+									: undefined
+							}
 						>
-							<Stack className={'overlay'} />
-							<Stack className={`container${memoizedValues.stats ? ' has-stats' : ''}`}>
-								{memoizedValues.stats ? (
-									<>
-										<Stack className={'eyebrow'}>
-											<span className={'dash'} />
+							{!memoizedValues.marqueeItems && <Stack className={'overlay'} />}
+							{memoizedValues.marqueeItems ? (
+								<>
+									<Stack className={'glow-circle'} />
+									<Stack className={'container agent-hero-container'}>
+										<Stack className={'eyebrow light'}>
+											<span className={'dot'} />
 											{t(memoizedValues.eyebrow!)}
 										</Stack>
-										<strong className={heroVisible ? 'fade-in-up' : ''}>{t(memoizedValues.title)}</strong>
-										<p className={`lead${heroVisible ? ' fade-in-up delay-1' : ''}`}>{t(memoizedValues.desc)}</p>
-										<Stack className={'stats-row'}>
-											{memoizedValues.stats.map((s, i) => (
+										<strong className={'agent-heading'}>{t(memoizedValues.title)}</strong>
+										<Stack className={'agent-heading-row'}>
+											<span className={'muted-word'}>{t(memoizedValues.desc)}</span>
+											<span className={'rotating-word-stage'}>
+												<span key={rotatingWordKey} className={'rotating-word'}>
+													{memoizedValues.marqueeItems[rotatingWordIndex]}
+												</span>
+											</span>
+										</Stack>
+										<span className={'underline-bar'} />
+										<Stack className={'stats-row dark'}>
+											{memoizedValues.stats!.map((s, i) => (
 												<React.Fragment key={s.label}>
-													{i > 0 && <span className={'stat-divider'} />}
-													<Stack className={'stat'}>
+													{i > 0 && <span className={'stat-divider dark'} />}
+													<Stack className={'stat dark'}>
 														<CountUpStat target={s.numericValue} suffix={s.suffix} decimals={s.decimals} />
 														<span>{s.label}</span>
 													</Stack>
 												</React.Fragment>
 											))}
 										</Stack>
-									</>
-								) : (
-									<>
-										<strong>{t(memoizedValues.title)}</strong>
-										<span>{t(memoizedValues.desc)}</span>
-									</>
-								)}
-							</Stack>
+									</Stack>
+									<Stack className={'marquee-row'}>
+										<Stack className={'marquee-track'}>
+											{[...memoizedValues.marqueeItems, ...memoizedValues.marqueeItems].map((name, i) => (
+												<span className={'marquee-pill'} key={`${name}-${i}`}>
+													{name}
+												</span>
+											))}
+										</Stack>
+									</Stack>
+								</>
+							) : (
+								<Stack className={`container${memoizedValues.stats ? ' has-stats' : ''}`}>
+									{memoizedValues.stats ? (
+										<>
+											<Stack className={'eyebrow'}>
+												<span className={'dash'} />
+												{t(memoizedValues.eyebrow!)}
+											</Stack>
+											<strong className={heroVisible ? 'fade-in-up' : ''}>{t(memoizedValues.title)}</strong>
+											<p className={`lead${heroVisible ? ' fade-in-up delay-1' : ''}`}>{t(memoizedValues.desc)}</p>
+											<Stack className={'stats-row'}>
+												{memoizedValues.stats.map((s, i) => (
+													<React.Fragment key={s.label}>
+														{i > 0 && <span className={'stat-divider'} />}
+														<Stack className={'stat'}>
+															<CountUpStat target={s.numericValue} suffix={s.suffix} decimals={s.decimals} />
+															<span>{s.label}</span>
+														</Stack>
+													</React.Fragment>
+												))}
+											</Stack>
+										</>
+									) : (
+										<>
+											<strong>{t(memoizedValues.title)}</strong>
+											<span>{t(memoizedValues.desc)}</span>
+										</>
+									)}
+								</Stack>
+							)}
 						</Stack>
 
 						<Stack id={'main'}>

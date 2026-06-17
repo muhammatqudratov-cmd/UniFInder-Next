@@ -1,0 +1,28 @@
+Context: bug fix for the Agents card grid implemented from `claude-prompt-agents-list-content-1to1.txt`. The cards are rendering far taller than their content (lots of empty white space below the name/icons row) because `.card-wrap` is a flex container with the default `align-items: stretch` plus an existing `min-height: 500px` from the original `agent.scss` — together these stretch every `.agent-general-card` to fill that 500px height even though the card's actual content is much shorter. This is a CSS-only fix, no logic/markup change.
+
+## Fix
+In `scss/pc/agent/agent.scss`, inside `.card-wrap`, add `align-items: flex-start;` and remove the now-unnecessary `min-height: 500px;` (it was only there to reserve space for the old layout and is no longer needed since cards size to their own content):
+```scss
+.card-wrap {
+	position: relative;
+	margin-top: 32px;
+	width: 100%;
+	height: auto;
+	display: flex;
+	flex-direction: row;
+	flex-wrap: wrap;
+	align-items: flex-start;
+	gap: 24px;
+}
+```
+Also, in `scss/pc/general.scss`, on `.agent-general-card`, make sure height is not stretched and sizes to content:
+```scss
+.agent-general-card {
+	width: 200px;
+	height: fit-content;
+	...
+}
+```
+(Keep every other property already set on `.agent-general-card` and `.card-wrap` — e.g. `width:200px`, `border-radius:16px`, the `gap:24px` — exactly as they are; only `align-items`, removing `min-height:500px`, and adding `height:fit-content` change.)
+
+Verify after implementing: cards now shrink to fit their actual content (image + name/role + icons row, no leftover blank space below), the grid still wraps with even 24px gaps, and searching/sorting/pagination/like behavior is unaffected since nothing in `pages/agent/index.tsx` or `AgentCard.tsx` changed.

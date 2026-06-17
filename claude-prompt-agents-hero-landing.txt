@@ -1,0 +1,256 @@
+Context: replace the dark photo hero banner on the Agents page (`/agent`) only, with a new light "Agent Directory" landing hero, matched to the attached reference screenshot. This hero is rendered by the shared `libs/components/layout/LayoutBasic.tsx` (the `switch (router.pathname)` block that currently has a `case '/agent':` setting `title`, `desc`, `bgImage`). Do not change the hero for any other route (`/university`, `/agent/detail`, `/mypage`, etc.) — they must keep rendering exactly as they do today. Do not touch any GraphQL query/mutation — this hero uses only new local component state for the rotating word and the marquee, no data fetching changes. There is already a precedent pattern in this same file for the `/university` hero (`eyebrow`, `stats`, `CountUpStat`, `fade-in-up`) — follow the same code style.
+
+## 1. New data for the `/agent` case in `LayoutBasic.tsx`
+Add a `marqueeItems?: string[]` field to the `memoizedValues` return type/interface, alongside the existing `title`, `desc`, `bgImage`, `eyebrow`, `stats`. Replace the existing `case '/agent':` block with:
+```tsx
+case '/agent':
+	title = 'Meet the agents';
+	desc = 'behind';
+	bgImage = '';
+	eyebrow = 'AGENT DIRECTORY';
+	stats = [
+		{ numericValue: 2, suffix: '', decimals: 0, label: 'Active agents' },
+		{ numericValue: 60, suffix: '+', decimals: 0, label: 'Universities covered' },
+	];
+	marqueeItems = [
+		'Cambridge', 'ETH Zürich', 'NUS', 'Harvard', 'Toronto', 'Melbourne',
+		'Tokyo', 'TUM', 'Imperial', 'Stanford', 'MIT', 'Oxford',
+	];
+	break;
+```
+(Keep every other `case` in the switch untouched.)
+
+## 2. Rotating word state
+Add, near the existing `heroVisible` state in `withLayoutBasic`:
+```tsx
+const [rotatingWordIndex, setRotatingWordIndex] = useState(0);
+const [rotatingWordKey, setRotatingWordKey] = useState(0);
+
+useEffect(() => {
+	if (!memoizedValues.marqueeItems) return;
+	const id = setInterval(() => {
+		setRotatingWordIndex((prev) => (prev + 1) % memoizedValues.marqueeItems!.length);
+		setRotatingWordKey((prev) => prev + 1);
+	}, 1400);
+	return () => clearInterval(id);
+}, [memoizedValues.marqueeItems]);
+```
+This cycles through `marqueeItems` (Stanford, NUS, MIT, Cambridge, etc.) every 1.4 seconds. `rotatingWordKey` forces React to remount the `<span>` on every tick so the CSS entrance animation (section 3/4 below) replays each time — used for the "behind {word}" line in the heading.
+
+## 3. New JSX render branch
+Inside the desktop (`else`) return, the `header-basic` Stack currently renders either the `has-stats` branch or the plain branch. Add a **new, first** condition checking `memoizedValues.marqueeItems`, so the structure becomes:
+```tsx
+<Stack
+	className={`header-basic ${authHeader && 'auth'} ${memoizedValues.marqueeItems ? 'agent-hero' : ''}`}
+	style={memoizedValues.bgImage ? { backgroundImage: `url(${memoizedValues.bgImage})`, backgroundSize: 'cover' } : undefined}
+>
+	{!memoizedValues.marqueeItems && <Stack className={'overlay'} />}
+	{memoizedValues.marqueeItems ? (
+		<>
+			<Stack className={'glow-circle'} />
+			<Stack className={'container agent-hero-container'}>
+				<Stack className={'eyebrow light'}>
+					<span className={'dot'} />
+					{t(memoizedValues.eyebrow!)}
+				</Stack>
+				<strong className={'agent-heading'}>{t(memoizedValues.title)}</strong>
+				<Stack className={'agent-heading-row'}>
+					<span className={'muted-word'}>{t(memoizedValues.desc)}</span>
+					<span className={'rotating-word-stage'}>
+						<span key={rotatingWordKey} className={'rotating-word'}>
+							{memoizedValues.marqueeItems[rotatingWordIndex]}
+						</span>
+					</span>
+				</Stack>
+				<span className={'underline-bar'} />
+				<Stack className={'stats-row dark'}>
+					{memoizedValues.stats!.map((s, i) => (
+						<React.Fragment key={s.label}>
+							{i > 0 && <span className={'stat-divider dark'} />}
+							<Stack className={'stat dark'}>
+								<CountUpStat target={s.numericValue} suffix={s.suffix} decimals={s.decimals} />
+								<span>{s.label}</span>
+							</Stack>
+						</React.Fragment>
+					))}
+				</Stack>
+			</Stack>
+			<Stack className={'marquee-row'}>
+				<Stack className={'marquee-track'}>
+					{[...memoizedValues.marqueeItems, ...memoizedValues.marqueeItems].map((name, i) => (
+						<span className={'marquee-pill'} key={`${name}-${i}`}>
+							{name}
+						</span>
+					))}
+				</Stack>
+			</Stack>
+		</>
+	) : memoizedValues.stats ? (
+		// ...existing has-stats JSX for /university stays exactly as-is here...
+		<Stack className={'container has-stats'}>{/* unchanged existing block */}</Stack>
+	) : (
+		// ...existing plain JSX stays exactly as-is here...
+		<Stack className={'container'}>{/* unchanged existing block */}</Stack>
+	)}
+</Stack>
+```
+(Use the real existing `has-stats` and plain JSX bodies already in the file — only restructure the outer condition to add the new `marqueeItems` branch first; don't rewrite logic that already works.)
+
+## 4. SCSS — add to `scss/pc/main.scss`, inside `.header-basic` (alongside the existing rules)
+```scss
+&.agent-hero {
+	height: 557px; // matches the existing base .header-basic height (same as the University page hero) — keep them equal
+	background: #fafaf8;
+	justify-content: flex-start;
+	align-items: flex-start;
+	.glow-circle {
+		position: absolute;
+		top: 40px;
+		right: 8%;
+		width: 220px;
+		height: 220px;
+		border-radius: 50%;
+		background: radial-gradient(circle, rgba(232, 133, 106, 0.22), rgba(232, 133, 106, 0) 70%);
+		filter: blur(10px);
+		z-index: 0;
+	}
+	.agent-hero-container {
+		position: relative;
+		z-index: 1;
+		margin-top: 70px;
+		margin-left: 12%;
+		align-items: flex-start;
+		.eyebrow.light {
+			flex-direction: row;
+			align-items: center;
+			gap: 8px;
+			padding: 6px 14px;
+			border-radius: 999px;
+			background: #fbede7;
+			color: #d2674c;
+			font-family: $font;
+			font-size: 12px;
+			font-weight: 700;
+			letter-spacing: 0.6px;
+			text-transform: uppercase;
+			margin-bottom: 22px;
+			.dot {
+				width: 6px;
+				height: 6px;
+				border-radius: 50%;
+				background: #e8856a;
+				display: inline-block;
+			}
+		}
+		.agent-heading {
+			color: #1c1b18;
+			font-family: $font;
+			font-size: 52px;
+			font-weight: 800;
+			line-height: 1.05;
+			letter-spacing: -0.5px;
+		}
+		.agent-heading-row {
+			flex-direction: row;
+			align-items: center;
+			gap: 12px;
+			margin-top: 4px;
+			.muted-word {
+				color: #8e8c83;
+				font-family: $font;
+				font-size: 44px;
+				font-weight: 800;
+				line-height: 1.05;
+			}
+			.rotating-word-stage {
+				position: relative;
+				display: inline-block;
+				height: 52px;
+				overflow: hidden;
+				min-width: 260px;
+			}
+			.rotating-word {
+				position: absolute;
+				left: 0;
+				top: 0;
+				display: inline-block;
+				white-space: nowrap;
+				font-family: $font;
+				font-size: 44px;
+				font-weight: 800;
+				line-height: 1.05;
+				color: #e8856a;
+				animation: rotatingWordIn 0.42s ease forwards;
+			}
+		}
+		.underline-bar {
+			width: 70px;
+			height: 3px;
+			background: #e8856a;
+			margin-top: 22px;
+			display: block;
+		}
+		.stats-row.dark {
+			margin-top: 34px;
+			.stat.dark {
+				strong {
+					color: #1c1b18;
+				}
+				span {
+					color: #8e8c83;
+				}
+			}
+			.stat-divider.dark {
+				background: #e9e7e0;
+			}
+		}
+	}
+	.marquee-row {
+		position: absolute;
+		left: 0;
+		bottom: 0;
+		width: 100%;
+		overflow: hidden;
+		padding: 16px 0;
+		mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
+	}
+	.marquee-track {
+		display: flex;
+		flex-direction: row;
+		gap: 12px;
+		width: max-content;
+		animation: marqueeScroll 28s linear infinite;
+	}
+	.marquee-pill {
+		flex-shrink: 0;
+		padding: 10px 20px;
+		border-radius: 999px;
+		border: 1px solid #e9e7e0;
+		background: #ffffff;
+		color: #57564f;
+		font-family: $font;
+		font-size: 14px;
+		font-weight: 600;
+		white-space: nowrap;
+	}
+}
+@keyframes marqueeScroll {
+	from {
+		transform: translateX(0);
+	}
+	to {
+		transform: translateX(-50%);
+	}
+}
+@keyframes rotatingWordIn {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}
+```
+This is a plain, smooth opacity crossfade — no blur, no slide, no gradient text. Since `rotatingWordKey` changes the `key` prop, React unmounts the previous word and mounts a fresh one on every tick, so the simple fade-in always replays cleanly.
+
+Verify after implementing: only the `/agent` page hero changes to the new light "Meet the agents behind {rotating university}" layout with the glow circle, stat counters, and the continuously left-scrolling university pill marquee; the `/university`, `/agent/detail`, `/mypage`, `/community`, `/cs`, and `/account/join` heroes still render exactly as before; the rest of the Agents page below the hero (search/sort/cards/pagination) is unaffected.
