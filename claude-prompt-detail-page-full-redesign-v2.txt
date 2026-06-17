@@ -1,3 +1,28 @@
+The previous detail-page styling pass didn't go far enough — the page in the screenshots still looks like the stock real-estate template (thin gray boxes, plain typography, a leftover "Rent"/"Barter" pill on the bottom "Destination University" cards, and no real visual hierarchy between labels and values). Do a full, decisive "Claude Design" pass this time: a clean, minimalist, modern look with soft shadows instead of hard borders, generous whitespace, a clear muted-label / bold-value hierarchy everywhere, a single coral accent (#e8856a) used consistently, and subtle hover/lift interactions. This is still a visual-only change — every query, mutation, state variable, and handler in `pages/university/detail.tsx` and `libs/components/common/UniversityBigCard.tsx` must keep working exactly as today. Only one literal-text bug gets fixed (item 0 below); everything else is CSS.
+
+## 0. Wording bug — `libs/components/common/UniversityBigCard.tsx` (around line 67-71)
+This is the leftover real-estate "Rent"/"Barter" text visible on the "Destination University" cards at the bottom of the detail page. Keep the exact same ternary structure (do not touch the conditions or the `<p>`/`<span>` split), only change the two words:
+```tsx
+<div className={'bott'}>
+	<div>
+		{university?.universityDormitory ? <p>Rent</p> : <span>Rent</span>}
+		{university?.universityScholarship ? <p>Barter</p> : <span>Barter</span>}
+	</div>
+	...
+```
+becomes:
+```tsx
+<div className={'bott'}>
+	<div>
+		{university?.universityDormitory ? <p>Dormitory</p> : <span>Dormitory</span>}
+		{university?.universityScholarship ? <p>Scholarship</p> : <span>Scholarship</span>}
+	</div>
+	...
+```
+(Nothing else in this file changes here — the JSX structure, props, and conditions stay identical.)
+
+## 1. Replace the entire contents of `scss/pc/university/detail.scss` with:
+```scss
 #pc-wrap {
 	#university-detail-page {
 		position: relative;
@@ -22,13 +47,13 @@
 						width: 50%;
 						height: auto;
 						.title-main {
-							color: #1c1b18;
+							color: #181a20;
 							font-family: $font;
 							font-size: 30px;
 							font-style: normal;
 							font-weight: 700;
 							line-height: normal;
-							letter-spacing: -0.2px;
+							letter-spacing: 0.2px;
 							text-transform: capitalize;
 						}
 						.top-box {
@@ -40,7 +65,7 @@
 							margin-top: 10px;
 							margin-bottom: 20px;
 							.city {
-								color: #8e8c83;
+								color: #9a9a9a;
 								font-family: $font;
 								font-size: 13px;
 								font-style: normal;
@@ -50,7 +75,7 @@
 							.divider {
 								width: 1px;
 								height: 16px;
-								background: #e9e7e0;
+								background: #e5e5e5;
 							}
 							.buy-rent-box {
 								flex-direction: row;
@@ -61,21 +86,21 @@
 								}
 								.buy-rent {
 									display: inline-block;
-									padding: 3px 9px;
-									border-radius: 6px;
-									background: #fbede7;
-									color: #d2674c;
+									padding: 4px 12px;
+									border-radius: 20px;
+									background: rgba(232, 133, 106, 0.12);
+									color: #e8856a;
 									font-family: $font;
-									font-size: 11px;
+									font-size: 12px;
 									font-style: normal;
 									font-weight: 700;
 									line-height: normal;
 									text-transform: uppercase;
-									letter-spacing: 0.02em;
+									letter-spacing: 0.3px;
 								}
 							}
 							.date {
-								color: #8e8c83;
+								color: #9a9a9a;
 								font-family: $font;
 								font-size: 13px;
 								font-style: normal;
@@ -97,10 +122,10 @@
 								img {
 									width: 16px;
 									height: 16px;
-									opacity: 0.55;
+									opacity: 0.5;
 								}
 								p {
-									color: #57564f;
+									color: #5c5c5c;
 									font-family: $font;
 									font-size: 14px;
 									font-style: normal;
@@ -122,21 +147,21 @@
 							gap: 11px;
 							margin: 0 10px 27px 0;
 							p {
-								color: #8e8c83;
+								color: #9a9a9a;
 								text-align: right;
 								font-family: $font;
 								font-size: 18px;
 								font-style: normal;
 								font-weight: 500;
 								line-height: normal;
-								letter-spacing: 0.3px;
+								letter-spacing: 0.52px;
 								text-transform: capitalize;
 							}
 							.button-box {
 								flex-direction: row;
 								gap: 5px;
 								align-items: center;
-								color: #8e8c83;
+								color: #9a9a9a;
 							}
 						}
 						img {
@@ -147,14 +172,14 @@
 							width: 26px;
 							height: 25px;
 							cursor: pointer;
-							color: #8e8c83;
+							color: #9a9a9a;
 							transition: color 0.15s ease;
 							&:hover {
 								color: #e8856a;
 							}
 						}
 						p {
-							color: #1c1b18;
+							color: #181a20;
 							text-align: right;
 							font-family: $font;
 							font-size: 28px;
@@ -165,7 +190,7 @@
 							text-transform: capitalize;
 						}
 						span {
-							color: #8e8c83;
+							color: #9a9a9a;
 							text-align: right;
 							font-family: $font;
 							font-size: 14px;
@@ -184,14 +209,14 @@
 					.main-image {
 						width: 100%;
 						height: 600px;
-						border-radius: 22px;
+						border-radius: 20px;
 						overflow: hidden;
-						box-shadow: 0 8px 24px rgba(28, 27, 24, 0.05);
+						box-shadow: 0 6px 24px rgba(24, 26, 32, 0.08);
 						img {
 							width: 100%;
 							height: 100%;
 							object-fit: cover;
-							border-radius: 22px;
+							border-radius: 20px;
 							transition: transform 0.4s ease;
 						}
 						&:hover img {
@@ -207,7 +232,7 @@
 							width: 120px;
 							height: 120px;
 							cursor: pointer;
-							border-radius: 16px;
+							border-radius: 14px;
 							border: 2px solid transparent;
 							opacity: 0.65;
 							transition: border-color 0.15s ease, opacity 0.15s ease;
@@ -220,7 +245,7 @@
 								width: 100%;
 								height: 100%;
 								object-fit: cover;
-								border-radius: 14px;
+								border-radius: 12px;
 							}
 						}
 					}
@@ -249,14 +274,13 @@
 							flex: 1;
 							padding: 16px 18px;
 							border-radius: 16px;
-							background: #f4f3ef;
-							border: 1px solid #e9e7e0;
-							transition: border-color 0.15s ease, background 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+							background: #fafaf8;
+							border: 1px solid #ececec;
+							transition: border-color 0.15s ease, background 0.15s ease, transform 0.15s ease;
 							&:hover {
-								border-color: #e9e7e0;
-								background: #fff;
+								border-color: #e8856a;
+								background: rgba(232, 133, 106, 0.06);
 								transform: translateY(-2px);
-								box-shadow: 0 2px 8px rgba(28, 27, 24, 0.04);
 							}
 							.svg-box {
 								width: 44px;
@@ -264,9 +288,9 @@
 								flex-shrink: 0;
 								align-items: center;
 								justify-content: center;
-								border-radius: 10px;
+								border-radius: 12px;
 								background: #fff;
-								border: 1px solid #e9e7e0;
+								border: 1px solid #ececec;
 								img {
 									width: 24px;
 									height: auto;
@@ -280,22 +304,22 @@
 								width: auto;
 								height: auto;
 								.title {
-									color: #8e8c83;
+									color: #9a9a9a;
 									font-family: $font;
 									font-size: 11px;
 									font-style: normal;
 									font-weight: 700;
 									line-height: normal;
 									text-transform: uppercase;
-									letter-spacing: 0.05em;
+									letter-spacing: 0.4px;
 									margin-bottom: 3px;
 								}
 								.option-data {
-									color: #1c1b18;
+									color: #181a20;
 									font-family: $font;
-									font-size: 15.5px;
+									font-size: 16px;
 									font-style: normal;
-									font-weight: 600;
+									font-weight: 700;
 									line-height: normal;
 								}
 							}
@@ -304,171 +328,154 @@
 					.prop-desc-config {
 						width: 100%;
 						height: auto;
-						padding: 32px 36px;
-						border-radius: 22px;
-						border: 1px solid #e9e7e0;
-						background: #fff;
-						box-shadow: 0 1px 2px rgba(28, 27, 24, 0.03);
+						gap: 36px;
+						padding: 36px 40px;
+						border-radius: 20px;
+						border: 1px solid #ececec;
+						box-shadow: 0 2px 10px rgba(24, 26, 32, 0.04);
 						.top {
 							width: 100%;
 							height: auto;
-							margin-bottom: 36px;
+							gap: 16px;
 							.title {
-								color: #1c1b18;
+								color: #181a20;
 								font-family: $font;
-								font-size: 16px;
+								font-size: 17px;
 								font-style: normal;
 								font-weight: 700;
 								line-height: normal;
-								margin-bottom: 14px;
 							}
 							.desc {
-								max-width: 80%;
-								color: #57564f;
+								color: #5c5c5c;
 								font-family: $font;
-								font-size: 13.5px;
+								font-size: 14px;
 								font-style: normal;
 								font-weight: 400;
-								line-height: 22px;
+								line-height: 26px;
+								max-height: 104px;
 							}
 						}
 						.bottom {
 							width: 100%;
 							height: auto;
+							gap: 20px;
 							.title {
-								color: #1c1b18;
+								color: #181a20;
 								font-family: $font;
-								font-size: 16px;
+								font-size: 17px;
 								font-style: normal;
 								font-weight: 700;
 								line-height: normal;
-								margin-bottom: 18px;
 							}
 							.info-box {
 								width: 100%;
 								height: auto;
-								display: grid;
-								grid-template-columns: 1fr 1fr;
-								column-gap: 80px;
+								flex-direction: row;
+								gap: 80px;
 								.left,
 								.right {
+									flex: 1;
 									.info {
 										width: auto;
 										height: auto;
 										display: flex;
 										flex-direction: row;
 										justify-content: space-between;
-										align-items: center;
+										gap: 38px;
 										padding: 11px 0;
-										border-bottom: 1px solid #efede7;
+										border-bottom: 1px solid #f3f3f3;
 										.title {
 											width: auto;
-											color: #8e8c83;
+											color: #9a9a9a;
 											font-family: $font;
 											font-size: 13px;
 											font-style: normal;
 											font-weight: 500;
-											line-height: normal;
+											line-height: 22px;
 										}
 										.data {
 											width: auto;
-											color: #1c1b18;
+											color: #181a20;
 											font-family: $font;
 											font-size: 14px;
 											font-style: normal;
-											font-weight: 600;
-											line-height: normal;
-											text-align: left;
+											font-weight: 700;
+											line-height: 22px;
+											text-align: right;
 										}
 									}
 								}
 							}
 						}
 					}
-					.address-config {
+					.floor-plans-config {
 						width: 100%;
 						height: auto;
-						padding: 32px 36px;
-						border-radius: 22px;
-						border: 1px solid #e9e7e0;
-						background: #fff;
-						box-shadow: 0 1px 2px rgba(28, 27, 24, 0.03);
+						gap: 24px;
+						padding: 36px 40px;
+						border-radius: 20px;
+						border: 1px solid #ececec;
+						box-shadow: 0 2px 10px rgba(24, 26, 32, 0.04);
 						.title {
-							color: #1c1b18;
+							color: #181a20;
 							font-family: $font;
-							font-size: 16px;
+							font-size: 17px;
 							font-style: normal;
 							font-weight: 700;
 							line-height: normal;
-							margin-bottom: 18px;
+						}
+						.image-box {
+							width: 100%;
+							height: 510px;
+							border-radius: 14px;
+							border: 1px solid #ececec;
+							overflow: hidden;
+							img {
+								width: 100%;
+								height: 100%;
+								object-fit: cover;
+							}
+						}
+					}
+					.address-config {
+						width: 100%;
+						height: auto;
+						gap: 24px;
+						padding: 36px 40px;
+						border-radius: 20px;
+						border: 1px solid #ececec;
+						box-shadow: 0 2px 10px rgba(24, 26, 32, 0.04);
+						.title {
+							color: #181a20;
+							font-family: $font;
+							font-size: 17px;
+							font-style: normal;
+							font-weight: 700;
+							line-height: normal;
 						}
 						.map-box {
-							position: relative;
 							width: 100%;
-							height: 300px;
-							border-radius: 16px;
+							height: 400px;
+							border-radius: 14px;
 							overflow: hidden;
-							background: #f4f3ef;
 							iframe {
-								border-radius: 16px;
-							}
-							.map-tooltip {
-								position: absolute;
-								top: 16px;
-								left: 16px;
-								padding: 10px 14px;
-								border-radius: 12px;
-								background: #fff;
-								box-shadow: 0 2px 8px rgba(28, 27, 24, 0.06);
-								gap: 2px;
-								.street {
-									color: #1c1b18;
-									font-family: $font;
-									font-size: 13px;
-									font-style: normal;
-									font-weight: 700;
-									line-height: normal;
-								}
-								.city {
-									color: #8e8c83;
-									font-family: $font;
-									font-size: 12px;
-									font-style: normal;
-									font-weight: 500;
-									line-height: normal;
-									margin-top: 2px;
-								}
-							}
-							.map-pin {
-								position: absolute;
-								top: 50%;
-								left: 50%;
-								width: 30px;
-								height: 38px;
-								transform: translate(-50%, -100%);
-								filter: drop-shadow(0 3px 6px rgba(28, 27, 24, 0.15));
-								svg {
-									width: 100%;
-									height: 100%;
-								}
+								border-radius: 14px;
 							}
 						}
 					}
 					.reviews-config {
 						width: 100%;
 						height: auto;
-						padding: 28px 32px;
-						border-radius: 22px;
-						border: 1px solid #e9e7e0;
-						background: #fff;
-						box-shadow: 0 1px 2px rgba(28, 27, 24, 0.03);
+						padding: 36px 40px;
+						border-radius: 20px;
+						border: 1px solid #ececec;
+						box-shadow: 0 2px 10px rgba(24, 26, 32, 0.04);
 						.filter-box {
 							width: 100%;
 							height: auto;
 							flex-direction: row;
 							justify-content: space-between;
-							align-items: center;
-							margin-bottom: 24px;
+							margin-bottom: 28px;
 							.review-cnt {
 								width: auto;
 								height: auto;
@@ -478,55 +485,77 @@
 								color: #e8856a;
 								.reviews {
 									width: auto;
-									color: #1c1b18;
+									color: #181a20;
 									font-family: $font;
-									font-size: 16px;
+									font-size: 17px;
 									font-style: normal;
 									font-weight: 700;
 									line-height: normal;
+								}
+							}
+							.select-box {
+								width: auto;
+								height: auto;
+								flex-direction: row;
+								align-items: center;
+								gap: 10px;
+								.sort-title {
+									color: #9a9a9a;
+									font-family: $font;
+									font-size: 13px;
+									font-style: normal;
+									font-weight: 500;
+									line-height: 26px;
+								}
+								.select-main {
+									width: 140px;
+									padding: 6px 10px;
+									border: 1px solid #ececec;
+									border-radius: 8px;
+									outline: none;
+									color: #181a20;
+									font-family: $font;
+									font-size: 13px;
+									font-style: normal;
+									font-weight: 500;
+									line-height: 24px;
 								}
 							}
 						}
 						.review-list {
 							width: 100%;
 							height: auto;
-							gap: 0;
+							gap: 22px;
 							.review-config {
 								width: 100%;
 								height: auto;
-								padding: 20px 0;
-								border-bottom: 1px solid #efede7;
-								&:last-of-type {
-									border-bottom: none;
-								}
+								padding-bottom: 22px;
+								border-bottom: 1px solid #f0f0f0;
 								.review-mb-info {
 									width: 100%;
 									height: auto;
 									flex-direction: row;
 									justify-content: space-between;
-									align-items: flex-start;
 									.img-name-box {
 										width: 30%;
 										flex-direction: row;
 										align-items: center;
-										gap: 14px;
+										gap: 16px;
 										.img-box {
-											width: 44px;
-											height: 44px;
+											width: 56px;
+											height: 56px;
 											align-items: center;
 											justify-content: center;
 											border-radius: 50%;
-											background: #f4f3ef;
+											background: #f6f6f6;
+											border: 2px solid rgba(232, 133, 106, 0.2);
 											object-fit: cover;
-										}
-										> .MuiStack-root {
-											gap: 3px;
 										}
 										.name {
 											width: 100%;
-											color: #1c1b18;
+											color: #181a20;
 											font-family: $font;
-											font-size: 14.5px;
+											font-size: 14px;
 											font-style: normal;
 											font-weight: 700;
 											line-height: normal;
@@ -534,7 +563,7 @@
 										}
 										.date {
 											width: 100%;
-											color: #8e8c83;
+											color: #9a9a9a;
 											font-family: $font;
 											font-size: 12px;
 											font-style: normal;
@@ -542,127 +571,117 @@
 											line-height: normal;
 										}
 									}
+									.review-stars {
+										padding-top: 6px;
+									}
 								}
 								.desc-box {
 									width: 100%;
 									height: auto;
-									margin-top: 12px;
+									margin-top: 14px;
 									.description {
-										color: #57564f;
+										color: #5c5c5c;
 										font-family: $font;
-										font-size: 13.5px;
+										font-size: 14px;
 										font-style: normal;
 										font-weight: 400;
-										line-height: 24px;
+										line-height: 26px;
 									}
 								}
 							}
 							.pagination-box {
-								margin-top: 8px;
-								padding-top: 20px;
+								margin-top: 10px;
 								width: 100%;
 								height: auto;
 								display: flex;
 								justify-content: center;
-								gap: 8px;
-								.MuiPaginationItem-root {
-									width: 32px;
-									height: 32px;
-									min-width: 32px;
-									border-radius: 8px !important;
-									border: 1px solid #e9e7e0;
-									background: #fff;
-									color: #1c1b18;
-									font-family: $font;
-									font-size: 13px;
-									font-weight: 600;
-								}
 								.Mui-selected {
 									background-color: #e8856a !important;
-									border-color: transparent !important;
 									color: #fff !important;
 								}
 							}
 						}
 					}
 					.leave-review-config {
-						border-radius: 22px;
-						border: 1px solid #e9e7e0;
+						border-radius: 20px;
+						border: 1px solid #ececec;
 						background: #fff;
-						box-shadow: 0 1px 2px rgba(28, 27, 24, 0.03);
-						padding: 28px 32px;
+						box-shadow: 0 2px 10px rgba(24, 26, 32, 0.04);
+						padding: 36px 40px;
 						.main-title {
-							color: #1c1b18;
+							color: #181a20;
 							font-family: $font;
-							font-size: 16px;
+							font-size: 17px;
 							font-style: normal;
 							font-weight: 700;
 							line-height: normal;
-							margin-bottom: 22px;
 						}
 						.review-title {
-							color: #1c1b18;
+							margin-top: 22px;
+							color: #181a20;
 							font-family: $font;
 							font-size: 13px;
 							font-style: normal;
 							font-weight: 700;
 							line-height: normal;
-							margin-bottom: 10px;
+							text-transform: uppercase;
+							letter-spacing: 0.3px;
 						}
 						textarea {
 							width: 100%;
 							height: 120px;
-							padding: 16px 18px;
+							margin-top: 10px;
+							padding: 18px 20px;
 							border-radius: 14px;
-							border: 1px solid #e9e7e0;
-							background: #fff;
-							color: #1c1b18;
+							border: 1px solid #ececec;
+							background: #fafaf8;
+							color: #181a20;
 							font-family: $font;
-							font-size: 13.5px;
+							font-size: 14px;
 							font-style: normal;
 							font-weight: 400;
-							line-height: 24px;
+							line-height: 26px;
 							outline: none;
-							transition: border-color 0.15s ease;
+							transition: border-color 0.15s ease, box-shadow 0.15s ease;
 							&:focus {
 								border-color: #e8856a;
+								box-shadow: 0 0 0 3px rgba(232, 133, 106, 0.12);
+								background: #fff;
 							}
 							&::placeholder {
-								color: #8e8c83;
+								color: #b0b0b0;
 							}
 						}
 						.submit-btn {
 							width: 100%;
 							display: flex;
 							justify-content: flex-end;
-							margin-top: 20px;
-							button:disabled {
-								background: #f4f3ef;
-							}
 							.submit-review {
 								display: flex;
-								padding: 13px 26px;
+								width: 220px;
+								margin-top: 26px;
+								padding: 15px 28px;
 								justify-content: center;
 								align-items: center;
-								gap: 8px;
+								gap: 10px;
 								border-radius: 999px;
 								border: none;
 								background: #e8856a;
 								cursor: pointer;
-								transition: all 0.18s ease;
+								transition: background 0.15s ease, transform 0.15s ease;
 								&:hover {
-									background: #d2674c;
-									transform: translateY(-2px);
+									background: #d9714f;
+									transform: translateY(-1px);
 								}
 								&:disabled {
-									background: #f4f3ef;
+									background: #ececec;
 									cursor: not-allowed;
 									transform: none;
 									.title {
-										color: #8e8c83;
+										color: #a8a8a8;
 									}
 									svg path {
-										fill: #8e8c83;
+										fill: #a8a8a8;
 									}
 								}
 								.title {
@@ -670,7 +689,7 @@
 									font-family: $font;
 									font-size: 14px;
 									font-style: normal;
-									font-weight: 600;
+									font-weight: 700;
 									line-height: normal;
 								}
 								svg path {
@@ -683,44 +702,40 @@
 				.right-config {
 					width: 318px;
 					height: fit-content;
-					padding: 28px 28px;
-					gap: 18px;
-					border-radius: 22px;
-					border: 1px solid #e9e7e0;
+					padding: 32px 28px;
+					gap: 22px;
+					border-radius: 20px;
+					border: 1px solid #ececec;
 					background: #fff;
-					box-shadow: 0 1px 2px rgba(28, 27, 24, 0.03);
+					box-shadow: 0 2px 14px rgba(24, 26, 32, 0.06);
 					.info-box {
 						position: relative;
 						width: 100%;
-						gap: 6px;
-						&:first-of-type {
-							margin-bottom: 6px;
-						}
+						gap: 8px;
 						.main-title {
-							color: #1c1b18;
+							color: #181a20;
 							font-family: $font;
 							font-size: 16px;
 							font-style: normal;
 							font-weight: 700;
 							line-height: normal;
-							margin-bottom: 20px;
+							margin-bottom: 14px;
 						}
 						.image-info {
 							width: 100%;
 							flex-direction: row;
-							align-items: center;
-							gap: 14px;
+							gap: 16px;
 							img {
-								width: 56px;
-								height: 56px;
+								width: 88px;
+								height: 88px;
 								border-radius: 50%;
 								object-fit: cover;
-								background: #e8856a;
+								border: 2px solid rgba(232, 133, 106, 0.2);
 							}
 							.name-phone-listings {
-								gap: 5px;
+								gap: 6px;
 								.name {
-									color: #1c1b18;
+									color: #181a20;
 									font-family: $font;
 									font-size: 15px;
 									font-style: normal;
@@ -731,57 +746,56 @@
 									width: 100%;
 									flex-direction: row;
 									align-items: center;
-									gap: 6px;
-									color: #8e8c83;
-									svg path {
-										fill: #8e8c83;
-									}
+									gap: 8px;
+									color: #9a9a9a;
 									.number {
-										color: #57564f;
+										color: #5c5c5c;
 										font-family: $font;
 										font-size: 13px;
 										font-style: normal;
 										font-weight: 500;
-										line-height: normal;
+										line-height: 22px;
 									}
 								}
 								.listings {
-									color: #1c1b18;
+									color: #e8856a;
 									font-family: $font;
 									font-size: 13px;
 									font-style: normal;
 									font-weight: 700;
 									line-height: normal;
-									text-decoration-line: underline;
+									text-decoration-line: none;
 									cursor: pointer;
+									&:hover {
+										text-decoration-line: underline;
+									}
 								}
 							}
 						}
 						.sub-title {
-							color: #8e8c83;
+							color: #9a9a9a;
 							font-family: $font;
 							font-size: 11px;
 							font-style: normal;
 							font-weight: 700;
 							line-height: normal;
 							text-transform: uppercase;
-							letter-spacing: 0.05em;
-							margin-bottom: 6px;
+							letter-spacing: 0.4px;
 						}
 						input {
 							width: 100%;
 							height: 50px;
-							padding: 13px 15px;
-							border-radius: 10px;
-							border: 1px solid #e9e7e0;
-							background: #f4f3ef;
+							padding: 14px 16px;
+							border-radius: 12px;
+							border: 1px solid #ececec;
+							background: #fafaf8;
 							outline: none;
-							color: #1c1b18;
+							color: #181a20;
 							font-family: $font;
-							font-size: 13.5px;
-							transition: border-color 0.15s ease, background 0.15s ease;
+							font-size: 14px;
+							transition: border-color 0.15s ease, box-shadow 0.15s ease;
 							&::placeholder {
-								color: #8e8c83;
+								color: #b0b0b0;
 								font-family: $font;
 								font-size: 13px;
 								font-style: normal;
@@ -790,25 +804,26 @@
 							}
 							&:focus {
 								border-color: #e8856a;
+								box-shadow: 0 0 0 3px rgba(232, 133, 106, 0.12);
 								background: #fff;
 							}
 						}
 						textarea {
 							width: 100%;
-							height: 90px;
-							padding: 13px 15px;
-							border-radius: 10px;
-							border: 1px solid #e9e7e0;
-							background: #f4f3ef;
+							height: 110px;
+							padding: 16px;
+							border-radius: 12px;
+							border: 1px solid #ececec;
+							background: #fafaf8;
 							font-family: $font;
-							font-size: 13.5px;
+							font-size: 14px;
 							font-style: normal;
 							font-weight: 400;
 							line-height: 24px;
 							outline: none;
-							transition: border-color 0.15s ease, background 0.15s ease;
+							transition: border-color 0.15s ease, box-shadow 0.15s ease;
 							&::placeholder {
-								color: #8e8c83;
+								color: #b0b0b0;
 								font-family: $font;
 								font-size: 13px;
 								font-style: normal;
@@ -817,35 +832,32 @@
 							}
 							&:focus {
 								border-color: #e8856a;
+								box-shadow: 0 0 0 3px rgba(232, 133, 106, 0.12);
 								background: #fff;
 							}
 						}
 						.send-message {
 							display: flex;
 							width: 100%;
-							padding: 15px 0;
+							padding: 15px 28px;
 							justify-content: center;
 							align-items: center;
-							gap: 8px;
+							gap: 10px;
 							border-radius: 999px;
-							border: none;
 							background: #e8856a;
 							cursor: pointer;
-							transition: all 0.18s ease;
+							transition: background 0.15s ease, transform 0.15s ease;
 							&:hover {
-								background: #d2674c;
-								transform: translateY(-2px);
+								background: #d9714f;
+								transform: translateY(-1px);
 							}
 							.title {
 								color: #fff;
 								font-family: $font;
 								font-size: 14px;
 								font-style: normal;
-								font-weight: 600;
+								font-weight: 700;
 								line-height: normal;
-							}
-							svg path {
-								fill: #fff;
 							}
 						}
 					}
@@ -864,17 +876,17 @@
 					.title-box {
 						width: 30%;
 						.main-title {
-							color: #1c1b18;
+							color: #181a20;
 							font-family: $font;
 							font-size: 28px;
 							font-style: normal;
 							font-weight: 700;
 							line-height: normal;
-							letter-spacing: -0.2px;
+							letter-spacing: 0.2px;
 							text-transform: capitalize;
 						}
 						.sub-title {
-							color: #8e8c83;
+							color: #9a9a9a;
 							font-family: $font;
 							font-size: 14px;
 							font-style: normal;
@@ -885,22 +897,20 @@
 					.pagination-box {
 						flex-direction: row;
 						align-items: center;
-						gap: 10px;
+						gap: 14px;
 						svg {
-							width: 46px;
-							height: 46px;
-							padding: 13px;
+							width: 36px;
+							height: 36px;
+							padding: 9px;
 							border-radius: 50%;
-							border: 1px solid #e9e7e0;
-							background: #fff;
-							box-shadow: 0 1px 2px rgba(28, 27, 24, 0.03);
+							border: 1px solid #ececec;
 							cursor: pointer;
-							color: #1c1b18;
-							transition: border-color 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
+							color: #181a20;
+							transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
 							&:hover {
-								border-color: #1c1b18;
-								transform: translateY(-1px);
-								box-shadow: 0 2px 8px rgba(28, 27, 24, 0.04);
+								border-color: #e8856a;
+								color: #e8856a;
+								background: rgba(232, 133, 106, 0.06);
 							}
 						}
 					}
@@ -919,3 +929,195 @@
 		}
 	}
 }
+```
+
+## 2. In `scss/pc/general.scss`, replace the entire `.university-big-card-box` rule (the one styling the "Destination University" cards shown via `UniversityBigCard.tsx`) with:
+```scss
+.university-big-card-box {
+	position: relative;
+	margin-right: 8px;
+	margin-left: 8px;
+	margin-bottom: 35px;
+	width: 410px;
+	height: 455px;
+	display: flex;
+	flex-direction: column;
+	border-radius: 16px;
+	overflow: hidden;
+	background: #fff;
+	border: 1px solid #ececec;
+	box-shadow: 0 2px 10px rgba(24, 26, 32, 0.04);
+	cursor: pointer;
+	transition: transform 0.2s ease, box-shadow 0.2s ease;
+	&:hover {
+		transform: translateY(-4px);
+		box-shadow: 0 10px 28px rgba(24, 26, 32, 0.1);
+	}
+	.card-img {
+		position: relative;
+		width: 100%;
+		height: 264px;
+		background-size: cover;
+		cursor: pointer;
+		div.status {
+			position: absolute;
+			padding: 6px 16px;
+			left: 16px;
+			top: 16px;
+			display: flex;
+			align-items: center;
+			border-radius: 999px;
+			background: #e8856a;
+			img {
+				width: 14px;
+				height: 14px;
+			}
+			span {
+				margin-left: 5px;
+				color: #fff;
+				font-family: $font;
+				font-size: 12px;
+				font-style: normal;
+				font-weight: 700;
+				line-height: normal;
+				text-transform: uppercase;
+			}
+		}
+		div.price {
+			position: absolute;
+			padding: 8px 14px;
+			left: 16px;
+			bottom: 16px;
+			border-radius: 999px;
+			background: #fff;
+			color: #181a20;
+			font-family: $font;
+			font-size: 14px;
+			font-style: normal;
+			font-weight: 700;
+			line-height: normal;
+			box-shadow: 0 2px 6px rgba(24, 26, 32, 0.1);
+		}
+	}
+	.info {
+		flex: 1;
+		padding: 20px 22px 18px;
+		display: flex;
+		flex-direction: column;
+		box-sizing: border-box;
+		.title {
+			overflow: hidden;
+			color: #181a20;
+			text-overflow: ellipsis;
+			white-space: nowrap;
+			font-family: $font;
+			font-size: 15px;
+			font-style: normal;
+			font-weight: 700;
+			line-height: normal;
+			text-transform: capitalize;
+			cursor: pointer;
+		}
+		.desc {
+			margin-top: 5px;
+			overflow: hidden;
+			color: #9a9a9a;
+			font-family: $font;
+			font-size: 13px;
+			font-style: normal;
+			font-weight: 500;
+			line-height: normal;
+			text-overflow: ellipsis;
+			white-space: nowrap;
+		}
+		.options {
+			margin-top: 16px;
+			display: flex;
+			flex-direction: row;
+			justify-content: space-between;
+			div {
+				display: flex;
+				flex-direction: row;
+				align-items: center;
+				img {
+					margin-right: 5px;
+					width: 15px;
+					height: 15px;
+					opacity: 0.5;
+				}
+				span {
+					color: #5c5c5c;
+					font-family: $font;
+					font-size: 13px;
+					font-style: normal;
+					font-weight: 500;
+					line-height: normal;
+				}
+			}
+		}
+		.bott {
+			margin-top: 14px;
+			padding-top: 14px;
+			border-top: 1px solid #f0f0f0;
+			display: flex;
+			flex-direction: row;
+			justify-content: space-between;
+			align-items: center;
+			div {
+				width: auto;
+				display: flex;
+				flex-direction: row;
+				align-items: center;
+				gap: 10px;
+			}
+			p {
+				color: #e8856a;
+				font-family: $font;
+				font-size: 12px;
+				font-style: normal;
+				font-weight: 700;
+				line-height: normal;
+				text-transform: uppercase;
+				letter-spacing: 0.2px;
+			}
+			span {
+				margin-left: 0;
+				color: #c9c9c9;
+				font-family: $font;
+				font-size: 12px;
+				font-style: normal;
+				font-weight: 600;
+				line-height: normal;
+				text-transform: uppercase;
+				letter-spacing: 0.2px;
+			}
+			button {
+				margin-left: 10px;
+				width: 16px;
+				height: 16px;
+				box-sizing: border-box;
+				color: #9a9a9a;
+				&:hover {
+					color: #e8856a;
+				}
+			}
+			.buttons-box {
+				width: auto;
+				display: flex;
+				flex-direction: row;
+				align-items: center;
+				color: #9a9a9a;
+				.view-cnt {
+					color: #9a9a9a;
+					font-family: $font;
+					font-size: 13px;
+					font-weight: 500;
+				}
+			}
+		}
+	}
+}
+```
+(Keep every other rule in `general.scss` untouched — this is only the `.university-big-card-box` block.)
+
+Verify after implementing: liking/viewing a university from any card, switching the main image via thumbnails, sorting and paginating reviews, submitting a comment (disabled vs enabled state), filling out and the contact form, and clicking through to a destination university all behave exactly as before — only colors, spacing, radii, shadows, typography weights, and hover states changed, plus the two renamed words in section 0.

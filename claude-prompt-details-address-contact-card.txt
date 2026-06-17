@@ -1,0 +1,38 @@
+Context: this is a refinement pass for three specific blocks on the university detail page: "University Description / University Details" panel, the "Address" panel, and the "Get More Information" contact sidebar. A reference screenshot was analyzed precisely — match it exactly. This is a visual-only change: do NOT touch any GraphQL query/mutation, state, handler, form submit logic, or data binding in `pages/university/detail.tsx`. Only edit class-level CSS in `scss/pc/university/detail.scss` (the `.prop-desc-config`, `.address-config`, and `.right-config` blocks already exist — refine them to match the spec below exactly).
+
+Design tokens in use (keep consistent with the rest of the page):
+```
+ink:        #1C1B18      ink-2 (body text): #57564F      ink-3 (muted label): #8E8C83
+line (border): #E9E7E0   line-2 (divider):  #EFEDE7
+surface: #FFFFFF         surface-2 (input bg): #F4F3EF
+coral: #E8856A           coral-deep (hover): #D2674C
+shadow-sm: 0 1px 2px rgba(28,27,24,.03)
+radius: panel 22px, inner elements 14-16px, pills 999px
+font: keep existing `$font` (Poppins) — do not introduce new font families
+```
+
+## 1. University Description / University Details panel (`.prop-desc-config`)
+- Outer panel: white surface, `border: 1px solid #E9E7E0`, `border-radius: 22px`, generous padding (~32-36px), no heavy shadow (just `shadow-sm`).
+- "University Description" heading: bold, ~16-17px, color `#1C1B18`.
+- Description paragraph directly below, no extra box around it: color `#57564F`, ~14px, line-height ~24-26px, max 2-3 lines.
+- "University Details" heading below the paragraph with clear vertical spacing (~28-32px gap from the paragraph above).
+- The details render as **two side-by-side columns**, each column a vertical stack of rows. Each row is a single line with the **label on the left** (`#8E8C83`, ~13px, regular/medium weight) and the **value on the right, right-aligned** (`#1C1B18`, ~14px, semibold), both on the same baseline. Every row has a **thin bottom divider** (`1px solid #EFEDE7`) and consistent vertical padding (~11-12px top/bottom) — the divider is the main separator, not a card/box per row.
+- Left column order: Price, University Size, Faculties, Capacity. Right column order: Founded, University Type, University, Options. (Keep whatever fields/order the component already binds — only restyle, don't reorder data.)
+- Column gap: generous (~70-80px) so the two columns read as clearly separate.
+
+## 2. Address panel (`.address-config`)
+- Same outer panel treatment as above: white, `1px solid #E9E7E0` border, `border-radius: 22px`, `shadow-sm`.
+- "Address" heading same style as "University Description" heading.
+- Map container: `border-radius: 16px`, `overflow: hidden`, fixed height (~340-360px), full width of the panel.
+- Inside the map, render a **floating location pill/tooltip** anchored near the top-left of the map area: white rounded card (`border-radius: 12px`, `box-shadow: shadow-sm`, padding ~10px 14px) showing two stacked lines — the street/road name in bold dark (`#1C1B18`, ~13px) and the city/district below it in muted gray (`#8E8C83`, ~12px).
+- Render a single coral pin marker (`#E8856A`, teardrop/map-pin shape) at the actual coordinate location, sized appropriately (~28-32px), with a subtle drop shadow so it reads as sitting above the map surface.
+- If the underlying map is a real map provider (e.g. embedded iframe/map library), keep it functionally identical — only restyle the container radius/border/shadow and the custom pin/tooltip overlay elements; do not change map provider, coordinates, or zoom logic.
+
+## 3. "Get More Information" contact sidebar (`.right-config`)
+- Panel: white, `1px solid #E9E7E0`, `border-radius: 22px`, padding ~28-32px, `shadow-sm`.
+- "Get More Information" heading: bold, ~16px, `#1C1B18`, with clear spacing below before the agent row.
+- Agent row: circular avatar **56-64px**, filled solid coral (`#E8856A`) when no profile image is present (keep the existing conditional image/fallback logic untouched — only style the fallback circle's background color and the image's `border-radius: 50%` if a real image is present). Next to it, stacked: agent name bold dark (~15px), then a phone row with a small phone icon (muted `#8E8C83`) followed by the number in `#57564F` ~13px, then "View Listings" as an underlined link in dark ink (`#1C1B18`), ~13px, bold, cursor pointer.
+- Below the agent row, the form fields (Name, Phone, Email, Message): each preceded by a small uppercase muted label (`#8E8C83`, ~11px, letter-spacing 0.05em). Inputs/textarea: `background: #F4F3EF`, `border: 1px solid #E9E7E0`, `border-radius: 10px`, padding ~14px 16px, placeholder color `#8E8C83`; on focus, `border-color: #E8856A` and `background: #FFFFFF`. Keep all existing input `name`/`value`/`onChange` bindings and validation exactly as-is — only restyle.
+- "Send Message" button: full width, solid coral pill (`background: #E8856A`, `border-radius: 999px`, padding ~15px 28px), white bold text, with a small arrow icon (↗) to the right of the text. On hover: `background: #D2674C` and `translateY(-2px)`. Keep the existing click handler / submit logic untouched — only restyle the button's appearance.
+
+Verify after implementing: the university details data still displays correctly in both columns, the map still renders at the correct location and any interaction (zoom/pan, clicking the pin) still works, and the contact form still submits exactly as before (same fields, same handler, same validation) — only the visual styling changed.

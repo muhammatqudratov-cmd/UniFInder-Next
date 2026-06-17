@@ -1,0 +1,43 @@
+Context: this supersedes any earlier styling prompt for these same three blocks. The attached reference screenshot must be matched 1:1 — exact spacing, alignment, sizes, and colors, not "close enough." This is strictly a visual-only change: do NOT touch any GraphQL query/mutation, state, handler, form submit logic, validation, or data binding in `pages/university/detail.tsx`. Only edit class-level CSS in `scss/pc/university/detail.scss` for the three blocks `.prop-desc-config`, `.address-config`, and `.right-config`. Every field, value, and handler currently bound must keep rendering exactly the same data, in exactly the same place in the DOM/JSX — only the CSS changes.
+
+Design tokens (use these exact hex values everywhere below — no approximations):
+```
+ink (headings/values):   #1C1B18
+ink-2 (body text):       #57564F
+ink-3 (muted labels):    #8E8C83
+line (borders):          #E9E7E0
+line-2 (dividers):       #EFEDE7
+surface:                 #FFFFFF
+surface-2 (input bg):    #F4F3EF
+coral (accent):          #E8856A
+coral-deep (hover):      #D2674C
+shadow-sm:                0 1px 2px rgba(28,27,24,.03)
+font: keep existing `$font` (Poppins) — do not add new font families
+```
+
+## Panel 1 — "University Description" + "University Details" card (`.prop-desc-config`)
+- Card: `background:#FFFFFF; border:1px solid #E9E7E0; border-radius:22px; box-shadow:0 1px 2px rgba(28,27,24,.03);` padding `32px 36px`.
+- Heading "University Description": `font-weight:700; font-size:16px; color:#1C1B18; margin-bottom:14px;`.
+- Description paragraph: `font-size:13.5px; font-weight:400; color:#57564F; line-height:22px;` — no box/border around it, plain text, max 2-3 lines, max-width ~80% of the card.
+- Vertical gap from the paragraph to the "University Details" heading: `36px`.
+- Heading "University Details": same style as "University Description" heading (`font-weight:700; font-size:16px; color:#1C1B18;`), `margin-bottom:18px`.
+- Below it: a **two-column grid**, `display:grid; grid-template-columns:1fr 1fr; column-gap:80px;` Each column is a vertical stack of rows.
+- Each row: `display:flex; justify-content:space-between; align-items:center; padding:11px 0; border-bottom:1px solid #EFEDE7;` (the last row in each column also keeps the divider, matching the reference). Label on the left: `font-size:13px; font-weight:500; color:#8E8C83;`. Value on the right (NOT right-aligned to the row's far edge — sits right next to where the column ends, i.e. `text-align:left` within its own width but the row uses `justify-content:space-between` so it lands near the right): `font-size:14px; font-weight:600; color:#1C1B18;`.
+- Left column rows in order: Price, University Size, Faculties, Capacity. Right column rows in order: Founded, University Type, University, Options. (Do not reorder or relabel the underlying data bindings — only restyle.)
+
+## Panel 2 — "Address" card (`.address-config`)
+- Same card shell as Panel 1: `background:#FFFFFF; border:1px solid #E9E7E0; border-radius:22px; box-shadow:0 1px 2px rgba(28,27,24,.03);` padding `32px 36px`.
+- Heading "Address": identical style to the other panel headings (`font-weight:700; font-size:16px; color:#1C1B18;`), `margin-bottom:18px`.
+- Map container: `width:100%; height:300px; border-radius:16px; overflow:hidden; background:#F4F3EF;` (the flat tinted background is intentional — keep the existing map/iframe functionality untouched, only restyle its wrapper's radius/background/border).
+- Floating location tooltip, positioned `absolute; top:16px; left:16px;` over the map: `background:#FFFFFF; border-radius:12px; box-shadow:0 2px 8px rgba(28,27,24,.06); padding:10px 14px;` containing two stacked lines — line 1 (street name) `font-size:13px; font-weight:700; color:#1C1B18;`, line 2 (district/city) `font-size:12px; font-weight:500; color:#8E8C83; margin-top:2px;`.
+- Pin marker: a single coral teardrop/map-pin icon, `color:#E8856A`, ~30px tall, centered at the actual coordinate, with a soft drop shadow (`filter: drop-shadow(0 3px 6px rgba(28,27,24,.15))`) so it appears to float above the map surface. Do not change map provider, coordinates, zoom, or click logic — only the pin's visual style and the tooltip overlay's style.
+
+## Panel 3 — "Get More Information" sidebar (`.right-config`)
+- Card: `background:#FFFFFF; border:1px solid #E9E7E0; border-radius:22px; box-shadow:0 1px 2px rgba(28,27,24,.03);` padding `28px 28px`.
+- Heading "Get More Information": `font-weight:700; font-size:16px; color:#1C1B18;` `margin-bottom:20px`.
+- Agent row: `display:flex; align-items:center; gap:14px; margin-bottom:24px;`. Avatar: `width:56px; height:56px; border-radius:50%;` — if the agent has no profile image, fill solid `background:#E8856A` (keep the existing conditional image/fallback logic exactly as-is, only restyle the fallback circle's color and the real image's `border-radius:50%; object-fit:cover;`). Next to the avatar, stacked (`gap:5px`): name `font-size:15px; font-weight:700; color:#1C1B18;`; phone row (`display:flex; align-items:center; gap:6px;`) with a small phone icon `color:#8E8C83` followed by the number `font-size:13px; font-weight:500; color:#57564F;`; "View Listings" link `font-size:13px; font-weight:700; color:#1C1B18; text-decoration:underline; cursor:pointer;`.
+- Each form field: label above the input, `font-size:11px; font-weight:700; letter-spacing:.05em; text-transform:uppercase; color:#8E8C83; margin-bottom:6px;`. Field group `margin-bottom:18px`.
+- Inputs and textarea: `width:100%; background:#F4F3EF; border:1px solid #E9E7E0; border-radius:10px; padding:13px 15px; font-size:13.5px; color:#1C1B18;` placeholder color `#8E8C83`. On `:focus` → `border-color:#E8856A; background:#FFFFFF;`. Textarea height `~90px`, no resize handle change needed beyond this. Keep all existing `name`/`value`/`onChange`/validation attributes exactly as they are — only restyle the visual box.
+- "Send Message" button: `width:100%; background:#E8856A; color:#FFFFFF; border:none; border-radius:999px; padding:15px 0; font-size:14px; font-weight:600; display:flex; align-items:center; justify-content:center; gap:8px;` with a small ↗ arrow icon after the text. Hover: `background:#D2674C; transform:translateY(-2px);` transition `all .18s ease`. Keep the existing onClick/submit handler exactly as-is — only restyle the button.
+
+Verify after implementing, by comparing side-by-side with the reference screenshot: spacing, divider lines, two-column alignment in University Details, the floating map tooltip + pin, and the contact sidebar (avatar, inputs, button) all match exactly — and confirm the form still submits, the map still works, and all displayed data (`university?.universityPrice`, `universityCapacity`, etc.) is unchanged.

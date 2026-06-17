@@ -66,8 +66,8 @@ const UniversityBigCard = (props: UniversityBigCardProps) => {
 					<Divider sx={{ mt: '15px', mb: '17px' }} />
 					<div className={'bott'}>
 						<div>
-							{university?.universityDormitory ? <p>Rent</p> : <span>Rent</span>}
-							{university?.universityScholarship ? <p>Barter</p> : <span>Barter</span>}
+							{university?.universityDormitory ? <p>Dormitory</p> : <span>Dormitory</span>}
+							{university?.universityScholarship ? <p>Scholarship</p> : <span>Scholarship</span>}
 						</div>
 						<div className="buttons-box">
 							<IconButton color={'default'}>

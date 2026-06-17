@@ -1,114 +1,952 @@
-Redesign the university detail page (`pages/university/detail.tsx` + `scss/pc/university/detail.scss`) — the page that opens when a user clicks a university card — to match the "Claude Design" minimalist style already applied to the listing page (`pages/university/index.tsx`, `Filter.tsx`, `UniversityCard.tsx`). This is a visual-only pass: every query, mutation, state variable, handler (`likeUniversityHandler`, `commentPaginationChangeHandler`, `createCommentHandler`, `changeImageHandler`, swiper config, comment logic), and data binding must keep working exactly as today. Only class-level CSS in `detail.scss` changes, plus a couple of pure styling props in `detail.tsx` called out explicitly below.
+Redesign the university detail page (`scss/pc/university/detail.scss` + a couple of pure styling props in `pages/university/detail.tsx`) to match the "Claude Design" minimalist style already applied to the listing page (`pages/university/index.tsx`, `Filter.tsx`, `UniversityCard.tsx`). This is a visual-only pass — every query, mutation, state variable, handler (`likeUniversityHandler`, `commentPaginationChangeHandler`, `createCommentHandler`, `changeImageHandler`, swiper config, comment logic), and data binding must keep working exactly as today.
 
-## 1. Unify the accent color
-The listing page uses coral `#E8856A` everywhere (pill-active, sort/pagination highlight, badges). This detail page still uses the older `#EB6753` red in two places. Replace:
+Below is the exact current content of `scss/pc/university/detail.scss` for reference, followed by the precise find-and-replace edits to make. Apply the replacements directly against the real file in the project (do not ask for it again — it is at `scss/pc/university/detail.scss` and `pages/university/detail.tsx` in this repo).
+
+=== CURRENT FULL CONTENT OF scss/pc/university/detail.scss ===
+```scss
+#pc-wrap {
+	#university-detail-page {
+		position: relative;
+		background: #fff;
+		padding-top: 87px;
+		padding-bottom: 200px;
+		.university-detail-config {
+			width: 100%;
+			height: auto;
+			padding-top: 56px;
+			gap: 30px;
+			.university-info-config {
+				width: 100%;
+				height: auto;
+				gap: 30px;
+				.info {
+					width: 100%;
+					height: auto;
+					flex-direction: row;
+					justify-content: space-between;
+					.left-box {
+						width: 50%;
+						height: auto;
+						.title-main {
+							color: #181a20;
+							font-family: $font;
+							font-size: 30px;
+							font-style: normal;
+							font-weight: 600;
+							line-height: normal;
+							letter-spacing: 0.6px;
+							text-transform: capitalize;
+						}
+						.top-box {
+							width: auto;
+							height: auto;
+							flex-direction: row;
+							align-items: center;
+							gap: 10px;
+							margin-bottom: 17px;
+							.city {
+								color: #717171;
+								font-family: $font;
+								font-size: 13px;
+								font-style: normal;
+								font-weight: 400;
+								line-height: normal;
+							}
+							.divider {
+								width: 1px;
+								height: 20px;
+								background: #ddd;
+							}
+							.buy-rent-box {
+								flex-direction: row;
+								align-items: center;
+								gap: 7px;
+								.buy-rent {
+									color: #eb6753;
+									font-family: $font;
+									font-size: 15px;
+									font-style: normal;
+									font-weight: 600;
+									line-height: normal;
+								}
+							}
+							.date {
+								color: #181a20;
+								font-family: $font;
+								font-size: 15px;
+								font-style: normal;
+								font-weight: 400;
+								line-height: 28px;
+							}
+						}
+						.bottom-box {
+							width: auto;
+							height: auto;
+							flex-direction: row;
+							gap: 15px;
+							.option {
+								width: auto;
+								height: auto;
+								flex-direction: row;
+								gap: 8px;
+								p {
+									color: #181a20;
+									font-family: $font;
+									font-size: 15px;
+									font-style: normal;
+									font-weight: 400;
+									line-height: normal;
+								}
+							}
+						}
+					}
+					.right-box {
+						width: auto;
+						height: auto;
+						align-items: flex-end;
+						.buttons {
+							width: auto;
+							height: auto;
+							flex-direction: row;
+							align-items: center;
+							gap: 11px;
+							margin: 0 10px 27px 0;
+							p {
+								color: #181a20;
+								text-align: right;
+								font-family: $font;
+								font-size: 18px;
+								font-style: normal;
+								font-weight: 400;
+								line-height: normal;
+								letter-spacing: 0.52px;
+								text-transform: capitalize;
+							}
+							.button-box {
+								flex-direction: row;
+								gap: 5px;
+								align-items: center;
+							}
+						}
+						img {
+							width: 28px;
+							height: 27px;
+						}
+						svg {
+							width: 28px;
+							height: 27px;
+							cursor: pointer;
+						}
+						p {
+							color: #181a20;
+							text-align: right;
+							font-family: $font;
+							font-size: 26px;
+							font-style: normal;
+							font-weight: 600;
+							line-height: normal;
+							letter-spacing: 0.52px;
+							text-transform: capitalize;
+						}
+						span {
+							color: #181a20;
+							text-align: right;
+							font-family: $font;
+							font-size: 15px;
+							font-style: normal;
+							font-weight: 400;
+							line-height: normal;
+							letter-spacing: 0.3px;
+							text-transform: capitalize;
+						}
+					}
+				}
+				.images {
+					width: 100%;
+					height: auto;
+					gap: 10px;
+					.main-image {
+						width: 100%;
+						height: 600px;
+						img {
+							width: 100%;
+							height: 100%;
+							object-fit: cover;
+							border-radius: 12px;
+						}
+					}
+					.sub-images {
+						width: 100%;
+						height: auto;
+						flex-direction: row;
+						gap: 10px;
+						.sub-img-box {
+							width: 120px;
+							height: 120px;
+							cursor: pointer;
+							img {
+								width: 100%;
+								height: 100%;
+								object-fit: cover;
+								border-radius: 12px;
+							}
+						}
+					}
+				}
+			}
+			.university-desc-config {
+				width: 100%;
+				height: auto;
+				flex-direction: row;
+				gap: 22px;
+				.left-config {
+					width: 960px;
+					height: auto;
+					gap: 40px;
+					.options-config {
+						width: 100%;
+						height: auto;
+						flex-direction: row;
+						gap: 47.5px;
+						.option {
+							width: auto;
+							height: auto;
+							flex-direction: row;
+							gap: 17px;
+							.svg-box {
+								width: 56px;
+								height: 50px;
+								align-items: center;
+								justify-content: center;
+								border-radius: 12px;
+								border: 1px solid #ddd;
+								img {
+									width: 35px;
+									height: auto;
+								}
+							}
+							.option-includes {
+								width: auto;
+								height: auto;
+								.title {
+									color: #181a20;
+									font-family: $font;
+									font-size: 15px;
+									font-style: normal;
+									font-weight: 600;
+									line-height: normal;
+								}
+								.option-data {
+									color: #181a20;
+									font-family: $font;
+									font-size: 15px;
+									font-style: normal;
+									font-weight: 400;
+									line-height: normal;
+								}
+							}
+						}
+					}
+					.prop-desc-config {
+						width: 100%;
+						height: auto;
+						gap: 50px;
+						padding: 29px 38px 50px 38px;
+						border-radius: 12px;
+						border: 1px solid #c4c4c4;
+						.top {
+							width: 100%;
+							height: auto;
+							gap: 30px;
+							.title {
+								color: #181a20;
+								font-family: $font;
+								font-size: 17px;
+								font-style: normal;
+								font-weight: 600;
+								line-height: normal;
+							}
+							.desc {
+								color: #181a20;
+								font-family: $font;
+								font-size: 14px;
+								font-style: normal;
+								font-weight: 400;
+								line-height: 26px;
+								max-height: 104px;
+							}
+						}
+						.bottom {
+							width: 100%;
+							height: auto;
+							gap: 30px;
+							.title {
+								color: #181a20;
+								font-family: $font;
+								font-size: 17px;
+								font-style: normal;
+								font-weight: 600;
+								line-height: normal;
+							}
+							.info-box {
+								width: 100%;
+								height: auto;
+								flex-direction: row;
+								gap: 230px;
+								.left,
+								.right {
+									.info {
+										width: auto;
+										height: auto;
+										display: flex;
+										flex-direction: row;
+										gap: 38px;
+										.title {
+											width: 121px;
+											color: #181a20;
+											font-family: $font;
+											font-size: 14px;
+											font-style: normal;
+											font-weight: 600;
+											line-height: 35px;
+										}
+										.data {
+											width: 88px;
+											color: #181a20;
+											font-family: $font;
+											font-size: 14px;
+											font-style: normal;
+											font-weight: 400;
+											line-height: 35px;
+										}
+									}
+								}
+							}
+						}
+					}
+					.floor-plans-config {
+						width: 100%;
+						height: auto;
+						gap: 30px;
+						padding: 30px 38px;
+						border-radius: 12px;
+						border: 1px solid #c4c4c4;
+						.title {
+							color: #181a20;
+							font-family: $font;
+							font-size: 17px;
+							font-style: normal;
+							font-weight: 600;
+							line-height: normal;
+						}
+						.image-box {
+							width: 100%;
+							height: 510px;
+							border: 1px solid #c4c4c4;
+							img {
+								width: 100%;
+								height: 100%;
+								object-fit: cover;
+							}
+						}
+					}
+					.address-config {
+						width: 100%;
+						height: auto;
+						gap: 30px;
+						padding: 30px 38px;
+						border-radius: 12px;
+						border: 1px solid #c4c4c4;
+						.title {
+							color: #181a20;
+							font-family: $font;
+							font-size: 17px;
+							font-style: normal;
+							font-weight: 600;
+							line-height: normal;
+						}
+						.map-box {
+							width: 100%;
+							height: 400px;
+							iframe {
+								border-radius: 12px;
+							}
+						}
+					}
+					.reviews-config {
+						width: 100%;
+						height: auto;
+						padding: 30px 38px 45px 38px;
+						border-radius: 12px;
+						border: 1px solid #c4c4c4;
+						.filter-box {
+							width: 100%;
+							height: auto;
+							flex-direction: row;
+							justify-content: space-between;
+							margin-bottom: 30px;
+							.review-cnt {
+								width: auto;
+								height: auto;
+								flex-direction: row;
+								align-items: center;
+								gap: 12px;
+								.reviews {
+									width: 153.6px;
+									color: #181a20;
+									font-family: $font;
+									font-size: 17px;
+									font-style: normal;
+									font-weight: 600;
+									line-height: normal;
+								}
+							}
+							.select-box {
+								width: auto;
+								height: auto;
+								flex-direction: row;
+								gap: 10px;
+								.sort-title {
+									color: #717171;
+									font-family: $font;
+									font-size: 14px;
+									font-style: normal;
+									font-weight: 400;
+									line-height: 26px;
+								}
+								.select-main {
+									width: 140px;
+									border: none;
+									outline: none;
+									color: #181a20;
+									font-family: $font;
+									font-size: 14px;
+									font-style: normal;
+									font-weight: 400;
+									line-height: 26px;
+								}
+							}
+						}
+						.review-list {
+							width: 100%;
+							height: auto;
+							gap: 20px;
+							.review-config {
+								width: 100%;
+								height: auto;
+								padding-bottom: 10px;
+								border-bottom: 1px solid #c4c4c4;
+								.review-mb-info {
+									width: 100%;
+									height: auto;
+									flex-direction: row;
+									justify-content: space-between;
+									.img-name-box {
+										width: 30%;
+										flex-direction: row;
+										align-items: center;
+										gap: 20px;
+										.img-box {
+											width: 65px;
+											height: 65px;
+											align-items: center;
+											justify-content: center;
+											border-radius: 50%;
+											background: #f6f6f6;
+											border: 1px solid #b9b9b9;
+											object-fit: cover;
+										}
+										.name {
+											width: 100%;
+											color: #181a20;
+											font-family: $font;
+											font-size: 15px;
+											font-style: normal;
+											font-weight: 600;
+											line-height: normal;
+											cursor: pointer;
+										}
+										.date {
+											width: 100%;
+											color: #181a20;
+											font-family: $font;
+											font-size: 13px;
+											font-style: normal;
+											font-weight: 400;
+											line-height: normal;
+										}
+									}
+									.review-stars {
+										padding-top: 10px;
+									}
+								}
+								.desc-box {
+									width: 100%;
+									height: auto;
+									margin-top: 15px;
+									.description {
+										color: #181a20;
+										font-family: $font;
+										font-size: 14px;
+										font-style: normal;
+										font-weight: 400;
+										line-height: 26px;
+									}
+								}
+							}
+							.pagination-box {
+								margin-top: 15px;
+								width: 100%;
+								height: auto;
+								display: flex;
+								justify-content: center;
+							}
+						}
+					}
+					.leave-review-config {
+						border-radius: 12px;
+						border: 1px solid #c4c4c4;
+						background: #fff;
+						box-shadow: 0px 1px 4px 0px rgba(24, 26, 32, 0.07);
+						padding: 30px 38px;
+						.main-title {
+							color: #181a20;
+							font-family: $font;
+							font-size: 17px;
+							font-style: normal;
+							font-weight: 600;
+							line-height: normal;
+						}
+						.review-title {
+							margin-top: 20px;
+							color: #181a20;
+							font-family: $font;
+							font-size: 14px;
+							font-style: normal;
+							font-weight: 600;
+							line-height: normal;
+						}
+						textarea {
+							width: 100%;
+							height: 120px;
+							margin-top: 8px;
+							padding: 20px;
+							border-radius: 8px;
+							border: 1px solid #ddd;
+							color: #717171;
+							font-family: $font;
+							font-size: 14px;
+							font-style: normal;
+							font-weight: 400;
+							line-height: 26px;
+						}
+						.submit-btn {
+							width: 100%;
+							display: flex;
+							justify-content: flex-end;
+							button:disabled {
+								background: #dfdfdf;
+							}
+							.submit-review {
+								display: flex;
+								width: 256px;
+								margin-top: 30px;
+								padding: 16px 30px;
+								justify-content: center;
+								align-items: center;
+								gap: 10px;
+								border-radius: 12px;
+								border: 1px solid #c4c4c4;
+								cursor: pointer;
+								.title {
+									color: #181a20;
+									font-family: $font;
+									font-size: 15px;
+									font-style: normal;
+									font-weight: 600;
+									line-height: normal;
+								}
+							}
+						}
+					}
+				}
+				.right-config {
+					width: 318px;
+					height: fit-content;
+					padding: 30px 25px;
+					gap: 20px;
+					border-radius: 12px;
+					border: 1px solid rgba(196, 196, 196, 0.79);
+					background: #fff;
+					box-shadow: 0px 1px 4px 0px rgba(24, 26, 32, 0.07);
+					.info-box {
+						position: relative;
+						width: 100%;
+						gap: 8px;
+						.main-title {
+							color: #181a20;
+							font-family: $font;
+							font-size: 17px;
+							font-style: normal;
+							font-weight: 600;
+							line-height: normal;
+							margin-bottom: 17px;
+						}
+						.image-info {
+							width: 100%;
+							flex-direction: row;
+							gap: 18px;
+							img {
+								width: 95px;
+								height: 95px;
+								border-radius: 50%;
+								object-fit: cover;
+							}
+							.name-phone-listings {
+								gap: 5px;
+								.name {
+									color: #181a20;
+									font-family: $font;
+									font-size: 15px;
+									font-style: normal;
+									font-weight: 600;
+									line-height: normal;
+								}
+								.phone-number {
+									width: 100%;
+									flex-direction: row;
+									align-items: center;
+									gap: 10px;
+									.number {
+										color: #181a20;
+										font-family: $font;
+										font-size: 15px;
+										font-style: normal;
+										font-weight: 400;
+										line-height: 28px;
+									}
+								}
+								.listings {
+									color: #181a20;
+									font-family: $font;
+									font-size: 14px;
+									font-style: normal;
+									font-weight: 600;
+									line-height: normal;
+									text-decoration-line: underline;
+								}
+							}
+						}
+						.sub-title {
+							color: #181a20;
+							font-family: $font;
+							font-size: 14px;
+							font-style: normal;
+							font-weight: 600;
+							line-height: normal;
+						}
+						input {
+							width: 100%;
+							height: 55px;
+							padding: 15px;
+							border-radius: 8px;
+							border: 1px solid #ddd;
+							background: #fff;
+							outline: none;
+							&::placeholder {
+								color: #717171;
+								font-family: $font;
+								font-size: 14px;
+								font-style: normal;
+								font-weight: 400;
+								line-height: 26px;
+							}
+							&:focus {
+								border: 1px solid black;
+							}
+						}
+						textarea {
+							width: 100%;
+							height: 120px;
+							padding: 20px;
+							border-radius: 8px;
+							border: 1px solid #ddd;
+							font-family: $font;
+							font-size: 14px;
+							font-style: normal;
+							font-weight: 400;
+							line-height: 26px;
+							&::placeholder {
+								color: #717171;
+								font-family: $font;
+								font-size: 14px;
+								font-style: normal;
+								font-weight: 400;
+								line-height: 26px;
+							}
+							&:focus {
+								border: 1px solid black;
+							}
+						}
+						.send-message {
+							display: flex;
+							width: 100%;
+							padding: 16px 30px;
+							justify-content: center;
+							align-items: center;
+							gap: 10px;
+							border-radius: 12px;
+							background: #eb6753;
+							.title {
+								color: #fff;
+								font-family: $font;
+								font-size: 15px;
+								font-style: normal;
+								font-weight: 600;
+								line-height: normal;
+							}
+						}
+					}
+				}
+			}
+			.similar-universities-config {
+				width: 100%;
+				margin-top: 45px;
+				gap: 66px;
+				.title-pagination-box {
+					width: 100%;
+					height: auto;
+					flex-direction: row;
+					justify-content: space-between;
+					align-items: flex-end;
+					.title-box {
+						width: 30%;
+						.main-title {
+							color: #181a20;
+							font-family: $font;
+							font-size: 30px;
+							font-style: normal;
+							font-weight: 600;
+							line-height: normal;
+							letter-spacing: 0.6px;
+							text-transform: capitalize;
+						}
+						.sub-title {
+							color: #181a20;
+							font-family: $font;
+							font-size: 14px;
+							font-style: normal;
+							font-weight: 400;
+							line-height: 26px;
+						}
+					}
+					.pagination-box {
+						flex-direction: row;
+						align-items: center;
+						gap: 22px;
+					}
+				}
+				.cards-box {
+					width: 100%;
+					padding-bottom: 10px;
+					.similar-homes-swiper {
+						width: 100%;
+						.similar-homes-slide {
+							width: 411px;
+						}
+					}
+				}
+			}
+		}
+	}
+}
+```
+
+=== EDITS TO MAKE IN scss/pc/university/detail.scss ===
+
+1) Accent color — replace both occurrences of `#eb6753` with `#e8856a`:
 - `.buy-rent-box .buy-rent { color: #eb6753; }` → `color: #e8856a;`
-- `.right-config .send-message { background: #eb6753; }` → `background: #e8856a;` and add `&:hover { background: #d9714f; }`
+- `.right-config .send-message { background: #eb6753; }` → `background: #e8856a;` then add right after it: `&:hover { background: #d9714f; }`
 
-## 2. Card borders, radius, and shadow — match the listing page's card language
-Across `.prop-desc-config`, `.floor-plans-config`, `.address-config`, `.reviews-config`, replace the current `border: 1px solid #c4c4c4;` with the lighter, softer card style used elsewhere in the app:
+2) Card borders/shadows — in `.prop-desc-config`, `.floor-plans-config`, `.address-config`, `.reviews-config`, change:
+```scss
+border: 1px solid #c4c4c4;
+```
+to:
 ```scss
 border: 1px solid #ececec;
 box-shadow: 0px 1px 4px 0px rgba(24, 26, 32, 0.07);
 ```
-`.leave-review-config` and `.right-config` already use a shadow — just change their border color from `#c4c4c4`/`rgba(196, 196, 196, 0.79)` to `#ececec` to match.
+(Note `.floor-plans-config .image-box` and `.reviews-config .review-config` also use `#c4c4c4` for plain borders/dividers — change those instances to `#ececec` too, no shadow needed on those two.)
 
-## 3. Scholarship / Dormitory badges (top info row)
-Currently a plain colored dot + text. Turn it into a small rounded pill matching the `.pill-label` style from the listing filters, so it reads as a tag rather than a raw text label:
+In `.leave-review-config`, change `border: 1px solid #c4c4c4;` → `border: 1px solid #ececec;` (shadow already present).
+In `.right-config`, change `border: 1px solid rgba(196, 196, 196, 0.79);` → `border: 1px solid #ececec;` (shadow already present).
+
+3) Buy-rent pill badge — replace:
 ```scss
 .buy-rent-box {
-	.circle { display: none; } // dot no longer needed once it's a pill
+	flex-direction: row;
+	align-items: center;
+	gap: 7px;
+	.buy-rent {
+		color: #eb6753;
+		font-family: $font;
+		font-size: 15px;
+		font-style: normal;
+		font-weight: 600;
+		line-height: normal;
+	}
+}
+```
+with:
+```scss
+.buy-rent-box {
+	flex-direction: row;
+	align-items: center;
+	gap: 7px;
+	.circle {
+		display: none;
+	}
 	.buy-rent {
 		display: inline-block;
 		padding: 4px 12px;
 		border-radius: 20px;
 		background: rgba(232, 133, 106, 0.12);
 		color: #e8856a;
+		font-family: $font;
 		font-size: 13px;
+		font-style: normal;
 		font-weight: 600;
+		line-height: normal;
 	}
 }
 ```
 
-## 4. Stat icon boxes (`.options-config .option .svg-box`)
-Soften the border and add a subtle tinted background so the graduation-cap/building/map icons added earlier stand out more:
+4) Stat icon boxes — replace:
 ```scss
 .svg-box {
+	width: 56px;
+	height: 50px;
+	align-items: center;
+	justify-content: center;
+	border-radius: 12px;
+	border: 1px solid #ddd;
+	img {
+		width: 35px;
+		height: auto;
+	}
+}
+```
+with:
+```scss
+.svg-box {
+	width: 56px;
+	height: 50px;
+	align-items: center;
+	justify-content: center;
+	border-radius: 12px;
 	border: 1px solid #ececec;
 	background: #fafaf8;
-	border-radius: 12px;
 	transition: border-color 0.15s ease, background 0.15s ease;
+	img {
+		width: 35px;
+		height: auto;
+	}
 }
-.option:hover .svg-box {
+```
+and add a hover rule on the parent `.option` selector (sibling to `.svg-box` inside `.options-config .option`):
+```scss
+&:hover .svg-box {
 	border-color: #e8856a;
 	background: rgba(232, 133, 106, 0.08);
 }
 ```
 
-## 5. Image gallery
-Add a hover-lift to the main image and a selected-state ring on the active thumbnail (no JS state change needed — `sub-img-box` already calls `changeImageHandler` on click, just add the CSS hover/active affordance):
+5) Image gallery — in `.main-image img`, add a transition for a future hover-lift:
 ```scss
-.main-image img {
-	transition: transform 0.3s ease;
-}
-.sub-img-box {
-	border-radius: 12px;
-	border: 2px solid transparent;
-	transition: border-color 0.15s ease, opacity 0.15s ease;
-	opacity: 0.75;
-	&:hover { opacity: 1; }
+transition: transform 0.3s ease;
+```
+In `.sub-img-box`, add:
+```scss
+border-radius: 12px;
+border: 2px solid transparent;
+transition: border-color 0.15s ease, opacity 0.15s ease;
+opacity: 0.75;
+&:hover {
+	opacity: 1;
 }
 ```
 
-## 6. Contact sidebar (`.right-config`)
-Give inputs/textarea the same focus treatment as the filter inputs on the listing page (coral focus ring instead of plain black):
+6) Contact sidebar inputs — in `.right-config input` and `.right-config textarea`, replace:
 ```scss
-input:focus, textarea:focus {
-	border: 1px solid #e8856a !important;
+&:focus {
+	border: 1px solid black;
+}
+```
+with:
+```scss
+&:focus {
+	border: 1px solid #e8856a;
 	box-shadow: 0 0 0 3px rgba(232, 133, 106, 0.12);
 }
 ```
+(do this in both the `input` block and the `textarea` block under `.right-config`)
 
-## 7. Review section avatars and divider
-Replace the flat `border-bottom: 1px solid #c4c4c4;` on `.review-config` with `#ececec`, and give `.img-box` a 2px coral-tinted ring instead of the plain gray border:
+7) Review avatar ring — in `.review-config .img-box`, replace:
 ```scss
-.img-box {
-	border: 2px solid rgba(232, 133, 106, 0.2);
-}
+border: 1px solid #b9b9b9;
+```
+with:
+```scss
+border: 2px solid rgba(232, 133, 106, 0.2);
 ```
 
-## 8. Pagination styling consistency (small JSX prop change, not logic)
-In `detail.tsx`, the review `<MuiPagination>` (around line 491-497) currently uses `shape="circular"` with default MUI blue. Change only the styling props to match the listing page's rounded coral pagination:
-```tsx
-<MuiPagination
-	page={commentInquiry.page}
-	count={Math.ceil(commentTotal / commentInquiry.limit)}
-	onChange={commentPaginationChangeHandler}
-	shape="rounded"
-	color="primary"
-	sx={{ '& .Mui-selected': { backgroundColor: '#E8856A !important', color: '#fff' } }}
-/>
-```
-This only changes `shape` and adds `sx` — `page`, `count`, and `onChange` stay untouched.
-
-## 9. Similar/Destination universities carousel arrows
-Style `.swiper-similar-prev`/`.swiper-similar-next` (the `WestIcon`/`EastIcon` MUI icons) as small circular bordered buttons instead of bare icons, consistent with the rest of the minimalist design:
+8) Carousel arrows — inside `.similar-universities-config .title-pagination-box .pagination-box`, add:
 ```scss
-.pagination-box {
-	svg {
-		width: 36px;
-		height: 36px;
-		padding: 8px;
-		border-radius: 50%;
-		border: 1px solid #ececec;
-		cursor: pointer;
-		transition: border-color 0.15s ease, color 0.15s ease;
-		&:hover {
-			border-color: #e8856a;
-			color: #e8856a;
-		}
+svg {
+	width: 36px;
+	height: 36px;
+	padding: 8px;
+	border-radius: 50%;
+	border: 1px solid #ececec;
+	cursor: pointer;
+	transition: border-color 0.15s ease, color 0.15s ease;
+	&:hover {
+		border-color: #e8856a;
+		color: #e8856a;
 	}
 }
 ```
+
+=== EXACT JSX SNIPPET TO CHANGE IN pages/university/detail.tsx ===
+
+Find (around line 490-498):
+```tsx
+<Box component={'div'} className={'pagination-box'}>
+	<MuiPagination
+		page={commentInquiry.page}
+		count={Math.ceil(commentTotal / commentInquiry.limit)}
+		onChange={commentPaginationChangeHandler}
+		shape="circular"
+		color="primary"
+	/>
+</Box>
+```
+Replace with:
+```tsx
+<Box component={'div'} className={'pagination-box'}>
+	<MuiPagination
+		page={commentInquiry.page}
+		count={Math.ceil(commentTotal / commentInquiry.limit)}
+		onChange={commentPaginationChangeHandler}
+		shape="rounded"
+		color="primary"
+		sx={{ '& .Mui-selected': { backgroundColor: '#E8856A !important', color: '#fff' } }}
+	/>
+</Box>
+```
+Only `shape` changed and `sx` was added — `page`, `count`, and `onChange` are untouched.
+
+No other JSX changes are needed; everything else in this redesign is pure CSS in `detail.scss`.
 
 Verify after implementing: liking a university, switching the main image via thumbnails, paginating reviews, submitting a comment, and the destination-universities carousel all behave exactly as before — only colors, borders, radii, shadows, and hover states changed.

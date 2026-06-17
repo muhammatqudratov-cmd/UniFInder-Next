@@ -1,0 +1,37 @@
+Context: this is a precise styling prompt for the "Reviews" list panel and the "Leave A Review" panel on the university detail page, matched 1:1 to the attached reference screenshot. Visual-only change: do NOT touch any GraphQL query/mutation, state, handler, sorting logic, pagination logic, star-rating value, or submit/validation logic in `pages/university/detail.tsx`. Only edit class-level CSS in `scss/pc/university/detail.scss` for `.reviews-config` and `.leave-review-config`. Every value currently rendered (reviewer name, date, comment text, star rating, page numbers, textarea binding, submit handler) must stay bound exactly as it is — only the appearance changes.
+
+Design tokens (exact hex values, no approximations):
+```
+ink (headings/names):   #1C1B18
+ink-2 (body text):      #57564F
+ink-3 (muted/meta):     #8E8C83
+line (borders):         #E9E7E0
+line-2 (dividers):      #EFEDE7
+surface:                #FFFFFF
+surface-2 (subtle fill):#F4F3EF
+coral (accent/filled):  #E8856A
+coral-deep (hover):     #D2674C
+shadow-sm: 0 1px 2px rgba(28,27,24,.03)
+font: keep existing `$font` (Poppins) — no new font families
+```
+
+## Panel 1 — Reviews list (`.reviews-config`)
+- Card: `background:#FFFFFF; border:1px solid #E9E7E0; border-radius:22px; box-shadow:0 1px 2px rgba(28,27,24,.03);` padding `28px 32px`.
+- Header row: `display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;`.
+  - Left: "{count} Reviews" — `font-size:16px; font-weight:700; color:#1C1B18;`.
+  - Right: "Sort by" label `font-size:13px; font-weight:500; color:#8E8C83; margin-right:8px;` next to a select control styled as a pill: `border:1px solid #E9E7E0; border-radius:999px; padding:7px 14px; font-size:13px; font-weight:600; color:#1C1B18; background:#FFFFFF;` with a small chevron-down at the end. Keep the existing `<select>`/onChange sort logic untouched, only restyle the control to look like this pill (remove native default border/appearance via `appearance:none` while keeping the `<select>` element and its options functional).
+- Each review row: `padding:20px 0; border-bottom:1px solid #EFEDE7;` (no border on the very last row in the list).
+  - Top line: `display:flex; justify-content:space-between; align-items:flex-start;`.
+    - Left: avatar `width:44px; height:44px; border-radius:50%;` (solid fallback color per user if no photo — keep existing logic for picking the avatar image/color, only ensure the shape/size match) followed by, stacked next to it (`margin-left:14px; gap:3px;`): reviewer name `font-size:14.5px; font-weight:700; color:#1C1B18;` and date `font-size:12px; font-weight:500; color:#8E8C83;`.
+    - Right: a row of 5 stars, `gap:2px;`. Filled stars: `color:#E8856A;` (solid fill). Empty/unfilled stars: `color:#E9E7E0;` (outline or light fill). Number of filled stars driven by the existing rating value — do not change how the rating is computed, only the star colors.
+  - Comment text below, `margin-top:12px; font-size:13.5px; font-weight:400; color:#57564F; line-height:24px;`.
+- Pagination row: `display:flex; justify-content:center; gap:8px; margin-top:8px; padding-top:20px;`. Each page button: `width:32px; height:32px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:600;`. Inactive page: `background:#FFFFFF; border:1px solid #E9E7E0; color:#1C1B18;`. Active/current page: `background:#E8856A; border:none; color:#FFFFFF;`. Keep the existing pagination click handlers/page-state exactly as-is — only restyle the buttons (this maps to the existing MUI `Pagination`/`Mui-selected` styling — update the `.Mui-selected` rule to use `background-color:#E8856A; color:#FFFFFF;` and give all page items `border-radius:8px`).
+
+## Panel 2 — "Leave A Review" (`.leave-review-config`)
+- Card: same shell as Panel 1: `background:#FFFFFF; border:1px solid #E9E7E0; border-radius:22px; box-shadow:0 1px 2px rgba(28,27,24,.03);` padding `28px 32px`.
+- Heading "Leave A Review": `font-weight:700; font-size:16px; color:#1C1B18; margin-bottom:22px;`.
+- Label "Review": `font-size:13px; font-weight:700; color:#1C1B18; margin-bottom:10px;`.
+- Textarea: `width:100%; height:120px; border:1px solid #E9E7E0; border-radius:14px; background:#FFFFFF; padding:16px 18px; font-size:13.5px; color:#1C1B18; line-height:24px;` placeholder "Share your experience…" in `color:#8E8C83;`. On `:focus` → `border-color:#E8856A;`. Keep the existing textarea value/onChange binding untouched — only restyle.
+- Submit row: `display:flex; justify-content:flex-end; margin-top:20px;`. "Submit Review" button: `padding:13px 26px; border-radius:999px; background:#E8856A; color:#FFFFFF; border:none; font-size:14px; font-weight:600; display:flex; align-items:center; gap:8px;` with a small ↗ arrow icon after the text. Hover: `background:#D2674C; transform:translateY(-2px);` (transition `all .18s ease`). Disabled state (when textarea is empty, if that logic already exists): `background:#F4F3EF; color:#8E8C83; cursor:not-allowed; transform:none;`. Keep the existing onClick/submit handler and disabled condition exactly as-is — only restyle.
+
+Verify after implementing, by comparing side-by-side with the reference screenshot: review rows match spacing/divider/avatar/star layout, the sort dropdown still sorts correctly, pagination still navigates correctly and highlights the active page, and the review textarea still submits via the existing handler with the same disabled/enabled behavior.

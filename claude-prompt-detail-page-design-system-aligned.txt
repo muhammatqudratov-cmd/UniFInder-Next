@@ -1,3 +1,46 @@
+Context: there is an approved "Claude Design" visual language for this project (a reference design system from `styles.css` / `components.jsx` in the design mockups — Notion + Linear-inspired minimalism). Its exact tokens are:
+
+```
+ink (primary text):     #1C1B18
+ink-2 (secondary text): #57564F
+ink-3 (muted/label):    #8E8C83
+line (border):          #E9E7E0
+line-2 (divider):       #EFEDE7
+surface (white):        #FFFFFF
+surface-2 (subtle fill):#F4F3EF
+coral (accent):         #E8856A
+coral-deep (hover):     #D2674C
+coral-tint (bg tint):   #FBEDE7
+
+shadow-sm: 0 1px 2px rgba(28,27,24,.03)
+shadow-md: 0 2px 8px rgba(28,27,24,.04)
+shadow-lg: 0 8px 24px rgba(28,27,24,.05)
+
+radius-sm: 10px   radius-md: 16px   radius-lg: 22px   pill: 999px
+```
+Key recurring component patterns from that system, reused below:
+- **card** (`.uni-card`): `border:1px solid line; border-radius:22px; box-shadow:shadow-sm;` on hover → `translateY(-4px); box-shadow:shadow-lg; border-color:line-2`.
+- **pill badge** (`.uni-media .badge`): white/blurred pill, `border-radius:999px`, `box-shadow:shadow-sm`.
+- **small tag** (`.tag.hot`): `background:coral-tint; color:coral-deep; font-size:11px; font-weight:700; padding:3px 9px; border-radius:6px;`.
+- **circular nav button** (`.cbtn`): `46px circle; border:1px solid line; background:surface; box-shadow:shadow-sm;` hover → `border-color:ink; translateY(-1px); box-shadow:shadow-md`.
+- **solid pill button** (`.btn-primary`): `padding:15px 28px; border-radius:999px; background:coral; color:#fff;` hover → `translateY(-2px); background:coral-deep`.
+- **label/value pair** (`.dd-btn .label/.value`): label = `font-size:11px; font-weight:700; letter-spacing:.05em; text-transform:uppercase; color:ink-3`; value = `font-size:15.5px; font-weight:600; color:ink`.
+
+This is a visual-only change. Do not touch any GraphQL query/mutation, state, handler, or data binding in `pages/university/detail.tsx` or `libs/components/common/UniversityBigCard.tsx` — only class-level CSS in the two SCSS files below, plus the one wording fix in section 0 (same as before, confirm it's still applied).
+
+## 0. Confirm/apply this wording fix in `libs/components/common/UniversityBigCard.tsx` (~line 67-71)
+The ternary structure stays identical, only the literal words change from "Rent"/"Barter" to "Dormitory"/"Scholarship":
+```tsx
+<div className={'bott'}>
+	<div>
+		{university?.universityDormitory ? <p>Dormitory</p> : <span>Dormitory</span>}
+		{university?.universityScholarship ? <p>Scholarship</p> : <span>Scholarship</span>}
+	</div>
+	...
+```
+
+## 1. Replace the entire contents of `scss/pc/university/detail.scss` with:
+```scss
 #pc-wrap {
 	#university-detail-page {
 		position: relative;
@@ -304,61 +347,60 @@
 					.prop-desc-config {
 						width: 100%;
 						height: auto;
-						padding: 32px 36px;
+						gap: 36px;
+						padding: 36px 40px;
 						border-radius: 22px;
 						border: 1px solid #e9e7e0;
-						background: #fff;
 						box-shadow: 0 1px 2px rgba(28, 27, 24, 0.03);
 						.top {
 							width: 100%;
 							height: auto;
-							margin-bottom: 36px;
+							gap: 16px;
 							.title {
 								color: #1c1b18;
 								font-family: $font;
-								font-size: 16px;
+								font-size: 17px;
 								font-style: normal;
 								font-weight: 700;
 								line-height: normal;
-								margin-bottom: 14px;
 							}
 							.desc {
-								max-width: 80%;
 								color: #57564f;
 								font-family: $font;
-								font-size: 13.5px;
+								font-size: 14px;
 								font-style: normal;
 								font-weight: 400;
-								line-height: 22px;
+								line-height: 26px;
+								max-height: 104px;
 							}
 						}
 						.bottom {
 							width: 100%;
 							height: auto;
+							gap: 20px;
 							.title {
 								color: #1c1b18;
 								font-family: $font;
-								font-size: 16px;
+								font-size: 17px;
 								font-style: normal;
 								font-weight: 700;
 								line-height: normal;
-								margin-bottom: 18px;
 							}
 							.info-box {
 								width: 100%;
 								height: auto;
-								display: grid;
-								grid-template-columns: 1fr 1fr;
-								column-gap: 80px;
+								flex-direction: row;
+								gap: 80px;
 								.left,
 								.right {
+									flex: 1;
 									.info {
 										width: auto;
 										height: auto;
 										display: flex;
 										flex-direction: row;
 										justify-content: space-between;
-										align-items: center;
+										gap: 38px;
 										padding: 11px 0;
 										border-bottom: 1px solid #efede7;
 										.title {
@@ -368,7 +410,7 @@
 											font-size: 13px;
 											font-style: normal;
 											font-weight: 500;
-											line-height: normal;
+											line-height: 22px;
 										}
 										.data {
 											width: auto;
@@ -377,98 +419,82 @@
 											font-size: 14px;
 											font-style: normal;
 											font-weight: 600;
-											line-height: normal;
-											text-align: left;
+											line-height: 22px;
+											text-align: right;
 										}
 									}
 								}
 							}
 						}
 					}
-					.address-config {
+					.floor-plans-config {
 						width: 100%;
 						height: auto;
-						padding: 32px 36px;
+						gap: 24px;
+						padding: 36px 40px;
 						border-radius: 22px;
 						border: 1px solid #e9e7e0;
-						background: #fff;
 						box-shadow: 0 1px 2px rgba(28, 27, 24, 0.03);
 						.title {
 							color: #1c1b18;
 							font-family: $font;
-							font-size: 16px;
+							font-size: 17px;
 							font-style: normal;
 							font-weight: 700;
 							line-height: normal;
-							margin-bottom: 18px;
+						}
+						.image-box {
+							width: 100%;
+							height: 510px;
+							border-radius: 16px;
+							border: 1px solid #e9e7e0;
+							overflow: hidden;
+							img {
+								width: 100%;
+								height: 100%;
+								object-fit: cover;
+							}
+						}
+					}
+					.address-config {
+						width: 100%;
+						height: auto;
+						gap: 24px;
+						padding: 36px 40px;
+						border-radius: 22px;
+						border: 1px solid #e9e7e0;
+						box-shadow: 0 1px 2px rgba(28, 27, 24, 0.03);
+						.title {
+							color: #1c1b18;
+							font-family: $font;
+							font-size: 17px;
+							font-style: normal;
+							font-weight: 700;
+							line-height: normal;
 						}
 						.map-box {
-							position: relative;
 							width: 100%;
-							height: 300px;
+							height: 400px;
 							border-radius: 16px;
 							overflow: hidden;
-							background: #f4f3ef;
 							iframe {
 								border-radius: 16px;
-							}
-							.map-tooltip {
-								position: absolute;
-								top: 16px;
-								left: 16px;
-								padding: 10px 14px;
-								border-radius: 12px;
-								background: #fff;
-								box-shadow: 0 2px 8px rgba(28, 27, 24, 0.06);
-								gap: 2px;
-								.street {
-									color: #1c1b18;
-									font-family: $font;
-									font-size: 13px;
-									font-style: normal;
-									font-weight: 700;
-									line-height: normal;
-								}
-								.city {
-									color: #8e8c83;
-									font-family: $font;
-									font-size: 12px;
-									font-style: normal;
-									font-weight: 500;
-									line-height: normal;
-									margin-top: 2px;
-								}
-							}
-							.map-pin {
-								position: absolute;
-								top: 50%;
-								left: 50%;
-								width: 30px;
-								height: 38px;
-								transform: translate(-50%, -100%);
-								filter: drop-shadow(0 3px 6px rgba(28, 27, 24, 0.15));
-								svg {
-									width: 100%;
-									height: 100%;
-								}
 							}
 						}
 					}
 					.reviews-config {
 						width: 100%;
 						height: auto;
-						padding: 28px 32px;
+						padding: 36px 40px;
 						border-radius: 22px;
 						border: 1px solid #e9e7e0;
-						background: #fff;
 						box-shadow: 0 1px 2px rgba(28, 27, 24, 0.03);
 						.filter-box {
 							width: 100%;
 							height: auto;
 							flex-direction: row;
 							justify-content: space-between;
-							align-items: center;
-							margin-bottom: 24px;
+							margin-bottom: 28px;
 							.review-cnt {
 								width: auto;
 								height: auto;
@@ -480,53 +506,75 @@
 									width: auto;
 									color: #1c1b18;
 									font-family: $font;
-									font-size: 16px;
+									font-size: 17px;
 									font-style: normal;
 									font-weight: 700;
 									line-height: normal;
+								}
+							}
+							.select-box {
+								width: auto;
+								height: auto;
+								flex-direction: row;
+								align-items: center;
+								gap: 10px;
+								.sort-title {
+									color: #8e8c83;
+									font-family: $font;
+									font-size: 13px;
+									font-style: normal;
+									font-weight: 500;
+									line-height: 26px;
+								}
+								.select-main {
+									width: 140px;
+									padding: 6px 10px;
+									border: 1px solid #e9e7e0;
+									border-radius: 10px;
+									outline: none;
+									color: #1c1b18;
+									font-family: $font;
+									font-size: 13px;
+									font-style: normal;
+									font-weight: 500;
+									line-height: 24px;
 								}
 							}
 						}
 						.review-list {
 							width: 100%;
 							height: auto;
-							gap: 0;
+							gap: 22px;
 							.review-config {
 								width: 100%;
 								height: auto;
-								padding: 20px 0;
+								padding-bottom: 22px;
 								border-bottom: 1px solid #efede7;
-								&:last-of-type {
-									border-bottom: none;
-								}
 								.review-mb-info {
 									width: 100%;
 									height: auto;
 									flex-direction: row;
 									justify-content: space-between;
-									align-items: flex-start;
 									.img-name-box {
 										width: 30%;
 										flex-direction: row;
 										align-items: center;
-										gap: 14px;
+										gap: 16px;
 										.img-box {
-											width: 44px;
-											height: 44px;
+											width: 56px;
+											height: 56px;
 											align-items: center;
 											justify-content: center;
 											border-radius: 50%;
 											background: #f4f3ef;
+											border: 2px solid #fbede7;
 											object-fit: cover;
-										}
-										> .MuiStack-root {
-											gap: 3px;
 										}
 										.name {
 											width: 100%;
 											color: #1c1b18;
 											font-family: $font;
-											font-size: 14.5px;
+											font-size: 14px;
 											font-style: normal;
 											font-weight: 700;
 											line-height: normal;
@@ -542,44 +590,32 @@
 											line-height: normal;
 										}
 									}
+									.review-stars {
+										padding-top: 6px;
+									}
 								}
 								.desc-box {
 									width: 100%;
 									height: auto;
-									margin-top: 12px;
+									margin-top: 14px;
 									.description {
 										color: #57564f;
 										font-family: $font;
-										font-size: 13.5px;
+										font-size: 14px;
 										font-style: normal;
 										font-weight: 400;
-										line-height: 24px;
+										line-height: 26px;
 									}
 								}
 							}
 							.pagination-box {
-								margin-top: 8px;
-								padding-top: 20px;
+								margin-top: 10px;
 								width: 100%;
 								height: auto;
 								display: flex;
 								justify-content: center;
-								gap: 8px;
-								.MuiPaginationItem-root {
-									width: 32px;
-									height: 32px;
-									min-width: 32px;
-									border-radius: 8px !important;
-									border: 1px solid #e9e7e0;
-									background: #fff;
-									color: #1c1b18;
-									font-family: $font;
-									font-size: 13px;
-									font-weight: 600;
-								}
 								.Mui-selected {
 									background-color: #e8856a !important;
-									border-color: transparent !important;
 									color: #fff !important;
 								}
 							}
@@ -590,42 +626,45 @@
 						border: 1px solid #e9e7e0;
 						background: #fff;
 						box-shadow: 0 1px 2px rgba(28, 27, 24, 0.03);
-						padding: 28px 32px;
+						padding: 36px 40px;
 						.main-title {
 							color: #1c1b18;
 							font-family: $font;
-							font-size: 16px;
+							font-size: 17px;
 							font-style: normal;
 							font-weight: 700;
 							line-height: normal;
-							margin-bottom: 22px;
 						}
 						.review-title {
+							margin-top: 22px;
 							color: #1c1b18;
 							font-family: $font;
 							font-size: 13px;
 							font-style: normal;
 							font-weight: 700;
 							line-height: normal;
-							margin-bottom: 10px;
+							text-transform: uppercase;
+							letter-spacing: 0.05em;
 						}
 						textarea {
 							width: 100%;
 							height: 120px;
-							padding: 16px 18px;
-							border-radius: 14px;
+							margin-top: 10px;
+							padding: 18px 20px;
+							border-radius: 16px;
 							border: 1px solid #e9e7e0;
-							background: #fff;
+							background: #f4f3ef;
 							color: #1c1b18;
 							font-family: $font;
-							font-size: 13.5px;
+							font-size: 14px;
 							font-style: normal;
 							font-weight: 400;
-							line-height: 24px;
+							line-height: 26px;
 							outline: none;
-							transition: border-color 0.15s ease;
+							transition: border-color 0.15s ease, background 0.15s ease;
 							&:focus {
 								border-color: #e8856a;
+								background: #fff;
 							}
 							&::placeholder {
 								color: #8e8c83;
@@ -635,21 +674,22 @@
 							width: 100%;
 							display: flex;
 							justify-content: flex-end;
-							margin-top: 20px;
 							button:disabled {
 								background: #f4f3ef;
 							}
 							.submit-review {
 								display: flex;
-								padding: 13px 26px;
+								width: 220px;
+								margin-top: 26px;
+								padding: 15px 28px;
 								justify-content: center;
 								align-items: center;
-								gap: 8px;
+								gap: 10px;
 								border-radius: 999px;
 								border: none;
 								background: #e8856a;
 								cursor: pointer;
-								transition: all 0.18s ease;
+								transition: background 0.18s ease, transform 0.18s ease;
 								&:hover {
 									background: #d2674c;
 									transform: translateY(-2px);
@@ -683,19 +723,16 @@
 				.right-config {
 					width: 318px;
 					height: fit-content;
-					padding: 28px 28px;
-					gap: 18px;
+					padding: 32px 28px;
+					gap: 22px;
 					border-radius: 22px;
 					border: 1px solid #e9e7e0;
 					background: #fff;
-					box-shadow: 0 1px 2px rgba(28, 27, 24, 0.03);
+					box-shadow: 0 2px 8px rgba(28, 27, 24, 0.04);
 					.info-box {
 						position: relative;
 						width: 100%;
-						gap: 6px;
-						&:first-of-type {
-							margin-bottom: 6px;
-						}
+						gap: 8px;
 						.main-title {
 							color: #1c1b18;
 							font-family: $font;
@@ -703,22 +740,21 @@
 							font-style: normal;
 							font-weight: 700;
 							line-height: normal;
-							margin-bottom: 20px;
+							margin-bottom: 14px;
 						}
 						.image-info {
 							width: 100%;
 							flex-direction: row;
-							align-items: center;
-							gap: 14px;
+							gap: 16px;
 							img {
-								width: 56px;
-								height: 56px;
+								width: 88px;
+								height: 88px;
 								border-radius: 50%;
 								object-fit: cover;
-								background: #e8856a;
+								border: 2px solid #fbede7;
 							}
 							.name-phone-listings {
-								gap: 5px;
+								gap: 6px;
 								.name {
 									color: #1c1b18;
 									font-family: $font;
@@ -731,29 +767,29 @@
 									width: 100%;
 									flex-direction: row;
 									align-items: center;
-									gap: 6px;
+									gap: 8px;
 									color: #8e8c83;
-									svg path {
-										fill: #8e8c83;
-									}
 									.number {
 										color: #57564f;
 										font-family: $font;
 										font-size: 13px;
 										font-style: normal;
 										font-weight: 500;
-										line-height: normal;
+										line-height: 22px;
 									}
 								}
 								.listings {
-									color: #1c1b18;
+									color: #e8856a;
 									font-family: $font;
 									font-size: 13px;
 									font-style: normal;
 									font-weight: 700;
 									line-height: normal;
-									text-decoration-line: underline;
+									text-decoration-line: none;
 									cursor: pointer;
+									&:hover {
+										text-decoration-line: underline;
+									}
 								}
 							}
 						}
@@ -766,19 +802,18 @@
 							line-height: normal;
 							text-transform: uppercase;
 							letter-spacing: 0.05em;
-							margin-bottom: 6px;
 						}
 						input {
 							width: 100%;
 							height: 50px;
-							padding: 13px 15px;
+							padding: 14px 16px;
 							border-radius: 10px;
 							border: 1px solid #e9e7e0;
 							background: #f4f3ef;
 							outline: none;
 							color: #1c1b18;
 							font-family: $font;
-							font-size: 13.5px;
+							font-size: 14px;
 							transition: border-color 0.15s ease, background 0.15s ease;
 							&::placeholder {
 								color: #8e8c83;
@@ -795,13 +830,13 @@
 						}
 						textarea {
 							width: 100%;
-							height: 90px;
-							padding: 13px 15px;
+							height: 110px;
+							padding: 16px;
 							border-radius: 10px;
 							border: 1px solid #e9e7e0;
 							background: #f4f3ef;
 							font-family: $font;
-							font-size: 13.5px;
+							font-size: 14px;
 							font-style: normal;
 							font-weight: 400;
 							line-height: 24px;
@@ -823,15 +858,14 @@
 						.send-message {
 							display: flex;
 							width: 100%;
-							padding: 15px 0;
+							padding: 15px 28px;
 							justify-content: center;
 							align-items: center;
-							gap: 8px;
+							gap: 10px;
 							border-radius: 999px;
-							border: none;
 							background: #e8856a;
 							cursor: pointer;
-							transition: all 0.18s ease;
+							transition: background 0.18s ease, transform 0.18s ease;
 							&:hover {
 								background: #d2674c;
 								transform: translateY(-2px);
@@ -843,9 +877,6 @@
 								font-style: normal;
 								font-weight: 600;
 								line-height: normal;
-							}
-							svg path {
-								fill: #fff;
 							}
 						}
 					}
@@ -919,3 +950,203 @@
 		}
 	}
 }
+```
+
+## 2. In `scss/pc/general.scss`, replace the entire `.university-big-card-box` rule with:
+```scss
+.university-big-card-box {
+	position: relative;
+	margin-right: 8px;
+	margin-left: 8px;
+	margin-bottom: 35px;
+	width: 410px;
+	height: 455px;
+	display: flex;
+	flex-direction: column;
+	border-radius: 22px;
+	overflow: hidden;
+	background: #fff;
+	border: 1px solid #e9e7e0;
+	box-shadow: 0 1px 2px rgba(28, 27, 24, 0.03);
+	cursor: pointer;
+	transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
+	&:hover {
+		transform: translateY(-4px);
+		box-shadow: 0 8px 24px rgba(28, 27, 24, 0.05);
+		border-color: #efede7;
+	}
+	.card-img {
+		position: relative;
+		width: 100%;
+		height: 264px;
+		background-size: cover;
+		cursor: pointer;
+		div.status {
+			position: absolute;
+			padding: 6px 12px;
+			left: 12px;
+			top: 12px;
+			display: flex;
+			align-items: center;
+			border-radius: 999px;
+			background: rgba(255, 255, 255, 0.92);
+			box-shadow: 0 1px 2px rgba(28, 27, 24, 0.03);
+			img {
+				width: 14px;
+				height: 14px;
+			}
+			span {
+				margin-left: 5px;
+				color: #1c1b18;
+				font-family: $font;
+				font-size: 12px;
+				font-style: normal;
+				font-weight: 700;
+				line-height: normal;
+				text-transform: uppercase;
+			}
+		}
+		div.price {
+			position: absolute;
+			padding: 8px 14px;
+			left: 12px;
+			bottom: 12px;
+			border-radius: 999px;
+			background: rgba(255, 255, 255, 0.92);
+			color: #1c1b18;
+			font-family: $font;
+			font-size: 14px;
+			font-style: normal;
+			font-weight: 700;
+			line-height: normal;
+			box-shadow: 0 1px 2px rgba(28, 27, 24, 0.03);
+		}
+	}
+	.info {
+		flex: 1;
+		padding: 18px 18px 18px;
+		display: flex;
+		flex-direction: column;
+		box-sizing: border-box;
+		.title {
+			overflow: hidden;
+			color: #1c1b18;
+			text-overflow: ellipsis;
+			white-space: nowrap;
+			font-family: $font;
+			font-size: 15px;
+			font-style: normal;
+			font-weight: 700;
+			line-height: normal;
+			text-transform: capitalize;
+			cursor: pointer;
+		}
+		.desc {
+			margin-top: 5px;
+			overflow: hidden;
+			color: #8e8c83;
+			font-family: $font;
+			font-size: 13px;
+			font-style: normal;
+			font-weight: 500;
+			line-height: normal;
+			text-overflow: ellipsis;
+			white-space: nowrap;
+		}
+		.options {
+			margin-top: 14px;
+			display: flex;
+			flex-direction: row;
+			justify-content: space-between;
+			div {
+				display: flex;
+				flex-direction: row;
+				align-items: center;
+				img {
+					margin-right: 5px;
+					width: 15px;
+					height: 15px;
+					opacity: 0.55;
+				}
+				span {
+					color: #57564f;
+					font-family: $font;
+					font-size: 13px;
+					font-style: normal;
+					font-weight: 500;
+					line-height: normal;
+				}
+			}
+		}
+		.bott {
+			margin-top: 13px;
+			padding-top: 13px;
+			border-top: 1px solid #efede7;
+			display: flex;
+			flex-direction: row;
+			justify-content: space-between;
+			align-items: center;
+			div {
+				width: auto;
+				display: flex;
+				flex-direction: row;
+				align-items: center;
+				gap: 8px;
+			}
+			p {
+				background: #fbede7;
+				color: #d2674c;
+				font-family: $font;
+				font-size: 11px;
+				font-style: normal;
+				font-weight: 700;
+				line-height: normal;
+				text-transform: uppercase;
+				letter-spacing: 0.02em;
+				padding: 3px 9px;
+				border-radius: 6px;
+			}
+			span {
+				margin-left: 0;
+				color: #8e8c83;
+				font-family: $font;
+				font-size: 11px;
+				font-style: normal;
+				font-weight: 600;
+				line-height: normal;
+				text-transform: uppercase;
+				letter-spacing: 0.02em;
+				padding: 3px 9px;
+			}
+			button {
+				margin-left: 8px;
+				width: 16px;
+				height: 16px;
+				box-sizing: border-box;
+				color: #8e8c83;
+				&:hover {
+					color: #e8856a;
+				}
+			}
+			.buttons-box {
+				width: auto;
+				height: auto;
+				display: flex;
+				flex-direction: row;
+				align-items: center;
+				gap: 7px;
+				color: #8e8c83;
+				.view-cnt {
+					color: #8e8c83;
+					font-family: $font;
+					font-size: 13px;
+					font-weight: 500;
+				}
+			}
+		}
+	}
+}
+```
+(Leave every other rule in `general.scss` untouched.)
+
+Verify after implementing: liking/viewing a university, switching the main image via thumbnails, sorting/paginating reviews, submitting a comment (disabled vs enabled), filling/submitting the contact form, and navigating to a destination university card all still work exactly as before — only colors, spacing, radii, shadows, and hover states changed (now matching the approved design-system tokens above), plus the "Dormitory"/"Scholarship" wording fix.
