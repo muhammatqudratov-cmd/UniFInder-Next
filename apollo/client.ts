@@ -10,9 +10,10 @@ import { sweetErrorAlert } from '../libs/sweetAlert';
 import { socketVar } from './store';
 let apolloClient: ApolloClient<NormalizedCacheObject>;
 
+//cLient tekshiradi va token qolga olib beradi
 function getHeaders() {
 	const headers = {} as HeadersInit;
-	const token = getJwtToken();
+	const token = getJwtToken(); //libs auth folder
 	// @ts-ignore
 	if (token) headers['Authorization'] = `Bearer ${token}`;
 	return headers;
@@ -29,6 +30,7 @@ const tokenRefreshLink = new TokenRefreshLink({
 	},
 });
 
+//Custume WebSocket client
 class LoggingWebSocket {
 	private socket: WebSocket;
 
@@ -63,7 +65,7 @@ function createIsomorphicLink() {
 			operation.setContext(({ headers = {} }) => ({
 				headers: {
 					...headers,
-					...getHeaders(),
+					...getHeaders(), // Token header qismga joyab beradi
 				},
 			}));
 			console.warn('requesting.. ', operation);
@@ -72,12 +74,12 @@ function createIsomorphicLink() {
 
 		// @ts-ignore
 		const link = new createUploadLink({
-			uri: process.env.NEXT_PUBLIC_API_GRAPHQL_URL,
+			uri: process.env.REACT_APP_API_GRAPHQL_URL,
 		});
 
 		/* WEBSOCKET SUBSCRIPTION LINK */
 		const wsLink = new WebSocketLink({
-			uri: process.env.REACT_APP_API_WS ?? 'ws://127.0.0.1:3004',
+			uri: process.env.REACT_APP_API_WS ?? 'ws://127.0.0.1:3007',
 			options: {
 				reconnect: false,
 				timeout: 30000,
@@ -88,6 +90,7 @@ function createIsomorphicLink() {
 			webSocketImpl: LoggingWebSocket,
 		});
 
+		// Error handling qilish jarayoni
 		const errorLink = onError(({ graphQLErrors, networkError, response }) => {
 			if (graphQLErrors) {
 				graphQLErrors.map(({ message, locations, path, extensions }) => {
@@ -114,17 +117,18 @@ function createIsomorphicLink() {
 	}
 }
 
+// Bu yangi Apallo client qaytaradi
 function createApolloClient() {
 	return new ApolloClient({
 		ssrMode: typeof window === 'undefined',
 		link: createIsomorphicLink(),
-		cache: new InMemoryCache(),
+		cache: new InMemoryCache(), // Aplolloni cache ga ochib beramiz
 		resolvers: {},
 	});
 }
 
 export function initializeApollo(initialState = null) {
-	const _apolloClient = apolloClient ?? createApolloClient();
+	const _apolloClient = apolloClient ?? createApolloClient(); // yangi connection yoki eski connection qaytaradi
 	if (initialState) _apolloClient.cache.restore(initialState);
 	if (typeof window === 'undefined') return _apolloClient;
 	if (!apolloClient) apolloClient = _apolloClient;
@@ -132,6 +136,7 @@ export function initializeApollo(initialState = null) {
 	return _apolloClient;
 }
 
+// Custimized Hook
 export function useApollo(initialState: any) {
 	return useMemo(() => initializeApollo(initialState), [initialState]);
 }
@@ -142,7 +147,7 @@ import { ApolloClient, InMemoryCache, createHttpLink } from "@apollo/client";
 // No Subscription required for develop process
 
 const httpLink = createHttpLink({
-  uri: "http://localhost:3004/graphql",
+  uri: "http://localhost:3007/graphql",
 });
 
 const client = new ApolloClient({

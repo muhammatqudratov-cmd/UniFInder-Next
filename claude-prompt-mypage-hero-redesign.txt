@@ -1,0 +1,318 @@
+Context: precise redesign of the MyPage hero (the banner area rendered above the `<Component />` slot by `withLayoutBasic` for `router.pathname === '/mypage'`), matching the attached reference screenshot exactly. Currently `/mypage` falls into the generic "plain" branch in `libs/components/layout/LayoutBasic.tsx` (`memoizedValues` case `/mypage` just sets `title: 'my page'`, `desc: 'Home / For Rent'`, `bgImage: '/img/banner/type/incheon.jpg'`), rendering a bare dark-overlay banner with a title/subtitle. This is a visual-only change to the hero banner: do NOT touch `pages/mypage/index.tsx`'s category routing, any of the `MyProfile`/`MyMenu`/etc. components below the hero, or any mutation/query logic anywhere in the app. Only edit `libs/components/layout/LayoutBasic.tsx` and `scss/pc/main.scss`.
+
+Three things in the screenshot are grounded in real, already-available data — use them as-is, no new query needed (the component already has `user` via `useReactiveVar(userVar)`):
+1. Name ("Marco") → `user?.memberNick`
+2. ID-style line ("01057482425") → `user?.memberPhone`
+3. Role badge ("AGENT") → `user?.memberType` (real enum field: `USER` / `AGENT` / `ADMIN`)
+4. "Listings" stat (12) → `user?.memberUniversities` (the real field for how many universities this member manages/follows)
+5. "Followers" stat (248) → `user?.memberFollowers ?? 0`
+6. Avatar → reuse the existing fallback convention: `user?.memberImage ? \`${REACT_APP_API_URL}/${user.memberImage}\` : null`, falling back to a plain person icon when there's no uploaded image (do not invent a new default image asset)
+
+One thing in the screenshot has no backing field — flag explicitly rather than inventing logic:
+- "98% Response" — there is no response-rate field anywhere on `Member`. Hardcode `98%` as a static, clearly-decorative placeholder stat, exactly like the Community hero's static "INU" precedent.
+
+## 1. `libs/components/layout/LayoutBasic.tsx` — imports
+
+Add near the other imports:
+
+```tsx
+import { REACT_APP_API_URL } from '../../config';
+import PersonIcon from '@mui/icons-material/Person';
+```
+
+## 2. `memoizedValues` — update the `/mypage` case
+
+Replace:
+
+```tsx
+case '/mypage':
+	title = 'my page';
+	desc = 'Home / For Rent';
+	bgImage = '/img/banner/type/incheon.jpg';
+	break;
+```
+
+with:
+
+```tsx
+case '/mypage':
+	title = 'Welcome to your profile';
+	desc = 'Manage your listings, profile and community — all in one calm place.';
+	bgImage = '';
+	eyebrow = 'MY PAGE';
+	break;
+```
+
+## 3. Header className row — add a `mypage-hero` class
+
+Update the className template (the `Stack` right under `<Stack id={'top'}>...</Stack>`) to also flag the mypage route, and exclude it from the dark `.overlay`:
+
+```tsx
+<Stack
+	className={`header-basic ${authHeader && 'auth'} ${memoizedValues.marqueeItems ? 'agent-hero' : ''} ${router.pathname === '/university' ? 'university-hero' : ''} ${router.pathname === '/community' ? 'community-hero' : ''} ${router.pathname === '/mypage' ? 'mypage-hero' : ''}`}
+	style={
+		memoizedValues.bgImage
+			? { backgroundImage: `url(${memoizedValues.bgImage})`, backgroundSize: 'cover' }
+			: undefined
+	}
+>
+	{!memoizedValues.marqueeItems && router.pathname !== '/community' && router.pathname !== '/mypage' && (
+		<Stack className={'overlay'} />
+	)}
+```
+
+## 4. New JSX branch for `/mypage`
+
+Add a new branch between the existing `router.pathname === '/community' ? (...)` block and the final `(...)` plain/default branch:
+
+```tsx
+) : router.pathname === '/mypage' ? (
+	<Stack className={'container mypage-hero-container'}>
+		<Stack className={'mypage-blob-1'} />
+		<Stack className={'mypage-blob-2'} />
+		<Stack className={'mypage-hero-text'}>
+			<Stack className={'eyebrow plain'}>{t(memoizedValues.eyebrow!)}</Stack>
+			<strong className={'mypage-heading'}>
+				Welcome to
+				<br />
+				your profile
+			</strong>
+			<span className={'underline-bar'} />
+			<p className={'mypage-lead'}>{t(memoizedValues.desc)}</p>
+		</Stack>
+		<Stack className={'mypage-profile-card'}>
+			<Stack className={'mypage-profile-top'}>
+				<Stack className={'mypage-avatar'}>
+					{user?.memberImage ? (
+						<img src={`${REACT_APP_API_URL}/${user.memberImage}`} alt="" />
+					) : (
+						<PersonIcon />
+					)}
+				</Stack>
+				<Stack className={'mypage-profile-info'}>
+					<span className={'mypage-name'}>{user?.memberNick}</span>
+					<span className={'mypage-phone'}>{user?.memberPhone}</span>
+					{user?.memberType && <span className={'mypage-type-badge'}>{user.memberType}</span>}
+				</Stack>
+			</Stack>
+			<span className={'mypage-card-divider'} />
+			<Stack className={'mypage-stats-row'}>
+				<Stack className={'mypage-stat'}>
+					<strong>{user?.memberUniversities ?? 0}</strong>
+					<span>Listings</span>
+				</Stack>
+				<span className={'mypage-stat-divider'} />
+				<Stack className={'mypage-stat'}>
+					<strong>{user?.memberFollowers ?? 0}</strong>
+					<span>Followers</span>
+				</Stack>
+				<span className={'mypage-stat-divider'} />
+				<Stack className={'mypage-stat'}>
+					<strong>98%</strong>
+					<span>Response</span>
+				</Stack>
+			</Stack>
+		</Stack>
+	</Stack>
+) : (
+```
+
+(This keeps the existing final `(...)` plain branch — used by every other route that isn't agent/university/community/mypage — completely untouched, just chained one level further down.)
+
+## 5. `scss/pc/main.scss` — `.mypage-hero` styling
+
+Add this new rule as a sibling of `&.agent-hero { ... }` / `&.community-hero { ... }` inside `.header-basic`:
+
+```scss
+&.mypage-hero {
+	background: #f4f3ef;
+	justify-content: flex-start;
+	align-items: center;
+	overflow: hidden;
+
+	.mypage-blob-1 {
+		position: absolute;
+		top: -60px;
+		left: 4%;
+		width: 320px;
+		height: 320px;
+		border-radius: 50%;
+		border: 1px solid rgba(28, 27, 24, 0.06);
+		z-index: 0;
+	}
+	.mypage-blob-2 {
+		position: absolute;
+		bottom: -100px;
+		left: 28%;
+		width: 260px;
+		height: 260px;
+		border-radius: 50%;
+		background: rgba(232, 133, 106, 0.08);
+		z-index: 0;
+	}
+
+	.mypage-hero-container {
+		position: relative;
+		z-index: 1;
+		width: 100%;
+		max-width: 1200px;
+		margin: 0 auto;
+		padding: 0 5%;
+		flex-direction: row;
+		align-items: center;
+		justify-content: space-between;
+	}
+
+	.mypage-hero-text {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		max-width: 480px;
+
+		.eyebrow.plain {
+			color: #e8856a;
+			font-family: $font;
+			font-size: 12px;
+			font-weight: 700;
+			letter-spacing: 1.5px;
+			text-transform: uppercase;
+			margin-bottom: 14px;
+		}
+		.mypage-heading {
+			color: #1c1b18;
+			font-family: $font;
+			font-size: 44px;
+			font-weight: 800;
+			line-height: 1.15;
+			letter-spacing: -0.5px;
+		}
+		.underline-bar {
+			width: 56px;
+			height: 3px;
+			background: #e8856a;
+			margin-top: 18px;
+			display: block;
+		}
+		.mypage-lead {
+			margin-top: 18px;
+			color: #57564f;
+			font-family: $font;
+			font-size: 15px;
+			font-weight: 400;
+			line-height: 1.6;
+		}
+	}
+
+	.mypage-profile-card {
+		position: relative;
+		z-index: 1;
+		width: 224px;
+		background: #ffffff;
+		border-radius: 16px;
+		border: 1px solid #e9e7e0;
+		box-shadow: 0 8px 24px rgba(28, 27, 24, 0.05);
+		padding: 18px 20px;
+
+		.mypage-profile-top {
+			flex-direction: row;
+			align-items: center;
+			gap: 12px;
+
+			.mypage-avatar {
+				width: 44px;
+				height: 44px;
+				border-radius: 50%;
+				background: #fbede7;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				flex-shrink: 0;
+				overflow: hidden;
+
+				img {
+					width: 100%;
+					height: 100%;
+					object-fit: cover;
+				}
+				.MuiSvgIcon-root {
+					color: #e8856a;
+					font-size: 22px;
+				}
+			}
+
+			.mypage-profile-info {
+				display: flex;
+				flex-direction: column;
+				gap: 2px;
+
+				.mypage-name {
+					color: #1c1b18;
+					font-family: $font;
+					font-size: 14.5px;
+					font-weight: 700;
+				}
+				.mypage-phone {
+					color: #8e8c83;
+					font-family: $font;
+					font-size: 12px;
+					font-weight: 500;
+				}
+				.mypage-type-badge {
+					margin-top: 4px;
+					align-self: flex-start;
+					background: #fbede7;
+					color: #d2674c;
+					font-family: $font;
+					font-size: 10px;
+					font-weight: 700;
+					letter-spacing: 0.5px;
+					text-transform: uppercase;
+					padding: 2px 9px;
+					border-radius: 999px;
+				}
+			}
+		}
+
+		.mypage-card-divider {
+			display: block;
+			width: 100%;
+			height: 1px;
+			background: #e9e7e0;
+			margin: 16px 0 14px;
+		}
+
+		.mypage-stats-row {
+			flex-direction: row;
+			align-items: center;
+			justify-content: space-between;
+
+			.mypage-stat {
+				flex-direction: column;
+				align-items: center;
+				gap: 2px;
+
+				strong {
+					color: #1c1b18;
+					font-family: $font;
+					font-size: 17px;
+					font-weight: 700;
+				}
+				span {
+					color: #8e8c83;
+					font-family: $font;
+					font-size: 10.5px;
+					font-weight: 500;
+				}
+			}
+			.mypage-stat-divider {
+				width: 1px;
+				height: 26px;
+				background: #e9e7e0;
+				flex-shrink: 0;
+			}
+		}
+	}
+}
+```
+
+Verify after implementing: visiting `/mypage` while logged in shows the new light hero (eyebrow "MY PAGE", two-line "Welcome to / your profile" heading, coral underline, lead paragraph, and the white profile card on the right with the real logged-in user's avatar/initial fallback, name, phone, role badge, and Listings/Followers/Response stats); switching the `category` query param still correctly swaps `MyProfile`/`MyUniversities`/`MyFavorites`/etc. below the hero exactly as before; every other route's hero (`/agent`, `/university`, `/community`, plain pages) is visually unchanged; if `user._id` is empty the existing `router.push('/')` redirect in `pages/mypage/index.tsx` still fires before this hero would ever be seen by a logged-out visitor.

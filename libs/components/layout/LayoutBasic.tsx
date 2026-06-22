@@ -10,6 +10,8 @@ import Chat from '../Chat';
 import { useReactiveVar } from '@apollo/client';
 import { userVar } from '../../../apollo/store';
 import { useTranslation } from 'next-i18next';
+import { REACT_APP_API_URL } from '../../config';
+import PersonIcon from '@mui/icons-material/Person';
 import 'swiper/css';
 import 'swiper/css/pagination';
 import 'swiper/css/navigation';
@@ -125,9 +127,10 @@ const withLayoutBasic = (Component: any) => {
 					bgImage = '/img/banner/korea2.jpg';
 					break;
 				case '/mypage':
-					title = 'my page';
-					desc = 'Home / For Rent';
-					bgImage = '/img/banner/type/incheon.jpg';
+					title = 'Welcome to your profile';
+					desc = 'Manage your listings, profile and community — all in one calm place.';
+					bgImage = '';
+					eyebrow = 'MY PAGE';
 					break;
 				case '/community':
 					title = 'Voices on campus';
@@ -230,14 +233,20 @@ const withLayoutBasic = (Component: any) => {
 						</Stack>
 
 						<Stack
-							className={`header-basic ${authHeader && 'auth'} ${memoizedValues.marqueeItems ? 'agent-hero' : ''} ${router.pathname === '/university' ? 'university-hero' : ''} ${router.pathname === '/community' ? 'community-hero' : ''}`}
+							className={`header-basic ${authHeader && 'auth'} ${memoizedValues.marqueeItems ? 'agent-hero' : ''} ${
+								router.pathname === '/university' ? 'university-hero' : ''
+							} ${router.pathname === '/community' ? 'community-hero' : ''} ${
+								router.pathname === '/mypage' ? 'mypage-hero' : ''
+							}`}
 							style={
 								memoizedValues.bgImage
 									? { backgroundImage: `url(${memoizedValues.bgImage})`, backgroundSize: 'cover' }
 									: undefined
 							}
 						>
-							{!memoizedValues.marqueeItems && router.pathname !== '/community' && <Stack className={'overlay'} />}
+							{!memoizedValues.marqueeItems && router.pathname !== '/community' && router.pathname !== '/mypage' && (
+								<Stack className={'overlay'} />
+							)}
 							{memoizedValues.marqueeItems ? (
 								<>
 									<Stack className={'glow-circle'} />
@@ -307,6 +316,54 @@ const withLayoutBasic = (Component: any) => {
 										})}
 									</Stack>
 								</Stack>
+							) : router.pathname === '/mypage' ? (
+								<Stack className={'container mypage-hero-container'}>
+									<Stack className={'mypage-blob-1'} />
+									<Stack className={'mypage-blob-2'} />
+									<Stack className={'mypage-hero-text'}>
+										<Stack className={'eyebrow plain'}>{t(memoizedValues.eyebrow!)}</Stack>
+										<strong className={'mypage-heading'}>
+											Welcome to
+											<br />
+											your profile
+										</strong>
+										<span className={'underline-bar'} />
+										<p className={'mypage-lead'}>{t(memoizedValues.desc)}</p>
+									</Stack>
+									<Stack className={'mypage-profile-card'}>
+										<Stack className={'mypage-profile-top'}>
+											<Stack className={'mypage-avatar'}>
+												{user?.memberImage ? (
+													<img src={`${REACT_APP_API_URL}/${user.memberImage}`} alt="" />
+												) : (
+													<PersonIcon />
+												)}
+											</Stack>
+											<Stack className={'mypage-profile-info'}>
+												<span className={'mypage-name'}>{user?.memberNick}</span>
+												<span className={'mypage-phone'}>{user?.memberPhone}</span>
+												{user?.memberType && <span className={'mypage-type-badge'}>{user.memberType}</span>}
+											</Stack>
+										</Stack>
+										<span className={'mypage-card-divider'} />
+										<Stack className={'mypage-stats-row'}>
+											<Stack className={'mypage-stat'}>
+												<strong>{user?.memberUniversities ?? 0}</strong>
+												<span>Listings</span>
+											</Stack>
+											<span className={'mypage-stat-divider'} />
+											<Stack className={'mypage-stat'}>
+												<strong>{(user as any)?.memberFollowers ?? 0}</strong>
+												<span>Followers</span>
+											</Stack>
+											<span className={'mypage-stat-divider'} />
+											<Stack className={'mypage-stat'}>
+												<strong>98%</strong>
+												<span>Response</span>
+											</Stack>
+										</Stack>
+									</Stack>
+								</Stack>
 							) : (
 								<Stack className={`container${memoizedValues.stats ? ' has-stats' : ''}`}>
 									{memoizedValues.stats ? (
@@ -343,7 +400,7 @@ const withLayoutBasic = (Component: any) => {
 							<Component {...props} />
 						</Stack>
 
-						{user?._id && <Chat />}
+						<Chat />
 
 						<Stack id={'footer'}>
 							<Footer />
