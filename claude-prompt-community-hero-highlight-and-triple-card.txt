@@ -1,0 +1,145 @@
+Context: visual refinement of the already-implemented Community page hero (`/community`), building on the current state in `libs/components/layout/LayoutBasic.tsx` (after `claude-prompt-community-hero-bigger-heading-rotating-card.txt` was applied — `communityUniversities` array, `browsingIndex`/`browsingKey` state, and the single rotating `.browsing-card` already exist). Two changes, both confirmed against approved live drafts:
+1. Heading style: replace the plain coral-colored "campus" word with a coral highlight chip behind it (background pill, not colored text) — same ink/weight/size as "Voices on", just with a soft coral background box around "campus".
+2. Browsing card: replace the single rotating card with 3 cards stacked vertically on the right. Each of the 3 cards shows a different university at all times (no duplicates among the 3 visible at once), and every 2 seconds they all rotate forward to the next name with a short fade, same animation feel as before.
+
+No GraphQL/query/state logic changes beyond extending the existing static placeholder rotation — this stays presentational-only, same precedent as the rest of the Community hero work.
+
+## 1. `libs/components/layout/LayoutBasic.tsx` — heading markup
+
+Replace:
+```tsx
+<strong className={'community-heading'}>
+	Voices on
+	<br />
+	<span className={'accent'}>campus</span>
+</strong>
+```
+with:
+```tsx
+<strong className={'community-heading'}>
+	Voices on
+	<br />
+	<span className={'accent-chip'}>campus</span>
+</strong>
+```
+
+## 2. `libs/components/layout/LayoutBasic.tsx` — triple rotating card markup
+
+Replace the existing single-card block:
+```tsx
+<Stack className={'browsing-card'}>
+	<Stack className={'browsing-text'}>
+		<span className={'browsing-label'}>You are browsing</span>
+		<span key={browsingKey} className={'browsing-name'}>
+			{communityUniversities[browsingIndex].name}
+		</span>
+	</Stack>
+	<Stack key={`badge-${browsingKey}`} className={'browsing-badge'}>
+		{communityUniversities[browsingIndex].initials}
+	</Stack>
+</Stack>
+```
+with a vertical stack of 3 cards, each offset by its own index so they never show the same university at the same time:
+```tsx
+<Stack className={'browsing-card-stack'}>
+	{[0, 1, 2].map((offset) => {
+		const uni = communityUniversities[(browsingIndex + offset) % communityUniversities.length];
+		return (
+			<Stack key={offset} className={'browsing-card'}>
+				<Stack className={'browsing-text'}>
+					{offset === 0 && <span className={'browsing-label'}>You are browsing</span>}
+					<span key={`${browsingKey}-${offset}`} className={'browsing-name'}>
+						{uni.name}
+					</span>
+				</Stack>
+				<Stack key={`badge-${browsingKey}-${offset}`} className={'browsing-badge'}>
+					{uni.initials}
+				</Stack>
+			</Stack>
+		);
+	})}
+</Stack>
+```
+(Keep the existing `communityUniversities` list, `browsingIndex`/`browsingKey` state, and the `setInterval` rotation every 2000ms exactly as already implemented — only the render markup changes from one card to three offset cards. Note: with only 4 universities in the list, add at least one more entry so 3 simultaneous distinct cards always have enough variety, e.g. extend `communityUniversities` to 5 entries: add `{ name: 'Sungkyunkwan University', initials: 'SKKU' }`.)
+
+## 3. SCSS — `scss/pc/main.scss`, inside `.header-basic.community-hero .community-hero-container`
+
+Replace `.accent` with `.accent-chip`:
+```scss
+.community-heading {
+	color: #1c1b18;
+	font-family: $font;
+	font-size: 56px;
+	font-weight: 800;
+	line-height: 1.15;
+	letter-spacing: -1px;
+	white-space: normal;
+
+	.accent-chip {
+		background: #fbede7;
+		padding: 2px 16px;
+		border-radius: 12px;
+		display: inline-block;
+	}
+}
+```
+Replace the single `.browsing-card` rule with a `.browsing-card-stack` wrapper holding 3 slightly smaller cards (since there are now three instead of one):
+```scss
+.browsing-card-stack {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+
+	.browsing-card {
+		flex-direction: row;
+		align-items: center;
+		gap: 10px;
+		padding: 8px 8px 8px 18px;
+		border-radius: 999px;
+		background: #ffffff;
+		border: 1px solid #e9e7e0;
+		box-shadow: 0 1px 2px rgba(28, 27, 24, 0.03);
+		min-width: 240px;
+
+		.browsing-text {
+			display: flex;
+			flex-direction: column;
+			gap: 2px;
+
+			.browsing-label {
+				color: #8e8c83;
+				font-family: $font;
+				font-size: 10px;
+				font-weight: 700;
+				letter-spacing: 0.8px;
+				text-transform: uppercase;
+			}
+			.browsing-name {
+				color: #1c1b18;
+				font-family: $font;
+				font-size: 13px;
+				font-weight: 700;
+				animation: browsingFadeIn 0.35s ease;
+			}
+		}
+		.browsing-badge {
+			width: 32px;
+			height: 32px;
+			border-radius: 50%;
+			background: #1c1b18;
+			color: #ffffff;
+			font-family: $font;
+			font-size: 10.5px;
+			font-weight: 700;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			flex-shrink: 0;
+			animation: browsingFadeIn 0.35s ease;
+		}
+	}
+}
+```
+(Keep the existing `@keyframes browsingFadeIn { from { opacity: 0; } to { opacity: 1; } }` already added in the previous prompt — no change needed there.)
+
+Verify after implementing: the heading shows "Voices on" in ink, then "campus" in the same ink color/weight sitting inside a soft coral pill/chip background (no more plain coral text); on the right, 3 pill cards are stacked vertically, each showing a different university name + initials at any given moment, and every 2 seconds all three advance to the next name with a brief fade, still never showing a duplicate among the three; no other page's hero is affected; tabs/board-article list/pagination/like logic on `/community` is unaffected.

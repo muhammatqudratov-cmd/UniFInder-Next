@@ -1,0 +1,20 @@
+Context: bug fix for the just-implemented Community card redesign (`claude-prompt-community-list-content-1to1.txt`). The `.excerpt` text is rendering `boardArticle?.articleContent` raw, and that field actually stores HTML (e.g. `<p><img src="http://localhost:3004/uploads/article/...` as seen in the live screenshot), so the card shows literal HTML tags as visible garbled text instead of a clean text snippet. This is a display-only fix — do not change the `GET_BOARD_ARTICLES` query, the `articleContent` field, or any other data/logic.
+
+## Fix — `libs/components/common/CommunityCard.tsx`
+Add a small local helper that strips HTML tags before rendering the excerpt (pure presentational string transform, no new state/query):
+```tsx
+const stripHtml = (html?: string) => (html ? html.replace(/<[^>]*>/g, '').trim() : '');
+```
+Replace:
+```tsx
+<Typography className="excerpt">{boardArticle?.articleContent}</Typography>
+```
+with:
+```tsx
+<Typography className="excerpt">{stripHtml(boardArticle?.articleContent)}</Typography>
+```
+(Keep the existing `.excerpt` CSS — 2-line clamp etc. — exactly as already implemented; only the rendered string changes from raw HTML to plain text.)
+
+Note: the card's title showing "INU" is the actual `articleTitle` value already stored in that test article — that's real data, not a bug, and is unrelated to this fix.
+
+Verify after implementing: every card's excerpt now shows clean, readable plain text (no `<p>`, `<img>`, or other HTML tags visible), still clamped to 2 lines, and nothing else on the card (title, tag, avatar, author, view/like counts, pinned badge) changes.

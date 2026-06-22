@@ -1,0 +1,86 @@
+Context: bug fix for the Community page hero (`/community`, from `claude-prompt-community-hero-landing.txt` + `claude-prompt-community-heading-linebreak-fix.txt`). The hero currently breaks visually: the eyebrow ("COMMUNITY"), the heading ("Voices on" / "campus"), and the browsing card are three separate flex children of `.community-hero-container`, which has `justify-content: space-between`. That spreads all three apart evenly across the row, so the heading ends up floating in the middle of the hero, detached from its eyebrow, instead of sitting directly under it on the left. Fix: group the eyebrow + heading into one left-side column, keep the browsing card as the only other flex item on the right. This is a markup/CSS-only structural fix — no logic/data change, no change to the text content itself.
+
+## 1. Markup fix — `libs/components/layout/LayoutBasic.tsx`
+In the `community-hero` JSX branch, wrap the eyebrow and heading together inside a new `Stack` with class `community-hero-text`, so they become a single flex item instead of two separate ones. Change this:
+```tsx
+<Stack className={'container community-hero-container'}>
+	<Stack className={'eyebrow plain'}>{t(memoizedValues.eyebrow!)}</Stack>
+	<strong className={'community-heading'}>
+		Voices on
+		<br />
+		campus
+	</strong>
+	<Stack className={'browsing-card'}>
+		<Stack className={'browsing-text'}>
+			<span className={'browsing-label'}>You are browsing</span>
+			<span className={'browsing-name'}>{memoizedValues.browsingLabel}</span>
+		</Stack>
+		<Stack className={'browsing-badge'}>{memoizedValues.browsingInitials}</Stack>
+	</Stack>
+</Stack>
+```
+to this:
+```tsx
+<Stack className={'container community-hero-container'}>
+	<Stack className={'community-hero-text'}>
+		<Stack className={'eyebrow plain'}>{t(memoizedValues.eyebrow!)}</Stack>
+		<strong className={'community-heading'}>
+			Voices on
+			<br />
+			campus
+		</strong>
+	</Stack>
+	<Stack className={'browsing-card'}>
+		<Stack className={'browsing-text'}>
+			<span className={'browsing-label'}>You are browsing</span>
+			<span className={'browsing-name'}>{memoizedValues.browsingLabel}</span>
+		</Stack>
+		<Stack className={'browsing-badge'}>{memoizedValues.browsingInitials}</Stack>
+	</Stack>
+</Stack>
+```
+
+## 2. SCSS fix — `scss/pc/main.scss`, inside `.header-basic.community-hero .community-hero-container`
+Add the new `.community-hero-text` wrapper rule (left column: eyebrow stacked above heading, left-aligned) and remove `align-items: center` from the outer container so the two top-level items (`.community-hero-text` and `.browsing-card`) align by their own internal layout, not a shared center line. Replace the existing rule with:
+```scss
+.community-hero-container {
+	position: relative;
+	z-index: 1;
+	width: 100%;
+	max-width: 1200px;
+	margin: 0 auto;
+	padding: 0 5%;
+	flex-direction: row;
+	align-items: center;
+	justify-content: space-between;
+
+	.community-hero-text {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+	}
+
+	.eyebrow.plain {
+		color: #e8856a;
+		font-family: $font;
+		font-size: 12px;
+		font-weight: 700;
+		letter-spacing: 1.5px;
+		text-transform: uppercase;
+		margin-bottom: 14px;
+	}
+	.community-heading {
+		color: #1c1b18;
+		font-family: $font;
+		font-size: 46px;
+		font-weight: 800;
+		line-height: 1.1;
+		letter-spacing: -0.5px;
+		white-space: normal;
+	}
+	// .browsing-card and its children stay exactly as already implemented — no change
+}
+```
+(Keep `.browsing-card`, `.browsing-text`, `.browsing-label`, `.browsing-name`, `.browsing-badge` rules exactly as already implemented — only the new `.community-hero-text` wrapper is added, and `.eyebrow.plain`/`.community-heading` move inside it.)
+
+Verify after implementing: the "COMMUNITY" eyebrow sits directly above the "Voices on / campus" heading, both left-aligned as one block; that block sits on the far left of the hero; the "You are browsing / Incheon National University / INU" card sits on the far right, vertically centered against the text block; no other page's hero is affected; tabs/query/pagination/like logic on `/community` untouched.

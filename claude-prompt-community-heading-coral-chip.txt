@@ -1,0 +1,45 @@
+Context: visual-only refinement of the already-implemented Community page hero heading (`/community`, from `claude-prompt-community-hero-landing.txt` + `claude-prompt-community-heading-linebreak-fix.txt` + `claude-prompt-community-hero-layout-fix.txt` + `claude-prompt-community-hero-bigger-heading-rotating-card.txt`). The heading currently renders as two plain black lines: "Voices on" / "campus". Change only the second line's treatment: give the word "campus" a soft coral highlight-chip background instead of plain text, confirmed against an approved design draft (Option C). No logic/data/markup-structure change beyond wrapping the word in a span — no GraphQL, no rotation logic, no layout change.
+
+## Change — `libs/components/layout/LayoutBasic.tsx`
+In the `community-hero` JSX branch, the heading currently looks like:
+```tsx
+<strong className={'community-heading'}>
+	Voices on
+	<br />
+	campus
+</strong>
+```
+Wrap "campus" in a `span` with class `accent-chip`:
+```tsx
+<strong className={'community-heading'}>
+	Voices on
+	<br />
+	<span className={'accent-chip'}>campus</span>
+</strong>
+```
+(If a previous prompt already wrapped "campus" in `<span className={'accent'}>`, rename that class to `accent-chip` and remove the old plain-coral-text styling for it — replace it with the chip styling below, do not keep both.)
+
+## Change — `scss/pc/main.scss`, inside `.header-basic.community-hero .community-hero-container .community-heading`
+Replace any existing `.accent` rule with:
+```scss
+.community-heading {
+	color: #1c1b18;
+	font-family: $font;
+	font-size: 62px;
+	font-weight: 800;
+	line-height: 1.15;
+	letter-spacing: -1.5px;
+	white-space: normal;
+
+	.accent-chip {
+		display: inline-block;
+		background: #fbede7;
+		color: #1c1b18;
+		padding: 2px 16px;
+		border-radius: 10px;
+	}
+}
+```
+(Keep `font-size: 62px` consistent with the already-implemented bigger heading; only the "campus" word's treatment changes from plain text/plain-coral-color to this coral-tint highlight chip. Keep `.eyebrow.plain`, `.community-hero-text`, `.browsing-card` and everything else untouched.)
+
+Verify after implementing: "Voices on" renders in plain black on the first line; "campus" renders on the second line inside a rounded coral-tint chip (`#FBEDE7` background, black text, ~10px radius); heading size/position/eyebrow/browsing-card are otherwise unchanged; no other page's hero is affected; no GraphQL/state logic touched.

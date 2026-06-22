@@ -61,6 +61,17 @@ const withLayoutBasic = (Component: any) => {
 		const [heroVisible, setHeroVisible] = useState(false);
 		const [rotatingWordIndex, setRotatingWordIndex] = useState(0);
 		const [rotatingWordKey, setRotatingWordKey] = useState(0);
+
+		const communityUniversities = [
+			{ name: 'Incheon National University', initials: 'INU' },
+			{ name: 'Seoul National University', initials: 'SNU' },
+			{ name: 'Yonsei University', initials: 'YU' },
+			{ name: 'Korea University', initials: 'KU' },
+			{ name: 'Sungkyunkwan University', initials: 'SKKU' },
+		];
+
+		const [browsingIndex, setBrowsingIndex] = useState(0);
+		const [browsingKey, setBrowsingKey] = useState(0);
 		const user = useReactiveVar(userVar);
 
 		const memoizedValues = useMemo(() => {
@@ -119,9 +130,10 @@ const withLayoutBasic = (Component: any) => {
 					bgImage = '/img/banner/type/incheon.jpg';
 					break;
 				case '/community':
-					title = 'Community';
-					desc = 'Home / For Rent';
-					bgImage = '/img/banner/korea2.jpg';
+					title = 'Voices on campus';
+					desc = '';
+					bgImage = '';
+					eyebrow = 'COMMUNITY';
 					break;
 				case '/community/detail':
 					title = 'Community Detail';
@@ -172,6 +184,15 @@ const withLayoutBasic = (Component: any) => {
 			return () => clearInterval(id);
 		}, [memoizedValues.marqueeItems]);
 
+		useEffect(() => {
+			if (router.pathname !== '/community') return;
+			const id = setInterval(() => {
+				setBrowsingIndex((prev) => (prev + 1) % communityUniversities.length);
+				setBrowsingKey((prev) => prev + 1);
+			}, 2000);
+			return () => clearInterval(id);
+		}, [router.pathname]);
+
 		/** HANDLERS **/
 
 		if (device == 'mobile') {
@@ -209,14 +230,14 @@ const withLayoutBasic = (Component: any) => {
 						</Stack>
 
 						<Stack
-							className={`header-basic ${authHeader && 'auth'} ${memoizedValues.marqueeItems ? 'agent-hero' : ''}`}
+							className={`header-basic ${authHeader && 'auth'} ${memoizedValues.marqueeItems ? 'agent-hero' : ''} ${router.pathname === '/university' ? 'university-hero' : ''} ${router.pathname === '/community' ? 'community-hero' : ''}`}
 							style={
 								memoizedValues.bgImage
 									? { backgroundImage: `url(${memoizedValues.bgImage})`, backgroundSize: 'cover' }
 									: undefined
 							}
 						>
-							{!memoizedValues.marqueeItems && <Stack className={'overlay'} />}
+							{!memoizedValues.marqueeItems && router.pathname !== '/community' && <Stack className={'overlay'} />}
 							{memoizedValues.marqueeItems ? (
 								<>
 									<Stack className={'glow-circle'} />
@@ -257,6 +278,35 @@ const withLayoutBasic = (Component: any) => {
 										</Stack>
 									</Stack>
 								</>
+							) : router.pathname === '/community' ? (
+								<Stack className={'container community-hero-container'}>
+									<Stack className={'community-hero-text'}>
+										<Stack className={'eyebrow plain'}>{t(memoizedValues.eyebrow!)}</Stack>
+										<strong className={'community-heading'}>
+											Voices on
+											<br />
+											<span className={'accent-chip'}>campus</span>
+										</strong>
+									</Stack>
+									<Stack className={'browsing-card-stack'}>
+										{[0, 1, 2].map((offset) => {
+											const uni = communityUniversities[(browsingIndex + offset) % communityUniversities.length];
+											return (
+												<Stack key={offset} className={'browsing-card'}>
+													<Stack className={'browsing-text'}>
+														{offset === 0 && <span className={'browsing-label'}>You are browsing</span>}
+														<span key={`${browsingKey}-${offset}`} className={'browsing-name'}>
+															{uni.name}
+														</span>
+													</Stack>
+													<Stack key={`badge-${browsingKey}-${offset}`} className={'browsing-badge'}>
+														{uni.initials}
+													</Stack>
+												</Stack>
+											);
+										})}
+									</Stack>
+								</Stack>
 							) : (
 								<Stack className={`container${memoizedValues.stats ? ' has-stats' : ''}`}>
 									{memoizedValues.stats ? (

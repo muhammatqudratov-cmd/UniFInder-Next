@@ -1,0 +1,130 @@
+Context: visual refinement of the already-implemented Community page hero (`/community`, from `claude-prompt-community-hero-landing.txt` + `claude-prompt-community-heading-linebreak-fix.txt` + `claude-prompt-community-hero-layout-fix.txt`). Two changes, confirmed against an approved live draft:
+1. Make the "Voices on campus" heading bigger and slightly more creative — increase size and color the second line ("campus") in coral instead of plain ink.
+2. Make the "You are browsing" card cycle through different university names + initials automatically every 2 seconds with a short fade transition, instead of showing one static name forever.
+
+Important note on the rotating university list: there is no existing query/state anywhere in the app that tracks multiple "browsable" universities for this card (confirmed earlier — `browsingLabel`/`browsingInitials` were already static placeholders). Do not invent a new GraphQL query for this. Add a small hardcoded static list of placeholder universities and cycle through it client-side, exactly the same pattern already used for the Agents hero's rotating word (`rotatingWordIndex`/`rotatingWordKey` + `setInterval`) — this is presentational-only, no business logic.
+
+## 1. `libs/components/layout/LayoutBasic.tsx` — replace the single placeholder with a rotating list
+
+Add a static list and rotation state near the existing `rotatingWordIndex`/`rotatingWordKey` state:
+```tsx
+const communityUniversities = [
+	{ name: 'Incheon National University', initials: 'INU' },
+	{ name: 'Seoul National University', initials: 'SNU' },
+	{ name: 'Yonsei University', initials: 'YU' },
+	{ name: 'Korea University', initials: 'KU' },
+];
+
+const [browsingIndex, setBrowsingIndex] = useState(0);
+const [browsingKey, setBrowsingKey] = useState(0);
+
+useEffect(() => {
+	if (router.pathname !== '/community') return;
+	const id = setInterval(() => {
+		setBrowsingIndex((prev) => (prev + 1) % communityUniversities.length);
+		setBrowsingKey((prev) => prev + 1);
+	}, 2000);
+	return () => clearInterval(id);
+}, [router.pathname]);
+```
+Remove the now-redundant `browsingLabel`/`browsingInitials` fields from `memoizedValues` and the `/community` case (keep `eyebrow = 'COMMUNITY'` and `title` as-is) — instead, in the JSX, the `community-hero` branch condition changes from `memoizedValues.browsingLabel` to `router.pathname === '/community'`, so:
+```tsx
+${memoizedValues.browsingLabel ? 'community-hero' : ''}
+```
+becomes
+```tsx
+${router.pathname === '/community' ? 'community-hero' : ''}
+```
+and
+```tsx
+{!memoizedValues.marqueeItems && !memoizedValues.browsingLabel && <Stack className={'overlay'} />}
+```
+becomes
+```tsx
+{!memoizedValues.marqueeItems && router.pathname !== '/community' && <Stack className={'overlay'} />}
+```
+and the branch condition
+```tsx
+) : memoizedValues.browsingLabel ? (
+```
+becomes
+```tsx
+) : router.pathname === '/community' ? (
+```
+
+## 2. JSX — bigger heading with coral second line + rotating card content
+
+Replace the `community-hero` branch body with:
+```tsx
+<Stack className={'container community-hero-container'}>
+	<Stack className={'community-hero-text'}>
+		<Stack className={'eyebrow plain'}>{t(memoizedValues.eyebrow!)}</Stack>
+		<strong className={'community-heading'}>
+			Voices on
+			<br />
+			<span className={'accent'}>campus</span>
+		</strong>
+	</Stack>
+	<Stack className={'browsing-card'}>
+		<Stack className={'browsing-text'}>
+			<span className={'browsing-label'}>You are browsing</span>
+			<span key={browsingKey} className={'browsing-name'}>
+				{communityUniversities[browsingIndex].name}
+			</span>
+		</Stack>
+		<Stack key={`badge-${browsingKey}`} className={'browsing-badge'}>
+			{communityUniversities[browsingIndex].initials}
+		</Stack>
+	</Stack>
+</Stack>
+```
+(The `key={browsingKey}` / `key={`badge-${browsingKey}`}` remounts force the fade-in CSS animation to replay on every rotation, same trick already used for the Agents rotating word.)
+
+## 3. SCSS — `scss/pc/main.scss`, inside `.header-basic.community-hero .community-hero-container`
+
+Update `.community-heading` (bigger size) and add `.accent`, and update `.browsing-name`/`.browsing-badge` with a fade-in animation:
+```scss
+.community-heading {
+	color: #1c1b18;
+	font-family: $font;
+	font-size: 56px;
+	font-weight: 800;
+	line-height: 1.05;
+	letter-spacing: -1px;
+	white-space: normal;
+
+	.accent {
+		color: #e8856a;
+	}
+}
+
+.browsing-card {
+	.browsing-text {
+		.browsing-name {
+			color: #1c1b18;
+			font-family: $font;
+			font-size: 14px;
+			font-weight: 700;
+			display: block;
+			animation: browsingFadeIn 0.35s ease;
+		}
+	}
+	.browsing-badge {
+		animation: browsingFadeIn 0.35s ease;
+	}
+}
+```
+Add the keyframes alongside the existing `rotatingWordIn` keyframes:
+```scss
+@keyframes browsingFadeIn {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}
+```
+(Keep `.eyebrow.plain`, `.browsing-label`, the card's pill border/shadow/padding, and every other already-implemented property unchanged — only `.community-heading`'s font-size/letter-spacing, the new `.accent` color, and the new fade-in animation on `.browsing-name`/`.browsing-badge` are added.)
+
+Verify after implementing: the heading reads "Voices on" in ink and "campus" in coral at a larger size; the "You are browsing" card automatically cycles through Incheon National University → Seoul National University → Yonsei University → Korea University → (loop) every 2 seconds with a brief fade each time; no GraphQL query changed; `/university`, `/agent`, `/agent/detail`, `/community/detail`, `/mypage`, `/cs`, `/account/join` heroes are unaffected; tabs/board-article list/pagination/like logic on `/community` is unaffected.

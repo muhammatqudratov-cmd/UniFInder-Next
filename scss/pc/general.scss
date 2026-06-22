@@ -288,87 +288,167 @@
 	}
 }
 .community-general-card-config {
-	position: relative;
-	height: auto;
-	gap: 20px;
-	border-radius: 12px;
+	background: #ffffff;
+	border: 1px solid #e9e7e0;
+	border-radius: 16px;
+	padding: 20px 22px;
+	box-shadow: 0 1px 2px rgba(28, 27, 24, 0.03);
 	cursor: pointer;
+	transition: transform 0.22s ease, box-shadow 0.22s ease;
+	display: flex;
+	flex-direction: column;
+
+	&:hover {
+		transform: translateY(-2px);
+		box-shadow: 0 8px 24px rgba(28, 27, 24, 0.05);
+	}
+
 	.image-box {
+		display: block;
 		width: 100%;
-		height: 283px;
+		height: 140px;
+		border-radius: 12px;
+		overflow: hidden;
+		margin-bottom: 14px;
+		flex-shrink: 0;
+
 		.card-img {
 			width: 100%;
 			height: 100%;
-			border-radius: 12px;
+			object-fit: cover;
+			display: block;
 		}
 	}
-	.desc-box {
+
+	.content-box {
 		display: flex;
+		flex-direction: column;
+		flex: 1;
+		min-width: 0;
+	}
+
+	&.featured {
+		flex-direction: row;
+		gap: 24px;
+
+		.image-box {
+			width: 300px;
+			height: auto;
+			margin-bottom: 0;
+		}
+
+		.content-box {
+			justify-content: center;
+		}
+
+		.title {
+			font-size: 19px;
+		}
+	}
+
+	.tag-row {
+		flex-direction: row;
+		align-items: center;
+		gap: 10px;
+		margin-bottom: 12px;
+
+		.category-tag {
+			color: #8e8c83;
+			font-family: $font;
+			font-size: 10.5px;
+			font-weight: 700;
+			letter-spacing: 0.6px;
+			text-transform: uppercase;
+		}
+		.pinned-tag {
+			color: #d2674c;
+			font-family: $font;
+			font-size: 10.5px;
+			font-weight: 700;
+			letter-spacing: 0.6px;
+			text-transform: uppercase;
+		}
+	}
+
+	.title {
+		color: #1c1b18;
+		font-family: $font;
+		font-size: 17px;
+		font-weight: 700;
+		line-height: 1.3;
+		margin-bottom: 8px;
+	}
+
+	.excerpt {
+		color: #57564f;
+		font-family: $font;
+		font-size: 13.5px;
+		font-weight: 400;
+		line-height: 1.5;
+		margin-bottom: 16px;
+		display: -webkit-box;
+		-webkit-line-clamp: 2;
+		-webkit-box-orient: vertical;
+		overflow: hidden;
+	}
+
+	.card-divider {
+		display: block;
+		width: 100%;
+		height: 1px;
+		background: #e9e7e0;
+		margin-bottom: 14px;
+	}
+
+	.footer-row {
 		flex-direction: row;
 		justify-content: space-between;
 		align-items: center;
-		width: 100%;
-		height: 80px;
-		.title {
-			color: #717171;
-			font-family: $font;
-			font-size: 13px;
-			font-style: normal;
-			font-weight: 400;
-			line-height: normal;
-		}
-		.desc {
-			color: #181a20;
-			font-family: $font;
-			font-size: 15px;
-			font-style: normal;
-			font-weight: 600;
-			line-height: 26px;
-			text-transform: capitalize;
-		}
-		.buttons {
-			width: auto;
-			display: flex;
+
+		.author-info {
 			flex-direction: row;
-			justify-content: center;
 			align-items: center;
-			svg {
-				width: 24px;
-				height: 24px;
+			gap: 10px;
+
+			.avatar-img {
+				width: 30px;
+				height: 30px;
+				border-radius: 50%;
+				object-fit: cover;
 				cursor: pointer;
 			}
-			.view-cnt {
-				font-size: 13px;
+			.author-text {
+				.author-name {
+					color: #1c1b18;
+					font-family: $font;
+					font-size: 13px;
+					font-weight: 700;
+					cursor: pointer;
+				}
+				.author-meta {
+					color: #8e8c83;
+					font-family: $font;
+					font-size: 12px;
+					font-weight: 500;
+				}
 			}
 		}
-	}
-	.date-box {
-		position: absolute;
-		width: 70px;
-		height: 69.014px;
-		align-items: center;
-		justify-content: center;
-		top: 235px;
-		right: 20px;
-		border-radius: 12px;
-		background: #fff;
-		box-shadow: 0px 6px 15px 0px rgba(64, 79, 104, 0.05);
-		.month {
-			color: #181a20;
-			text-align: center;
-			font-family: $font;
-			font-size: 13px;
-			font-style: normal;
-			font-weight: 400;
-			line-height: normal;
-		}
-		.day {
-			color: #181a20;
-			font-family: $font;
-			font-size: 20px;
-			font-style: normal;
-			font-weight: 600;
-			line-height: normal;
+
+		.buttons {
+			flex-direction: row;
+			align-items: center;
+			gap: 2px;
+			.MuiIconButton-root {
+				color: #8e8c83;
+				padding: 4px;
+			}
+			.view-cnt {
+				color: #8e8c83;
+				font-family: $font;
+				font-size: 12.5px;
+				font-weight: 500;
+				margin-right: 4px;
+			}
 		}
 	}
 }

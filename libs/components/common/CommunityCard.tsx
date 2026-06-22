@@ -15,17 +15,22 @@ import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 interface CommunityCardProps {
 	boardArticle: BoardArticle;
 	size?: string;
+	index?: number;
 	likeArticleHandler: any;
 }
 
 const CommunityCard = (props: CommunityCardProps) => {
-	const { boardArticle, size = 'normal', likeArticleHandler } = props;
+	const { boardArticle, size = 'normal', index, likeArticleHandler } = props;
 	const device = useDeviceDetect();
 	const router = useRouter();
 	const user = useReactiveVar(userVar);
 	const imagePath: string = boardArticle?.articleImage
 		? `${REACT_APP_API_URL}/${boardArticle?.articleImage}`
 		: '/img/community/communityImg.png';
+	const avatarPath: string = boardArticle?.memberData?.memberImage
+		? `${REACT_APP_API_URL}/${boardArticle?.memberData?.memberImage}`
+		: '/img/profile/defaultUser.svg';
+	const stripHtml = (html?: string) => (html ? html.replace(/<[^>]*>/g, '').trim() : '');
 
 	/** HANDLERS **/
 	const chooseArticleHandler = (e: React.SyntheticEvent, boardArticle: BoardArticle) => {
@@ -49,48 +54,62 @@ const CommunityCard = (props: CommunityCardProps) => {
 	} else {
 		return (
 			<Stack
-				sx={{ width: size === 'small' ? '285px' : '317px' }}
-				className="community-general-card-config"
+				sx={{ width: index === 0 ? '100%' : size === 'small' ? '285px' : '317px' }}
+				className={`community-general-card-config ${index === 0 ? 'featured' : ''}`}
 				onClick={(e: any) => chooseArticleHandler(e, boardArticle)}
 			>
 				<Stack className="image-box">
 					<img src={imagePath} alt="" className="card-img" />
 				</Stack>
-				<Stack className="desc-box" sx={{ marginTop: '-20px' }}>
-					<Stack>
-						<Typography
-							className="desc"
-							onClick={(e: any) => {
-								e.stopPropagation();
-								goMemberPage(boardArticle?.memberData?._id as string);
-							}}
-						>
-							{boardArticle?.memberData?.memberNick}
-						</Typography>
-						<Typography className="title">{boardArticle?.articleTitle}</Typography>
+				<Stack className="content-box">
+					<Stack className="tag-row">
+						<span className="category-tag">{boardArticle?.articleCategory} BOARD</span>
+						{index === 0 && <span className="pinned-tag">PINNED</span>}
 					</Stack>
-					<Stack className={'buttons'}>
-						<IconButton color={'default'}>
-							<RemoveRedEyeIcon />
-						</IconButton>
-						<Typography className="view-cnt">{boardArticle?.articleViews}</Typography>
-						<IconButton color={'default'} onClick={(e: any) => likeArticleHandler(e, user, boardArticle?._id)}>
-							{boardArticle?.meLiked && boardArticle?.meLiked[0]?.myFavorite ? (
-								<FavoriteIcon color={'primary'} />
-							) : (
-								<FavoriteBorderIcon />
-							)}
-						</IconButton>
-						<Typography className="view-cnt">{boardArticle?.articleLikes}</Typography>
+					<Typography className="title">{boardArticle?.articleTitle}</Typography>
+					<Typography className="excerpt">{stripHtml(boardArticle?.articleContent)}</Typography>
+					<span className="card-divider" />
+					<Stack className="footer-row">
+						<Stack className="author-info">
+							<img
+								src={avatarPath}
+								alt=""
+								className="avatar-img"
+								onClick={(e: any) => {
+									e.stopPropagation();
+									goMemberPage(boardArticle?.memberData?._id as string);
+								}}
+							/>
+							<Stack className="author-text">
+								<Typography
+									className="author-name"
+									onClick={(e: any) => {
+										e.stopPropagation();
+										goMemberPage(boardArticle?.memberData?._id as string);
+									}}
+								>
+									{boardArticle?.memberData?.memberNick}
+								</Typography>
+								<Typography className="author-meta">
+									INU · <Moment format={'MMM DD'}>{boardArticle?.createdAt}</Moment>
+								</Typography>
+							</Stack>
+						</Stack>
+						<Stack className={'buttons'}>
+							<IconButton color={'default'}>
+								<RemoveRedEyeIcon />
+							</IconButton>
+							<Typography className="view-cnt">{boardArticle?.articleViews}</Typography>
+							<IconButton color={'default'} onClick={(e: any) => likeArticleHandler(e, user, boardArticle?._id)}>
+								{boardArticle?.meLiked && boardArticle?.meLiked[0]?.myFavorite ? (
+									<FavoriteIcon color={'primary'} />
+								) : (
+									<FavoriteBorderIcon />
+								)}
+							</IconButton>
+							<Typography className="view-cnt">{boardArticle?.articleLikes}</Typography>
+						</Stack>
 					</Stack>
-				</Stack>
-				<Stack className="date-box">
-					<Moment className="month" format={'MMMM'}>
-						{boardArticle?.createdAt}
-					</Moment>
-					<Typography className="day">
-						<Moment format={'DD'}>{boardArticle?.createdAt}</Moment>
-					</Typography>
 				</Stack>
 			</Stack>
 		);

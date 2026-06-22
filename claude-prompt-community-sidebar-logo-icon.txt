@@ -1,0 +1,56 @@
+Context: replace the sidebar's logo image (`/img/logo/logoText.svg`) with a coral circular badge containing a "people/community" icon, matching the project's existing convention of using `@mui/icons-material` icons (already used elsewhere, e.g. `RemoveRedEyeIcon`, `FavoriteIcon` in `CommunityCard.tsx`). Visual-only change — no logic/data affected.
+
+## `pages/community/index.tsx`
+
+Add the import at the top with the other icon imports (or near the other imports):
+
+```tsx
+import GroupsIcon from '@mui/icons-material/Groups';
+```
+
+Replace:
+
+```tsx
+<Stack className={'image-info'}>
+	<img src={'/img/logo/logoText.svg'} />
+	<Stack className={'community-name'}>
+		<Typography className={'name'}>UniFinder Community</Typography>
+	</Stack>
+</Stack>
+```
+
+with:
+
+```tsx
+<Stack className={'image-info'}>
+	<Stack className={'logo-icon-badge'}>
+		<GroupsIcon />
+	</Stack>
+	<Stack className={'community-name'}>
+		<Typography className={'name'}>UniFinder Community</Typography>
+	</Stack>
+</Stack>
+```
+
+## `scss/pc/community/community.scss`
+
+Inside `.left-config .image-info`, remove the old `img { ... }` rule and add:
+
+```scss
+.logo-icon-badge {
+	width: 36px;
+	height: 36px;
+	border-radius: 50%;
+	background: #e8856a;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+
+	.MuiSvgIcon-root {
+		color: #ffffff;
+		font-size: 20px;
+	}
+}
+```
+
+Verify after implementing: the sidebar header now shows a coral circular badge with a white "groups/people" icon instead of the old logo image, sized and aligned the same as before (36px, next to "UniFinder Community" text), and nothing else on the page (tabs, counts, cards, pagination) is affected.

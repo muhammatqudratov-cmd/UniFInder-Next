@@ -1,0 +1,473 @@
+Context: precise visual restyle of the Community page content area (sidebar + board panel + post cards + pagination), matching the attached reference screenshot exactly. This is a visual-only change: do NOT touch any GraphQL query/mutation (`GET_BOARD_ARTICLES`, `LIKE_TARGET_BOARD_ARTICLE`), tab-switching logic, pagination logic, or the like-handler in `pages/community/index.tsx`. Only edit `pages/community/index.tsx` (markup/JSX restructuring — moving existing elements, not changing their data bindings or handlers), `libs/components/common/CommunityCard.tsx` (markup additions using data that's already on the `boardArticle`/`memberData` props — no new props from a new query), and the SCSS files `scss/pc/community/community.scss` + `scss/pc/general.scss`.
+
+Design tokens (same system used across the project):
+```
+ink (titles):        #1C1B18
+ink-2 (body/desc):    #57564F
+ink-3 (muted/meta):   #8E8C83
+line (borders):       #E9E7E0
+surface:               #FFFFFF
+surface-2 (page bg):   #FAFAF8
+coral (accent):        #E8856A
+coral-deep:            #D2674C
+coral-tint (badge bg): #FBEDE7
+font: keep existing `$font` (Poppins) — do not add new font families
+```
+
+Three things in the screenshot have no backing data/query in the current codebase — flag these explicitly rather than inventing logic:
+1. Per-tab post counts ("Free Board 2", "Recommendation 2", "News 2", "Humor 1") — the app only fetches `totalCount` for the *currently active* tab via `GET_BOARD_ARTICLES`; there's no query that returns counts for all 4 categories at once. Only show the count next to the active tab (using the existing `totalCount` state); the other three tabs get no number badge. Do not hardcode fake numbers for the inactive tabs.
+2. The "PINNED" badge on the first card — there's no `isPinned`/`pinned` field on `BoardArticle`. Treat this as a purely decorative, static placeholder shown only on the very first card of whatever list is currently rendered (`index === 0`), not tied to any real "pinned" concept.
+3. The "INU" text in each card's author meta row — there's no per-member university field on `Member`. Hardcode it as a static placeholder string `'INU'` next to the date, exactly like the hero's static "Incheon National University / INU" placeholder precedent.
+
+## 1. `pages/community/index.tsx` — sidebar restructure
+
+Inside `Stack className="left-config"`, after the existing `image-info` block, add a small uppercase label before the `TabList`:
+```tsx
+<span className={'boards-label'}>Boards</span>
+```
+Move the existing "Write" `Button` out of `title-box` and place it directly after the `TabList`, inside `left-config`, restyled (keep the exact same `onClick` handler — just relocate the JSX and rename its class):
+```tsx
+<Button
+	onClick={() =>
+		router.push({
+			pathname: '/mypage',
+			query: { category: 'writeArticle' },
+		})
+	}
+	className="write-post-btn"
+>
+	+ Write a post
+</Button>
+```
+In `title-box`, remove the old `.right` `Button` from there (now moved above) and instead show the existing `totalCount` next to the title (only rendered when this is the active/only fetched tab's count — it already is, since `totalCount` always reflects `searchCommunity.search.articleCategory`):
+```tsx
+<Stack className="title-box">
+	<Stack className="left">
+		<Typography className="title">{searchCommunity.search.articleCategory} BOARD</Typography>
+		<Typography className="sub-title">
+			Express your opinions freely here without content restrictions
+		</Typography>
+	</Stack>
+	<Typography className="post-count">{totalCount} posts</Typography>
+</Stack>
+```
+
+Pass the array index into each `CommunityCard` so the card component can apply the placeholder "PINNED" styling only to the first item — add `index` as a prop on every `CommunityCard` usage in all four `TabPanel`s, e.g.:
+```tsx
+{boardArticles?.map((boardArticle: BoardArticle, index: number) => {
+	return (
+		<CommunityCard
+			boardArticle={boardArticle}
+			index={index}
+			key={boardArticle?._id}
+			likeArticleHandler={likeArticleHandler}
+		/>
+	);
+})}
+```
+(Apply this same `index={index}` addition to all 4 `TabPanel`'s `.map` calls — `FREE`, `RECOMMEND`, `NEWS`, `HUMOR` — without changing anything else about them.)
+
+## 2. `pages/community/index.tsx` — pagination restyle (markup unchanged, only classes/wrapping if needed)
+Keep the existing `Pagination`/`Total {n} articles` block exactly as-is structurally; it will be restyled via SCSS only (see section 4).
+
+## 3. `libs/components/common/CommunityCard.tsx` — add `index` prop + new presentational markup
+
+Update the props interface and destructuring:
+```tsx
+interface CommunityCardProps {
+	boardArticle: BoardArticle;
+	size?: string;
+	index?: number;
+	likeArticleHandler: any;
+}
+```
+```tsx
+const { boardArticle, size = 'normal', index, likeArticleHandler } = props;
+```
+Add an avatar image path using the same fallback pattern already used elsewhere in the codebase (e.g. `ReviewCard.tsx`):
+```tsx
+const avatarPath: string = boardArticle?.memberData?.memberImage
+	? `${REACT_APP_API_URL}/${boardArticle?.memberData?.memberImage}`
+	: '/img/profile/defaultUser.svg';
+```
+Replace the desktop return's JSX body with (keeping `chooseArticleHandler`, `goMemberPage`, `likeArticleHandler` wired exactly as before; the `.image-box`/`img` element stays in the DOM untouched — it's hidden purely via CSS in section 4, not removed, so the existing image logic/binding is preserved):
+```tsx
+<Stack
+	sx={{ width: size === 'small' ? '285px' : '317px' }}
+	className="community-general-card-config"
+	onClick={(e: any) => chooseArticleHandler(e, boardArticle)}
+>
+	<Stack className="image-box">
+		<img src={imagePath} alt="" className="card-img" />
+	</Stack>
+	<Stack className="tag-row">
+		<span className="category-tag">{boardArticle?.articleCategory} BOARD</span>
+		{index === 0 && <span className="pinned-tag">PINNED</span>}
+	</Stack>
+	<Typography className="title">{boardArticle?.articleTitle}</Typography>
+	<Typography className="excerpt">{boardArticle?.articleContent}</Typography>
+	<span className="card-divider" />
+	<Stack className="footer-row">
+		<Stack className="author-info">
+			<img
+				src={avatarPath}
+				alt=""
+				className="avatar-img"
+				onClick={(e: any) => {
+					e.stopPropagation();
+					goMemberPage(boardArticle?.memberData?._id as string);
+				}}
+			/>
+			<Stack className="author-text">
+				<Typography
+					className="author-name"
+					onClick={(e: any) => {
+						e.stopPropagation();
+						goMemberPage(boardArticle?.memberData?._id as string);
+					}}
+				>
+					{boardArticle?.memberData?.memberNick}
+				</Typography>
+				<Typography className="author-meta">
+					INU · <Moment format={'MMM DD'}>{boardArticle?.createdAt}</Moment>
+				</Typography>
+			</Stack>
+		</Stack>
+		<Stack className={'buttons'}>
+			<IconButton color={'default'}>
+				<RemoveRedEyeIcon />
+			</IconButton>
+			<Typography className="view-cnt">{boardArticle?.articleViews}</Typography>
+			<IconButton color={'default'} onClick={(e: any) => likeArticleHandler(e, user, boardArticle?._id)}>
+				{boardArticle?.meLiked && boardArticle?.meLiked[0]?.myFavorite ? (
+					<FavoriteIcon color={'primary'} />
+				) : (
+					<FavoriteBorderIcon />
+				)}
+			</IconButton>
+			<Typography className="view-cnt">{boardArticle?.articleLikes}</Typography>
+		</Stack>
+	</Stack>
+</Stack>
+```
+(Remove the old `.desc-box`/`.date-box` markup — their content, `memberNick` and `createdAt`, is preserved above just repositioned into `.footer-row`; the `.image-box`/`img` stays in the DOM but is hidden via CSS below, so `imagePath` and its binding are untouched.)
+
+## 4. SCSS — `scss/pc/community/community.scss`
+
+Replace the file's relevant rules with:
+```scss
+#pc-wrap {
+	#community-list-page {
+		position: relative;
+		background: #fafaf8;
+		.container {
+			padding-top: 100px;
+			flex-direction: column;
+			gap: 64px;
+			.main-box {
+				flex-direction: row;
+				gap: 31px;
+				.left-config {
+					width: 266px;
+					height: fit-content;
+					gap: 14px;
+					padding: 30px 21px 24px 21px;
+					margin-top: 100px;
+					margin-bottom: 50px;
+					border-radius: 16px;
+					border: 1px solid #e9e7e0;
+					background: #fff;
+					box-shadow: 0 1px 2px rgba(28, 27, 24, 0.03);
+					.image-info {
+						width: 100%;
+						flex-direction: row;
+						gap: 11px;
+						margin-bottom: 8px;
+						img {
+							width: 36px;
+							height: 36px;
+							border-radius: 50%;
+							object-fit: cover;
+						}
+						.community-name {
+							.name {
+								color: #1c1b18;
+								font-family: $font;
+								font-size: 14px;
+								font-weight: 700;
+							}
+						}
+					}
+					.boards-label {
+						color: #8e8c83;
+						font-family: $font;
+						font-size: 11px;
+						font-weight: 700;
+						letter-spacing: 1.2px;
+						text-transform: uppercase;
+						margin-bottom: 4px;
+					}
+					.tab-button {
+						width: 100%;
+						height: 38px;
+						padding: 0 4px;
+						justify-content: flex-start;
+						align-items: center;
+						border-radius: 8px;
+						border: none;
+						margin-bottom: 2px;
+						color: #57564f;
+						font-family: $font;
+						font-size: 14px;
+						font-weight: 500;
+						text-align: left;
+					}
+					.tab-button.active {
+						width: 100%;
+						height: 38px;
+						padding: 0 4px;
+						justify-content: flex-start;
+						align-items: center;
+						background-color: transparent;
+						color: #1c1b18;
+						font-weight: 700;
+						border-radius: 8px;
+						margin-bottom: 2px;
+						font-family: $font;
+						font-size: 14px;
+					}
+					.write-post-btn {
+						width: 100%;
+						height: 44px;
+						margin-top: 14px;
+						border-radius: 999px;
+						background: #1c1b18;
+						color: #ffffff;
+						font-family: $font;
+						font-size: 13.5px;
+						font-weight: 700;
+						text-transform: none;
+					}
+				}
+				.right-config {
+					width: 100%;
+					height: auto;
+					.panel-config {
+						width: 100%;
+						height: auto;
+						.title-box {
+							width: 100%;
+							height: auto;
+							flex-direction: row;
+							justify-content: space-between;
+							align-items: flex-end;
+							margin-bottom: 24px;
+							.left {
+								width: 70%;
+								height: auto;
+								.title {
+									color: #1c1b18;
+									font-family: $font;
+									font-size: 24px;
+									font-weight: 700;
+									text-transform: capitalize;
+								}
+								.sub-title {
+									color: #8e8c83;
+									font-family: $font;
+									font-size: 13px;
+									font-weight: 500;
+								}
+							}
+							.post-count {
+								color: #8e8c83;
+								font-family: $font;
+								font-size: 13px;
+								font-weight: 500;
+							}
+						}
+						.list-box {
+							width: 100%;
+							height: auto;
+							flex-direction: row;
+							flex-wrap: wrap;
+							gap: 24px;
+						}
+					}
+				}
+			}
+			.pagination-config {
+				width: 100%;
+				align-items: center;
+				justify-content: center;
+				margin-bottom: 50px;
+				gap: 14px;
+				padding-left: 0;
+				.pagination-box {
+					align-items: center;
+					justify-content: center;
+					.MuiPaginationItem-root {
+						width: 36px;
+						height: 36px;
+						border-radius: 10px;
+						border: 1px solid #e9e7e0;
+						background: #ffffff;
+						color: #1c1b18;
+						font-family: $font;
+						font-size: 13.5px;
+						font-weight: 600;
+					}
+					.MuiPaginationItem-root:hover {
+						border-color: #1c1b18;
+					}
+					.Mui-selected {
+						background-color: #e8856a !important;
+						color: #ffffff !important;
+						border-color: #e8856a !important;
+					}
+				}
+				.total-result {
+					p {
+						color: #8e8c83;
+						text-align: center;
+						font-family: $font;
+						font-size: 13.5px;
+						font-weight: 500;
+					}
+				}
+			}
+		}
+	}
+}
+```
+
+## 5. SCSS — `scss/pc/general.scss`, restyle `.community-general-card-config` (and hide `.image-box`)
+Find the existing `.community-general-card-config` rule and replace it with:
+```scss
+.community-general-card-config {
+	background: #ffffff;
+	border: 1px solid #e9e7e0;
+	border-radius: 16px;
+	padding: 20px 22px;
+	box-shadow: 0 1px 2px rgba(28, 27, 24, 0.03);
+	cursor: pointer;
+	transition: transform 0.22s ease, box-shadow 0.22s ease;
+
+	&:hover {
+		transform: translateY(-2px);
+		box-shadow: 0 8px 24px rgba(28, 27, 24, 0.05);
+	}
+
+	.image-box {
+		display: none;
+	}
+
+	.tag-row {
+		flex-direction: row;
+		align-items: center;
+		gap: 10px;
+		margin-bottom: 12px;
+
+		.category-tag {
+			color: #8e8c83;
+			font-family: $font;
+			font-size: 10.5px;
+			font-weight: 700;
+			letter-spacing: 0.6px;
+			text-transform: uppercase;
+		}
+		.pinned-tag {
+			color: #d2674c;
+			font-family: $font;
+			font-size: 10.5px;
+			font-weight: 700;
+			letter-spacing: 0.6px;
+			text-transform: uppercase;
+		}
+	}
+
+	.title {
+		color: #1c1b18;
+		font-family: $font;
+		font-size: 17px;
+		font-weight: 700;
+		line-height: 1.3;
+		margin-bottom: 8px;
+	}
+
+	.excerpt {
+		color: #57564f;
+		font-family: $font;
+		font-size: 13.5px;
+		font-weight: 400;
+		line-height: 1.5;
+		margin-bottom: 16px;
+		display: -webkit-box;
+		-webkit-line-clamp: 2;
+		-webkit-box-orient: vertical;
+		overflow: hidden;
+	}
+
+	.card-divider {
+		display: block;
+		width: 100%;
+		height: 1px;
+		background: #e9e7e0;
+		margin-bottom: 14px;
+	}
+
+	.footer-row {
+		flex-direction: row;
+		justify-content: space-between;
+		align-items: center;
+
+		.author-info {
+			flex-direction: row;
+			align-items: center;
+			gap: 10px;
+
+			.avatar-img {
+				width: 30px;
+				height: 30px;
+				border-radius: 50%;
+				object-fit: cover;
+				cursor: pointer;
+			}
+			.author-text {
+				.author-name {
+					color: #1c1b18;
+					font-family: $font;
+					font-size: 13px;
+					font-weight: 700;
+					cursor: pointer;
+				}
+				.author-meta {
+					color: #8e8c83;
+					font-family: $font;
+					font-size: 12px;
+					font-weight: 500;
+				}
+			}
+		}
+
+		.buttons {
+			flex-direction: row;
+			align-items: center;
+			gap: 2px;
+			.MuiIconButton-root {
+				color: #8e8c83;
+				padding: 4px;
+			}
+			.view-cnt {
+				color: #8e8c83;
+				font-family: $font;
+				font-size: 12.5px;
+				font-weight: 500;
+				margin-right: 4px;
+			}
+		}
+	}
+}
+```
+
+Verify after implementing: switching boards (Free/Recommendation/News/Humor) still re-fetches and shows the right articles and updates the URL query, the active tab still highlights correctly, "Write a post" still navigates to `/mypage?category=writeArticle`, pagination still navigates pages and updates `searchCommunity.page`, liking a card still calls `LIKE_TARGET_BOARD_ARTICLE`, refetches, and shows the success alert, clicking a card still navigates to `/community/detail`, clicking the author name/avatar still navigates to the member's page (or `/mypage` if it's the current user) — only layout, colors, spacing, and the new presentational tag/excerpt/avatar/divider markup changed, no query or handler logic touched.

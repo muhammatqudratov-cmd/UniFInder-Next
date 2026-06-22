@@ -1,0 +1,132 @@
+Context: replace the dark photo hero banner on the Community page (`/community`) only, with a new light hero matched to the attached reference screenshot. This hero is rendered by the shared `libs/components/layout/LayoutBasic.tsx`, the same file already extended for the Agents page hero (`claude-prompt-agents-hero-landing.txt`) and the University page (default). Do not change the hero for any other route (`/university`, `/agent`, `/agent/detail`, `/community/detail`, `/mypage`, `/cs`, `/account/join`, etc.) — they must keep rendering exactly as they do today. Do not touch any GraphQL query/mutation in `pages/community/index.tsx` — this hero is purely presentational, no data fetching changes there.
+
+Important note on the "YOU ARE BROWSING / Incheon National University / INU" card: there is no existing query, state, or context in `pages/community/index.tsx` (or anywhere in the app) that tracks a "currently browsing university." Do not invent new business logic or a new query to wire this. Treat the university name and initials shown in the badge as static placeholder content for now — exactly like the Agents hero's "2 Active agents / 60+ Universities covered" stats, which are also static numbers with no live query behind them. Hardcode `'Incheon National University'` and `'INU'` as default values in `memoizedValues` so the design matches the screenshot; if real per-user "browsing university" data becomes available later, that's a separate follow-up task.
+
+## 1. New data for the `/community` case in `LayoutBasic.tsx`
+Add two new optional fields to the `memoizedValues` return type/interface: `browsingLabel?: string` and `browsingInitials?: string`, alongside the existing `title`, `desc`, `bgImage`, `eyebrow`, `stats`, `marqueeItems`. Replace the existing `case '/community':` block with:
+```tsx
+case '/community':
+	title = 'Voices on campus';
+	desc = '';
+	bgImage = '';
+	eyebrow = 'COMMUNITY';
+	browsingLabel = 'Incheon National University';
+	browsingInitials = 'INU';
+	break;
+```
+(Keep every other `case` in the switch — including `/community/detail`, which is a separate route and must NOT pick up this branch — untouched.)
+
+## 2. New JSX render branch
+In the desktop (`else`) return of `withLayoutBasic`, the `header-basic` Stack currently branches on `memoizedValues.marqueeItems` (Agents) → `memoizedValues.stats` (University) → plain (everything else). Add a new branch for `memoizedValues.browsingLabel`, checked before the final plain fallback:
+```tsx
+<Stack
+	className={`header-basic ${authHeader && 'auth'} ${memoizedValues.marqueeItems ? 'agent-hero' : ''} ${router.pathname === '/university' ? 'university-hero' : ''} ${memoizedValues.browsingLabel ? 'community-hero' : ''}`}
+	style={memoizedValues.bgImage ? { backgroundImage: `url(${memoizedValues.bgImage})`, backgroundSize: 'cover' } : undefined}
+>
+	{!memoizedValues.marqueeItems && !memoizedValues.browsingLabel && <Stack className={'overlay'} />}
+	{memoizedValues.marqueeItems ? (
+		<>{/* existing Agents hero JSX stays exactly as-is here */}</>
+	) : memoizedValues.browsingLabel ? (
+		<Stack className={'container community-hero-container'}>
+			<Stack className={'eyebrow plain'}>{t(memoizedValues.eyebrow!)}</Stack>
+			<strong className={'community-heading'}>{t(memoizedValues.title)}</strong>
+			<Stack className={'browsing-card'}>
+				<Stack className={'browsing-text'}>
+					<span className={'browsing-label'}>You are browsing</span>
+					<span className={'browsing-name'}>{memoizedValues.browsingLabel}</span>
+				</Stack>
+				<Stack className={'browsing-badge'}>{memoizedValues.browsingInitials}</Stack>
+			</Stack>
+		</Stack>
+	) : memoizedValues.stats ? (
+		// ...existing has-stats JSX for /university stays exactly as-is here...
+		<Stack className={'container has-stats'}>{/* unchanged existing block */}</Stack>
+	) : (
+		// ...existing plain JSX stays exactly as-is here...
+		<Stack className={'container'}>{/* unchanged existing block */}</Stack>
+	)}
+</Stack>
+```
+(Use the real existing Agents/has-stats/plain JSX bodies already in the file — only add the new `browsingLabel` condition; don't rewrite logic that already works.)
+
+## 3. SCSS — add to `scss/pc/main.scss`, inside `.header-basic` (alongside `.agent-hero` and `.university-hero`)
+```scss
+&.community-hero {
+	background: #f4f3ef;
+	justify-content: flex-start;
+	align-items: center;
+	.community-hero-container {
+		position: relative;
+		z-index: 1;
+		width: 100%;
+		max-width: 1200px;
+		margin: 0 auto;
+		padding: 0 5%;
+		flex-direction: row;
+		align-items: center;
+		justify-content: space-between;
+		.eyebrow.plain {
+			color: #e8856a;
+			font-family: $font;
+			font-size: 12px;
+			font-weight: 700;
+			letter-spacing: 1.5px;
+			text-transform: uppercase;
+			margin-bottom: 14px;
+		}
+		.community-heading {
+			color: #1c1b18;
+			font-family: $font;
+			font-size: 46px;
+			font-weight: 800;
+			line-height: 1.1;
+			letter-spacing: -0.5px;
+		}
+		.browsing-card {
+			flex-direction: row;
+			align-items: center;
+			gap: 12px;
+			padding: 8px 8px 8px 20px;
+			border-radius: 999px;
+			background: #ffffff;
+			border: 1px solid #e9e7e0;
+			box-shadow: 0 1px 2px rgba(28, 27, 24, 0.03);
+			.browsing-text {
+				display: flex;
+				flex-direction: column;
+				gap: 2px;
+				.browsing-label {
+					color: #8e8c83;
+					font-family: $font;
+					font-size: 10.5px;
+					font-weight: 700;
+					letter-spacing: 0.8px;
+					text-transform: uppercase;
+				}
+				.browsing-name {
+					color: #1c1b18;
+					font-family: $font;
+					font-size: 14px;
+					font-weight: 700;
+				}
+			}
+			.browsing-badge {
+				width: 36px;
+				height: 36px;
+				border-radius: 50%;
+				background: #1c1b18;
+				color: #ffffff;
+				font-family: $font;
+				font-size: 11px;
+				font-weight: 700;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				flex-shrink: 0;
+			}
+		}
+	}
+}
+```
+
+Verify after implementing: only the `/community` page hero changes to the new light "Voices on campus" layout with the coral "COMMUNITY" eyebrow and the rounded "You are browsing / Incheon National University / INU" card on the right; the `/university`, `/agent`, `/agent/detail`, `/community/detail`, `/mypage`, `/cs`, and `/account/join` heroes still render exactly as before; the tabs, board article list, pagination, and like-handler below the hero on the Community page are unaffected.

@@ -1,0 +1,32 @@
+Context: small fix to the Community page hero (`/community`, from `claude-prompt-community-hero-landing.txt`). The heading "Voices on campus" currently relies on the browser's natural text wrap to break into two lines ("Voices on" / "campus"), which is fragile — it can reflow differently depending on container width/viewport and stop matching the reference screenshot. Force the exact two-line break shown in the reference image instead of relying on automatic wrapping. This is a markup-only tweak, no logic/data change.
+
+## Change — `libs/components/layout/LayoutBasic.tsx`
+In the `community-hero` JSX branch, replace this line:
+```tsx
+<strong className={'community-heading'}>{t(memoizedValues.title)}</strong>
+```
+with an explicit two-line version using a hard line break, so it always renders as "Voices on" on line 1 and "campus" on line 2 regardless of container width:
+```tsx
+<strong className={'community-heading'}>
+	Voices on
+	<br />
+	campus
+</strong>
+```
+(Keep using `memoizedValues.title`/translation for every other page's heading — this hardcoded two-line markup applies only inside the `community-hero` branch, not to `/university` or `/agent`.)
+
+## Change — `scss/pc/main.scss`, inside `.header-basic.community-hero .community-hero-container .community-heading`
+Make sure the rule doesn't fight the manual `<br/>` (no `white-space: nowrap`, no forced single-line truncation):
+```scss
+.community-heading {
+	color: #1c1b18;
+	font-family: $font;
+	font-size: 46px;
+	font-weight: 800;
+	line-height: 1.1;
+	letter-spacing: -0.5px;
+	white-space: normal;
+}
+```
+
+Verify after implementing: the Community hero heading always renders as exactly "Voices on" / "campus" on two lines (matching the reference screenshot) at any viewport width, the eyebrow and browsing card positions are unchanged, and no other page's hero is affected.

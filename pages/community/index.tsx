@@ -16,6 +16,7 @@ import { GET_BOARD_ARTICLES } from '../../apollo/user/query';
 import { useMutation, useQuery } from '@apollo/client';
 import { Messages } from '../../libs/config';
 import { sweetMixinErrorAlert, sweetTopSmallSuccessAlert } from '../../libs/sweetAlert';
+import GroupsIcon from '@mui/icons-material/Groups';
 
 export const getStaticProps = async ({ locale }: any) => ({
 	props: {
@@ -50,6 +51,30 @@ const Community: NextPage = ({ initialInput, ...props }: T) => {
 			setTotalCount(data?.getBoardArticles?.metaCounter[0]?.total);
 		},
 	});
+
+	const { data: freeCountData } = useQuery(GET_BOARD_ARTICLES, {
+		fetchPolicy: 'cache-and-network',
+		variables: { input: { page: 1, limit: 1, sort: 'createdAt', direction: 'ASC', search: { articleCategory: 'FREE' } } },
+	});
+	const { data: recommendCountData } = useQuery(GET_BOARD_ARTICLES, {
+		fetchPolicy: 'cache-and-network',
+		variables: {
+			input: { page: 1, limit: 1, sort: 'createdAt', direction: 'ASC', search: { articleCategory: 'RECOMMEND' } },
+		},
+	});
+	const { data: newsCountData } = useQuery(GET_BOARD_ARTICLES, {
+		fetchPolicy: 'cache-and-network',
+		variables: { input: { page: 1, limit: 1, sort: 'createdAt', direction: 'ASC', search: { articleCategory: 'NEWS' } } },
+	});
+	const { data: humorCountData } = useQuery(GET_BOARD_ARTICLES, {
+		fetchPolicy: 'cache-and-network',
+		variables: { input: { page: 1, limit: 1, sort: 'createdAt', direction: 'ASC', search: { articleCategory: 'HUMOR' } } },
+	});
+
+	const freeCount = freeCountData?.getBoardArticles?.metaCounter[0]?.total ?? 0;
+	const recommendCount = recommendCountData?.getBoardArticles?.metaCounter[0]?.total ?? 0;
+	const newsCount = newsCountData?.getBoardArticles?.metaCounter[0]?.total ?? 0;
+	const humorCount = humorCountData?.getBoardArticles?.metaCounter[0]?.total ?? 0;
 
 	/** LIFECYCLE **/
 	useEffect(() => {
@@ -112,11 +137,15 @@ const Community: NextPage = ({ initialInput, ...props }: T) => {
 						<Stack className="main-box">
 							<Stack className="left-config">
 								<Stack className={'image-info'}>
-									<img src={'/img/logo/logoText.svg'} />
+									<Stack className={'logo-icon-badge'}>
+										<GroupsIcon />
+									</Stack>
 									<Stack className={'community-name'}>
 										<Typography className={'name'}>UniFinder Community</Typography>
 									</Stack>
 								</Stack>
+
+								<span className={'boards-label'}>Boards</span>
 
 								<TabList
 									orientation="vertical"
@@ -128,25 +157,69 @@ const Community: NextPage = ({ initialInput, ...props }: T) => {
 								>
 									<Tab
 										value={'FREE'}
-										label={'Free Board'}
+										label={
+											<Stack className={'tab-label-row'}>
+												<Stack className={'tab-label-left'}>
+													<span className={'tab-dot'} />
+													<span>Free Board</span>
+												</Stack>
+												<span className={'tab-count'}>{freeCount}</span>
+											</Stack>
+										}
 										className={`tab-button ${searchCommunity.search.articleCategory == 'FREE' ? 'active' : ''}`}
 									/>
 									<Tab
 										value={'RECOMMEND'}
-										label={'Recommendation'}
+										label={
+											<Stack className={'tab-label-row'}>
+												<Stack className={'tab-label-left'}>
+													<span className={'tab-dot'} />
+													<span>Recommendation</span>
+												</Stack>
+												<span className={'tab-count'}>{recommendCount}</span>
+											</Stack>
+										}
 										className={`tab-button ${searchCommunity.search.articleCategory == 'RECOMMEND' ? 'active' : ''}`}
 									/>
 									<Tab
 										value={'NEWS'}
-										label={'News'}
+										label={
+											<Stack className={'tab-label-row'}>
+												<Stack className={'tab-label-left'}>
+													<span className={'tab-dot'} />
+													<span>News</span>
+												</Stack>
+												<span className={'tab-count'}>{newsCount}</span>
+											</Stack>
+										}
 										className={`tab-button ${searchCommunity.search.articleCategory == 'NEWS' ? 'active' : ''}`}
 									/>
 									<Tab
 										value={'HUMOR'}
-										label={'Humor'}
+										label={
+											<Stack className={'tab-label-row'}>
+												<Stack className={'tab-label-left'}>
+													<span className={'tab-dot'} />
+													<span>Humor</span>
+												</Stack>
+												<span className={'tab-count'}>{humorCount}</span>
+											</Stack>
+										}
 										className={`tab-button ${searchCommunity.search.articleCategory == 'HUMOR' ? 'active' : ''}`}
 									/>
 								</TabList>
+
+								<Button
+									onClick={() =>
+										router.push({
+											pathname: '/mypage',
+											query: { category: 'writeArticle' },
+										})
+									}
+									className="write-post-btn"
+								>
+									+ Write a post
+								</Button>
 							</Stack>
 							<Stack className="right-config">
 								<Stack className="panel-config">
@@ -157,28 +230,17 @@ const Community: NextPage = ({ initialInput, ...props }: T) => {
 												Express your opinions freely here without content restrictions
 											</Typography>
 										</Stack>
-										<Button
-											onClick={() =>
-												router.push({
-													pathname: '/mypage',
-													query: {
-														category: 'writeArticle',
-													},
-												})
-											}
-											className="right"
-										>
-											Write
-										</Button>
+										<Typography className="post-count">{totalCount} posts</Typography>
 									</Stack>
 
 									<TabPanel value="FREE">
 										<Stack className="list-box">
 											{totalCount ? (
-												boardArticles?.map((boardArticle: BoardArticle) => {
+												boardArticles?.map((boardArticle: BoardArticle, index: number) => {
 													return (
 														<CommunityCard
 															boardArticle={boardArticle}
+															index={index}
 															key={boardArticle?._id}
 															likeArticleHandler={likeArticleHandler}
 														/>
@@ -195,10 +257,11 @@ const Community: NextPage = ({ initialInput, ...props }: T) => {
 									<TabPanel value="RECOMMEND">
 										<Stack className="list-box">
 											{totalCount ? (
-												boardArticles?.map((boardArticle: BoardArticle) => {
+												boardArticles?.map((boardArticle: BoardArticle, index: number) => {
 													return (
 														<CommunityCard
 															boardArticle={boardArticle}
+															index={index}
 															likeArticleHandler={likeArticleHandler}
 															key={boardArticle?._id}
 														/>
@@ -215,10 +278,11 @@ const Community: NextPage = ({ initialInput, ...props }: T) => {
 									<TabPanel value="NEWS">
 										<Stack className="list-box">
 											{totalCount ? (
-												boardArticles?.map((boardArticle: BoardArticle) => {
+												boardArticles?.map((boardArticle: BoardArticle, index: number) => {
 													return (
 														<CommunityCard
 															boardArticle={boardArticle}
+															index={index}
 															likeArticleHandler={likeArticleHandler}
 															key={boardArticle?._id}
 														/>
@@ -235,10 +299,11 @@ const Community: NextPage = ({ initialInput, ...props }: T) => {
 									<TabPanel value="HUMOR">
 										<Stack className="list-box">
 											{totalCount ? (
-												boardArticles?.map((boardArticle: BoardArticle) => {
+												boardArticles?.map((boardArticle: BoardArticle, index: number) => {
 													return (
 														<CommunityCard
 															boardArticle={boardArticle}
+															index={index}
 															likeArticleHandler={likeArticleHandler}
 															key={boardArticle?._id}
 														/>

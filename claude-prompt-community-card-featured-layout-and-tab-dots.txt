@@ -1,0 +1,312 @@
+Context: this prompt supersedes `claude-prompt-community-card-show-image.txt` — apply this one instead (do not apply both, they touch the same `.image-box` rule). The reference screenshot shows two card formats: the first/pinned post renders as a wide horizontal card (image on the left, text content on the right, spanning the full row width), while every other post renders as a normal vertical card (image banner on top, text below, fixed narrower width) wrapped in the grid. The sidebar tabs also show a small dot before each label (filled coral dot for the active tab, hollow gray circle for inactive tabs). This is a visual/markup-restructure only — no GraphQL query, state, or handler changes.
+
+## `libs/components/common/CommunityCard.tsx`
+
+Wrap the existing tag-row/title/excerpt/divider/footer-row block in a new `.content-box` Stack, and make the card's root width and direction depend on whether it's the first item (`index === 0`, the same flag already used for the `PINNED` badge):
+
+```tsx
+<Stack
+	sx={{ width: index === 0 ? '100%' : size === 'small' ? '285px' : '317px' }}
+	className={`community-general-card-config ${index === 0 ? 'featured' : ''}`}
+	onClick={(e: any) => chooseArticleHandler(e, boardArticle)}
+>
+	<Stack className="image-box">
+		<img src={imagePath} alt="" className="card-img" />
+	</Stack>
+	<Stack className="content-box">
+		<Stack className="tag-row">
+			<span className="category-tag">{boardArticle?.articleCategory} BOARD</span>
+			{index === 0 && <span className="pinned-tag">PINNED</span>}
+		</Stack>
+		<Typography className="title">{boardArticle?.articleTitle}</Typography>
+		<Typography className="excerpt">{stripHtml(boardArticle?.articleContent)}</Typography>
+		<span className="card-divider" />
+		<Stack className="footer-row">
+			<Stack className="author-info">
+				<img
+					src={avatarPath}
+					alt=""
+					className="avatar-img"
+					onClick={(e: any) => {
+						e.stopPropagation();
+						goMemberPage(boardArticle?.memberData?._id as string);
+					}}
+				/>
+				<Stack className="author-text">
+					<Typography
+						className="author-name"
+						onClick={(e: any) => {
+							e.stopPropagation();
+							goMemberPage(boardArticle?.memberData?._id as string);
+						}}
+					>
+						{boardArticle?.memberData?.memberNick}
+					</Typography>
+					<Typography className="author-meta">
+						INU · <Moment format={'MMM DD'}>{boardArticle?.createdAt}</Moment>
+					</Typography>
+				</Stack>
+			</Stack>
+			<Stack className={'buttons'}>
+				<IconButton color={'default'}>
+					<RemoveRedEyeIcon />
+				</IconButton>
+				<Typography className="view-cnt">{boardArticle?.articleViews}</Typography>
+				<IconButton color={'default'} onClick={(e: any) => likeArticleHandler(e, user, boardArticle?._id)}>
+					{boardArticle?.meLiked && boardArticle?.meLiked[0]?.myFavorite ? (
+						<FavoriteIcon color={'primary'} />
+					) : (
+						<FavoriteBorderIcon />
+					)}
+				</IconButton>
+				<Typography className="view-cnt">{boardArticle?.articleLikes}</Typography>
+			</Stack>
+		</Stack>
+	</Stack>
+</Stack>
+```
+
+(All handlers, props, and bindings are unchanged — `tag-row` through `footer-row` are just moved one level deeper into the new `.content-box` wrapper, and the root `Stack` gets the conditional `featured` class + full-width sizing only for `index === 0`.)
+
+## `scss/pc/general.scss` — `.community-general-card-config`
+
+Replace the rule with:
+
+```scss
+.community-general-card-config {
+	background: #ffffff;
+	border: 1px solid #e9e7e0;
+	border-radius: 16px;
+	padding: 20px 22px;
+	box-shadow: 0 1px 2px rgba(28, 27, 24, 0.03);
+	cursor: pointer;
+	transition: transform 0.22s ease, box-shadow 0.22s ease;
+	display: flex;
+	flex-direction: column;
+
+	&:hover {
+		transform: translateY(-2px);
+		box-shadow: 0 8px 24px rgba(28, 27, 24, 0.05);
+	}
+
+	.image-box {
+		display: block;
+		width: 100%;
+		height: 140px;
+		border-radius: 12px;
+		overflow: hidden;
+		margin-bottom: 14px;
+		flex-shrink: 0;
+
+		.card-img {
+			width: 100%;
+			height: 100%;
+			object-fit: cover;
+			display: block;
+		}
+	}
+
+	.content-box {
+		display: flex;
+		flex-direction: column;
+		flex: 1;
+		min-width: 0;
+	}
+
+	&.featured {
+		flex-direction: row;
+		gap: 24px;
+
+		.image-box {
+			width: 300px;
+			height: auto;
+			margin-bottom: 0;
+		}
+
+		.content-box {
+			justify-content: center;
+		}
+
+		.title {
+			font-size: 19px;
+		}
+	}
+
+	.tag-row {
+		flex-direction: row;
+		align-items: center;
+		gap: 10px;
+		margin-bottom: 12px;
+
+		.category-tag {
+			color: #8e8c83;
+			font-family: $font;
+			font-size: 10.5px;
+			font-weight: 700;
+			letter-spacing: 0.6px;
+			text-transform: uppercase;
+		}
+		.pinned-tag {
+			color: #d2674c;
+			font-family: $font;
+			font-size: 10.5px;
+			font-weight: 700;
+			letter-spacing: 0.6px;
+			text-transform: uppercase;
+		}
+	}
+
+	.title {
+		color: #1c1b18;
+		font-family: $font;
+		font-size: 17px;
+		font-weight: 700;
+		line-height: 1.3;
+		margin-bottom: 8px;
+	}
+
+	.excerpt {
+		color: #57564f;
+		font-family: $font;
+		font-size: 13.5px;
+		font-weight: 400;
+		line-height: 1.5;
+		margin-bottom: 16px;
+		display: -webkit-box;
+		-webkit-line-clamp: 2;
+		-webkit-box-orient: vertical;
+		overflow: hidden;
+	}
+
+	.card-divider {
+		display: block;
+		width: 100%;
+		height: 1px;
+		background: #e9e7e0;
+		margin-bottom: 14px;
+	}
+
+	.footer-row {
+		flex-direction: row;
+		justify-content: space-between;
+		align-items: center;
+
+		.author-info {
+			flex-direction: row;
+			align-items: center;
+			gap: 10px;
+
+			.avatar-img {
+				width: 30px;
+				height: 30px;
+				border-radius: 50%;
+				object-fit: cover;
+				cursor: pointer;
+			}
+			.author-text {
+				.author-name {
+					color: #1c1b18;
+					font-family: $font;
+					font-size: 13px;
+					font-weight: 700;
+					cursor: pointer;
+				}
+				.author-meta {
+					color: #8e8c83;
+					font-family: $font;
+					font-size: 12px;
+					font-weight: 500;
+				}
+			}
+		}
+
+		.buttons {
+			flex-direction: row;
+			align-items: center;
+			gap: 2px;
+			.MuiIconButton-root {
+				color: #8e8c83;
+				padding: 4px;
+			}
+			.view-cnt {
+				color: #8e8c83;
+				font-family: $font;
+				font-size: 12.5px;
+				font-weight: 500;
+				margin-right: 4px;
+			}
+		}
+	}
+}
+```
+
+## `pages/community/index.tsx` — tab dot indicators
+
+This builds on top of `claude-prompt-community-sidebar-tab-counts.txt`'s `.tab-label-row` structure (apply that prompt first if not already applied). Update each `Tab`'s `label` to add a small dot before the text, wrapped in its own row so the dot and text sit together on the left while the count stays pushed right:
+
+```tsx
+<Tab
+	value={'FREE'}
+	label={
+		<Stack className={'tab-label-row'}>
+			<Stack className={'tab-label-left'}>
+				<span className={'tab-dot'} />
+				<span>Free Board</span>
+			</Stack>
+			<span className={'tab-count'}>{freeCount}</span>
+		</Stack>
+	}
+	className={`tab-button ${searchCommunity.search.articleCategory == 'FREE' ? 'active' : ''}`}
+/>
+```
+
+(Apply the same `tab-label-left` + `tab-dot` wrapping to the `RECOMMEND`, `NEWS`, and `HUMOR` tabs, keeping their existing `recommendCount`/`newsCount`/`humorCount` values in `tab-count`.)
+
+## `scss/pc/community/community.scss` — tab dot styling
+
+Inside `.tab-button`, update `.tab-label-row` and add `.tab-label-left`/`.tab-dot`:
+
+```scss
+.tab-label-row {
+	width: 100%;
+	flex-direction: row;
+	align-items: center;
+	justify-content: space-between;
+
+	.tab-label-left {
+		flex-direction: row;
+		align-items: center;
+
+		.tab-dot {
+			width: 6px;
+			height: 6px;
+			border-radius: 50%;
+			border: 1.5px solid #c9c7bd;
+			margin-right: 9px;
+			flex-shrink: 0;
+		}
+	}
+
+	.tab-count {
+		color: #8e8c83;
+		font-family: $font;
+		font-size: 12.5px;
+		font-weight: 600;
+	}
+}
+```
+
+And inside `.tab-button.active`, override the dot to be filled coral:
+
+```scss
+.tab-label-row .tab-label-left .tab-dot {
+	background: #e8856a;
+	border-color: #e8856a;
+}
+.tab-label-row .tab-count {
+	color: #d2674c;
+	font-weight: 700;
+}
+```
+
+Verify after implementing: the first/pinned card in any board spans the full row width with its image on the left and text content on the right; every other card keeps the normal narrower vertical format (image banner on top, text below); all 4 sidebar tabs show a dot (filled coral when active, hollow gray otherwise) plus their real post count; switching tabs, pagination, and the like-handler all still work exactly as before; clicking the featured card or a normal card still navigates to `/community/detail` with the correct article id.

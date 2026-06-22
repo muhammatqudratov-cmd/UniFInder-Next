@@ -1,0 +1,147 @@
+Context: the reference design for the Community sidebar shows a real post count next to every tab label ("Free Board 2", "Recommendation 2", "News 2", "Humor 1"), but the current implementation only shows a count near the title of whichever tab is currently active, and the sidebar tab labels themselves are plain text with no number. This is the one concrete gap between the current app and the reference screenshot.
+
+Why this needs one extra step beyond pure CSS: the existing `GET_BOARD_ARTICLES` query only returns a count (`metaCounter[0].total`) for the single category passed in `input.search.articleCategory`. There is no existing query that returns counts for all 4 categories at once. The fix below does NOT add any new GraphQL operation, resolver, or schema field — it reuses the exact same `GET_BOARD_ARTICLES` query that's already used for the main list, just called 3 more times with `limit: 1` and a different `articleCategory`, purely to read `metaCounter[0].total` for each board. No mutations, no new types, no change to the main list query/variables/refetch logic.
+
+## `pages/community/index.tsx`
+
+1. Add three extra lightweight `useQuery` calls (one per non-list-purpose count), right after the existing `boardArticlesData` query block. Each uses the same `GET_BOARD_ARTICLES` query, `limit: 1` (we only need the count, not the list), and a fixed category:
+
+```tsx
+const { data: freeCountData } = useQuery(GET_BOARD_ARTICLES, {
+	fetchPolicy: 'cache-and-network',
+	variables: { input: { page: 1, limit: 1, sort: 'createdAt', direction: 'ASC', search: { articleCategory: 'FREE' } } },
+});
+const { data: recommendCountData } = useQuery(GET_BOARD_ARTICLES, {
+	fetchPolicy: 'cache-and-network',
+	variables: { input: { page: 1, limit: 1, sort: 'createdAt', direction: 'ASC', search: { articleCategory: 'RECOMMEND' } } },
+});
+const { data: newsCountData } = useQuery(GET_BOARD_ARTICLES, {
+	fetchPolicy: 'cache-and-network',
+	variables: { input: { page: 1, limit: 1, sort: 'createdAt', direction: 'ASC', search: { articleCategory: 'NEWS' } } },
+});
+const { data: humorCountData } = useQuery(GET_BOARD_ARTICLES, {
+	fetchPolicy: 'cache-and-network',
+	variables: { input: { page: 1, limit: 1, sort: 'createdAt', direction: 'ASC', search: { articleCategory: 'HUMOR' } } },
+});
+```
+
+Then derive plain numbers from them (place right after the four hooks above):
+
+```tsx
+const freeCount = freeCountData?.getBoardArticles?.metaCounter[0]?.total ?? 0;
+const recommendCount = recommendCountData?.getBoardArticles?.metaCounter[0]?.total ?? 0;
+const newsCount = newsCountData?.getBoardArticles?.metaCounter[0]?.total ?? 0;
+const humorCount = humorCountData?.getBoardArticles?.metaCounter[0]?.total ?? 0;
+```
+
+Important: these 4 new hooks are entirely separate from the existing `boardArticlesData`/`boardArticlesRefetch`/`searchCommunity` query — do not merge them, do not change `onCompleted`, do not touch `tabChangeHandler`, `paginationHandler`, or `likeArticleHandler`. They exist solely to read counts for the sidebar badges.
+
+2. Update each `Tab`'s `label` prop to a small JSX row showing the text plus the count, instead of a plain string. Replace the 4 `Tab` elements with:
+
+```tsx
+<Tab
+	value={'FREE'}
+	label={
+		<Stack className={'tab-label-row'}>
+			<span>Free Board</span>
+			<span className={'tab-count'}>{freeCount}</span>
+		</Stack>
+	}
+	className={`tab-button ${searchCommunity.search.articleCategory == 'FREE' ? 'active' : ''}`}
+/>
+<Tab
+	value={'RECOMMEND'}
+	label={
+		<Stack className={'tab-label-row'}>
+			<span>Recommendation</span>
+			<span className={'tab-count'}>{recommendCount}</span>
+		</Stack>
+	}
+	className={`tab-button ${searchCommunity.search.articleCategory == 'RECOMMEND' ? 'active' : ''}`}
+/>
+<Tab
+	value={'NEWS'}
+	label={
+		<Stack className={'tab-label-row'}>
+			<span>News</span>
+			<span className={'tab-count'}>{newsCount}</span>
+		</Stack>
+	}
+	className={`tab-button ${searchCommunity.search.articleCategory == 'NEWS' ? 'active' : ''}`}
+/>
+<Tab
+	value={'HUMOR'}
+	label={
+		<Stack className={'tab-label-row'}>
+			<span>Humor</span>
+			<span className={'tab-count'}>{humorCount}</span>
+		</Stack>
+	}
+	className={`tab-button ${searchCommunity.search.articleCategory == 'HUMOR' ? 'active' : ''}`}
+/>
+```
+
+(`value`, `onChange={tabChangeHandler}` on the parent `TabList`, and every other prop stay exactly as-is — only the `label` content changes from a string to this small JSX row.)
+
+## `scss/pc/community/community.scss`
+
+Inside `.left-config`, update `.tab-button` to lay its label out as a row with the count pushed to the right, and add the count chip's own style:
+
+```scss
+.tab-button {
+	width: 100%;
+	height: 38px;
+	padding: 0 4px;
+	justify-content: flex-start;
+	align-items: center;
+	border-radius: 8px;
+	border: none;
+	margin-bottom: 2px;
+	color: #57564f;
+	font-family: $font;
+	font-size: 14px;
+	font-weight: 500;
+	text-align: left;
+
+	.MuiTab-wrapper {
+		width: 100%;
+	}
+
+	.tab-label-row {
+		width: 100%;
+		flex-direction: row;
+		align-items: center;
+		justify-content: space-between;
+
+		.tab-count {
+			color: #8e8c83;
+			font-family: $font;
+			font-size: 12.5px;
+			font-weight: 600;
+		}
+	}
+}
+.tab-button.active {
+	width: 100%;
+	height: 38px;
+	padding: 0 4px;
+	justify-content: flex-start;
+	align-items: center;
+	background-color: transparent;
+	color: #1c1b18;
+	font-weight: 700;
+	border-radius: 8px;
+	margin-bottom: 2px;
+	font-family: $font;
+	font-size: 14px;
+
+	.tab-label-row .tab-count {
+		color: #d2674c;
+		font-weight: 700;
+	}
+}
+```
+
+(If `.MuiTab-wrapper` doesn't end up being the right inner class for this MUI version, target whatever wrapping element MUI actually renders around the `label` content — the goal is simply that `.tab-label-row` stretches to the tab's full width so `justify-content: space-between` pushes the count to the right edge.)
+
+Verify after implementing: all 4 sidebar tabs now show their real, distinct post counts (matching whatever is actually in the database — not necessarily exactly "2, 2, 2, 1", that depends on current data) at all times regardless of which tab is active; switching tabs still re-fetches and displays the right articles via the existing `tabChangeHandler`/`searchCommunity` flow, unaffected by these new count queries; the title-box "{totalCount} posts" text still reflects the active tab's count via the original `boardArticlesData` query; pagination and like-handler behavior are unchanged; no new GraphQL query/mutation was defined — only the existing `GET_BOARD_ARTICLES` operation called 3 additional times with different category variables.

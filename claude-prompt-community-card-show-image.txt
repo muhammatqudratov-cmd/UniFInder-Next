@@ -1,0 +1,35 @@
+Context: in the earlier Community-card redesign (`claude-prompt-community-list-content-1to1.txt`), the post's `articleImage` (`<img className="card-img">` inside `.image-box`) was deliberately hidden via `display: none` because the original reference screenshot for that pass didn't show an image on the cards. The user now wants the post's image visible on the card again. The `<img>` element and its `imagePath` binding (`boardArticle?.articleImage ? ... : '/img/community/communityImg.png'`) already exist untouched in `libs/components/common/CommunityCard.tsx` — this is a CSS-only fix, no JSX/logic change needed.
+
+## `scss/pc/general.scss`
+
+Inside `.community-general-card-config`, replace:
+
+```scss
+.image-box {
+	display: none;
+}
+```
+
+with:
+
+```scss
+.image-box {
+	display: block;
+	width: 100%;
+	height: 180px;
+	border-radius: 12px;
+	overflow: hidden;
+	margin-bottom: 14px;
+
+	.card-img {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		display: block;
+	}
+}
+```
+
+This places the post's image as a rounded 180px-tall banner at the top of the card, above the `.tag-row` (category tag / PINNED badge), title, excerpt, divider, and footer — all of which stay exactly as currently implemented.
+
+Verify after implementing: every card now shows its post's actual `articleImage` (or the `/img/community/communityImg.png` fallback when an article has no image) as a rounded banner at the top, the rest of the card (tag row, title, excerpt, divider, avatar/author/date, view/like counts and their click handlers) is visually unchanged and still fully functional, and clicking anywhere on the card (including the image) still navigates to `/community/detail` via the existing `chooseArticleHandler`.
