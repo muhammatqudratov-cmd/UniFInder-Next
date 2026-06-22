@@ -1,0 +1,894 @@
+Context: this prompt supersedes the styling/markup from `claude-prompt-mypage-myprofile-claude-design.txt` and `claude-prompt-myprofile-fix-mismatch.txt`. Apply this prompt's version of the JSX/SCSS as the final state for `MyProfile.tsx`, `MyMenu.tsx`, `scss/pc/mypage/myProfile.scss` and `scss/pc/mypage/mypage.scss` — it is grounded in an exact reference screenshot the user provided (a refined "My Profile" mockup with a warm beige page background, boxed beige form inputs, a green "Active" status pill, a coral "↑ Upload" pill button, and plain right-aligned sidebar counts with no icons). No business logic changes anywhere in this prompt: every GraphQL query/mutation, every piece of React state, every handler (`uploadImage`, `updateUniversityHandler`, `doDisabledCheck`, `logoutHandler`) stays wired exactly as it is today — only JSX markup/copy that is purely presentational changes, plus one new piece of presentational-only logic explicitly called out in step 3 below (reusing data that already exists in `userVar`, not introducing a new query).
+
+Reference screenshot details (for grounding, read carefully):
+- Page background is a warm light beige, not white.
+- Sidebar and the main "My Profile" card are white cards sitting on that beige page.
+- Sidebar list items show no icons at all — just text, with the count (e.g. "4", "7") right-aligned in plain gray text, no pill background.
+- The active sidebar item ("My Profile") has a thin coral vertical bar on its left edge and coral/maroon bold text — no filled background behind it.
+- Top of the main card: "My Profile" bold heading + "Keep your details fresh and up to date." gray subtitle on the left; a green "● Active" pill badge on the right.
+- Below that: a beige (slightly darker than the white card, lighter than the page) rounded sub-box containing: a coral circular avatar with a centered coral person icon, "Profile photo" bold label + "JPG, JPEG or PNG · max 5MB." gray helper text, and a coral pill button "↑ Upload" on the far right.
+- Below the photo box: "USERNAME" / "PHONE" labels with boxed beige input fields (not underlined — filled boxes with a subtle border and rounded corners), then "ADDRESS" the same way, full width.
+- A thin divider line, then a bottom row: small gray "Saved to your public agent profile." caption on the left, and a black pill "Update Profile →" button on the right.
+
+The "Active" badge is the one new piece of UI: `userVar`'s `memberStatus` field already exists today (populated from the JWT in `libs/auth/index.ts`'s `updateUserInfo`, values like `'ACTIVE'`/`'BLOCKED'`/etc.) and is already read elsewhere in the app — this prompt just displays it here for the first time, it does not add a query or change what's stored. The "JPG, JPEG or PNG · max 5MB." text and "Saved to your public agent profile." caption are static copy/labels only (no real 5MB limit is enforced anywhere in `uploadImage` today, and nothing currently checks "public" visibility) — they are presentational captions copied from the reference design, not new validation logic.
+
+## `libs/components/mypage/MyProfile.tsx`
+
+1. Make sure this import is present (add if the previous fix-mismatch prompt wasn't applied yet):
+
+```tsx
+import PersonIcon from '@mui/icons-material/Person';
+```
+
+2. Replace the whole `return (...)` JSX block with:
+
+```tsx
+return (
+	<div id="my-profile-page">
+		<Stack className="main-title-box">
+			<Stack className="right-box">
+				<Typography className="main-title">My Profile</Typography>
+				<Typography className="sub-title">Keep your details fresh and up to date.</Typography>
+			</Stack>
+			<Stack className={`status-badge ${user?.memberStatus === 'ACTIVE' ? 'is-active' : 'is-inactive'}`}>
+				<span className="status-dot" />
+				<Typography>{user?.memberStatus === 'ACTIVE' ? 'Active' : user?.memberStatus || 'Unknown'}</Typography>
+			</Stack>
+		</Stack>
+		<Stack className="top-box">
+			<Stack className="photo-box">
+				<Stack className="image-box">
+					{updateData?.memberImage ? (
+						<img src={`${REACT_APP_API_URL}/${updateData?.memberImage}`} alt="" />
+					) : (
+						<PersonIcon sx={{ color: '#d2674c', fontSize: 28 }} />
+					)}
+				</Stack>
+				<Stack className="photo-info">
+					<Typography className="photo-title">Profile photo</Typography>
+					<Typography className="upload-text">JPG, JPEG or PNG · max 5MB.</Typography>
+				</Stack>
+				<input
+					type="file"
+					hidden
+					id="hidden-input"
+					onChange={uploadImage}
+					accept="image/jpg, image/jpeg, image/png"
+				/>
+				<label htmlFor="hidden-input" className="upload-btn">
+					<span>{'↑'}</span> Upload
+				</label>
+			</Stack>
+			<Stack className="small-input-box">
+				<Stack className="input-box">
+					<Typography className="title">Username</Typography>
+					<input
+						type="text"
+						placeholder="Your username"
+						value={updateData.memberNick}
+						onChange={({ target: { value } }) => setUpdateData({ ...updateData, memberNick: value })}
+					/>
+				</Stack>
+				<Stack className="input-box">
+					<Typography className="title">Phone</Typography>
+					<input
+						type="text"
+						placeholder="Your Phone"
+						value={updateData.memberPhone}
+						onChange={({ target: { value } }) => setUpdateData({ ...updateData, memberPhone: value })}
+					/>
+				</Stack>
+			</Stack>
+			<Stack className="address-box">
+				<Typography className="title">Address</Typography>
+				<input
+					type="text"
+					placeholder="Your address"
+					value={updateData.memberAddress}
+					onChange={({ target: { value } }) => setUpdateData({ ...updateData, memberAddress: value })}
+				/>
+			</Stack>
+			<Stack className="about-me-box">
+				<Typography className="saved-note">Saved to your public agent profile.</Typography>
+				<Button className="update-button" onClick={updateUniversityHandler} disabled={doDisabledCheck()}>
+					<Typography>Update Profile</Typography>
+					<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 13 13" fill="none">
+						<g clipPath="url(#clip0_7065_6985)">
+							<path
+								d="M12.6389 0H4.69446C4.49486 0 4.33334 0.161518 4.33334 0.361122C4.33334 0.560727 4.49486 0.722245 4.69446 0.722245H11.7672L0.105803 12.3836C-0.0352676 12.5247 -0.0352676 12.7532 0.105803 12.8942C0.176321 12.9647 0.268743 13 0.361131 13C0.453519 13 0.545907 12.9647 0.616459 12.8942L12.2778 1.23287V8.30558C12.2778 8.50518 12.4393 8.6667 12.6389 8.6667C12.8385 8.6667 13 8.50518 13 8.30558V0.361122C13 0.161518 12.8385 0 12.6389 0Z"
+								fill="white"
+							/>
+						</g>
+						<defs>
+							<clipPath id="clip0_7065_6985">
+								<rect width="13" height="13" fill="white" />
+							</clipPath>
+						</defs>
+					</svg>
+				</Button>
+			</Stack>
+		</Stack>
+	</div>
+);
+```
+
+(Everything referenced — `updateData`, `setUpdateData`, `user`, `uploadImage`, `updateUniversityHandler`, `doDisabledCheck` — is the exact same state/handlers already in this file; only markup, classNames and copy changed. The "Address" field's `.address-box` no longer needs a `.delete-box`/old leftover markup since none existed in the original either.)
+
+## `libs/components/mypage/MyMenu.tsx`
+
+No JSX changes needed beyond what `claude-prompt-myprofile-fix-mismatch.txt` already specified (the `PersonIcon` fallback for the sidebar avatar). If that prompt wasn't applied yet, apply it first. This prompt only adds SCSS changes for `MyMenu.tsx`'s existing markup (see `mypage.scss` below) — no further `.tsx` edits here.
+
+## `scss/pc/mypage/mypage.scss`
+
+Replace the file's contents with:
+
+```scss
+#pc-wrap {
+	#my-page {
+		background: #f3efe7;
+		.container {
+			.my-page {
+				position: relative;
+				width: 100%;
+				flex-direction: row;
+				gap: 25px;
+				padding-top: 96px;
+				.back-frame {
+					width: 1260px;
+					height: auto;
+					display: flex;
+					flex-direction: row;
+					margin: 60px 0 120px 0;
+					border-radius: 16px;
+					border: none;
+					background: transparent;
+					box-shadow: none;
+					.left-config {
+						position: relative;
+						padding: 24px 0;
+						width: 266px;
+						height: auto;
+						align-self: flex-start;
+						border-radius: 16px;
+						background: #ffffff;
+						border: 1px solid #ece7dc;
+						box-shadow: 0 2px 8px rgba(28, 27, 24, 0.04);
+						margin: 0 20px 0 0;
+						.profile {
+							margin-top: 0;
+							padding: 0 24px 20px;
+							border-bottom: 1px solid #ece7dc;
+							position: relative;
+							display: flex;
+							flex-direction: row;
+							align-items: center;
+							.profile-img {
+								width: 44px;
+								height: 44px;
+								border-radius: 50%;
+								background: #f6d2c2;
+								display: flex;
+								align-items: center;
+								justify-content: center;
+								flex-shrink: 0;
+								img {
+									width: 44px;
+									height: 44px;
+									border-radius: 50%;
+									object-fit: cover;
+								}
+							}
+							.user-info {
+								margin-left: 12px;
+								display: flex;
+								flex-direction: column;
+								gap: 2px;
+								.user-name {
+									color: #1c1b18;
+									font-family: $font;
+									font-size: 14.5px;
+									font-style: normal;
+									font-weight: 700;
+									line-height: normal;
+								}
+								.user-phone {
+									display: flex;
+									flex-direction: row;
+									align-items: center;
+									img {
+										display: none;
+									}
+									.p-number {
+										color: #8e8c83;
+										font-family: $font;
+										font-size: 12px;
+										font-weight: 500;
+									}
+								}
+								.view-list {
+									display: none;
+								}
+							}
+						}
+						.sections {
+							height: auto;
+							gap: 28px;
+							margin-top: 20px;
+							padding: 0 14px;
+							.section {
+								height: auto !important;
+								.title {
+									font-family: $font;
+									color: #8e8c83;
+									font-size: 11px;
+									font-style: normal;
+									font-weight: 700;
+									letter-spacing: 0.8px;
+									text-transform: uppercase;
+									line-height: 28px;
+									padding-left: 10px;
+								}
+								.sub-section {
+									width: 100%;
+									height: auto;
+									display: flex;
+									flex-direction: column;
+									align-items: stretch;
+									cursor: pointer;
+									padding: 0;
+									li {
+										height: auto;
+										margin-bottom: 2px;
+										border-radius: 0;
+										border-left: 2px solid transparent;
+										transition: border-color 0.15s ease;
+										&:hover {
+											background: #f8f6f1;
+										}
+									}
+									.focus {
+										height: auto;
+										background: transparent;
+										border-left: 2px solid #e8856a;
+										border-radius: 0;
+										&:hover {
+											background: transparent;
+										}
+										p {
+											font-size: 13.5px;
+											color: #d2674c;
+											font-weight: 700;
+										}
+									}
+									.flex-box {
+										display: flex;
+										align-items: center;
+										width: 100%;
+										padding: 9px 14px;
+										.com-icon {
+											display: none;
+										}
+										p {
+											font-size: 13.5px;
+										}
+										svg.com-icon {
+											display: none;
+										}
+										.nav-count {
+											margin-left: auto;
+											background: transparent;
+											color: #8e8c83;
+											font-family: $font;
+											font-size: 13px;
+											font-weight: 500;
+											padding: 0;
+											border-radius: 0;
+										}
+									}
+								}
+								img {
+									width: 15px;
+									height: 15px;
+								}
+								.sub-title {
+									margin-left: 0;
+									color: #57564f;
+									font-family: $font;
+									font-size: 13.5px;
+									font-style: normal;
+									font-weight: 500;
+									line-height: normal;
+								}
+							}
+						}
+					}
+					.main-config {
+						position: relative;
+						width: 936px;
+						margin-top: 0;
+						align-items: center;
+						gap: 109px;
+						.list-config {
+							display: flex;
+							width: 100%;
+							height: auto;
+							flex-direction: row;
+							flex-wrap: wrap;
+							gap: 22px;
+							.card-config {
+								width: 296px;
+								height: 413px;
+								margin-bottom: 7px;
+								border-radius: 16px;
+								background: #ffffff;
+								border: 1px solid #ece7dc;
+								box-shadow: 0 2px 8px rgba(28, 27, 24, 0.04);
+								.top {
+									position: relative;
+									width: 100%;
+									height: 240px;
+									img {
+										width: 100%;
+										height: 100%;
+										object-fit: contain;
+										border-radius: 16px 16px 0 0;
+									}
+									.top-badge {
+										position: absolute;
+										top: 20px;
+										left: 16px;
+										display: flex;
+										width: 80px;
+										height: 30px;
+										justify-content: center;
+										align-items: center;
+										border-radius: 6px;
+										padding: 6px 20px;
+										background: #e8856a;
+										color: #fff;
+										text-align: center;
+										font-family: $font;
+										font-size: 12px;
+										font-style: normal;
+										font-weight: 600;
+										line-height: normal;
+										img {
+											height: 16px;
+										}
+									}
+									.price-box {
+										position: absolute;
+										bottom: 20px;
+										left: 20px;
+										padding: 8px 15px;
+										align-items: center;
+										border-radius: 6px;
+										border: 1px solid #ece7dc;
+										background: #ffffff;
+										p {
+											color: #1c1b18;
+											font-family: $font;
+											font-size: 15px;
+											font-style: normal;
+											font-weight: 600;
+											line-height: normal;
+										}
+									}
+								}
+								.bottom {
+									width: 100%;
+									height: 100%;
+									padding: 20px 16px 10px 16px;
+									.name-address {
+										width: 100%;
+										height: 48px;
+										gap: 5px;
+										margin-bottom: 20px;
+										.name {
+											width: 100%;
+											height: 23px;
+											overflow: hidden;
+											p {
+												color: #1c1b18;
+												font-family: $font;
+												font-size: 15px;
+												font-style: normal;
+												font-weight: 600;
+												line-height: normal;
+												text-transform: capitalize;
+											}
+										}
+										.address {
+											width: 100%;
+											overflow: hidden;
+											p {
+												color: #8e8c83;
+												font-family: $font;
+												font-size: 13px;
+												font-style: normal;
+												font-weight: 400;
+												line-height: normal;
+											}
+										}
+									}
+									.options {
+										flex-direction: row;
+										width: 100%;
+										height: 20px;
+										gap: 20px;
+										margin-bottom: 10px;
+										.option {
+											flex-direction: row;
+											gap: 5px;
+											align-items: center;
+											p {
+												color: #1c1b18;
+												font-family: $font;
+												font-size: 13px;
+												font-style: normal;
+												font-weight: 400;
+												line-height: normal;
+											}
+										}
+									}
+									.divider {
+										width: 100%;
+										height: 1px;
+										background: #ece7dc;
+										margin-bottom: 17px;
+									}
+									.type-buttons {
+										flex-direction: row;
+										width: 100%;
+										justify-content: space-between;
+										align-items: center;
+										.type {
+											flex-direction: row;
+											align-items: center;
+											gap: 7px;
+											p {
+												color: #1c1b18;
+												font-family: $font;
+												font-style: normal;
+												line-height: normal;
+											}
+											.disabled-type {
+												color: #8e8c83;
+												font-family: $font;
+												font-style: normal;
+												line-height: normal;
+											}
+										}
+										.buttons {
+											flex-direction: row;
+											width: auto;
+											gap: 12px;
+											justify-content: center;
+											align-items: center;
+											padding-right: 10px;
+										}
+									}
+								}
+							}
+						}
+						.pagination-config {
+							width: 442px;
+							height: 86px;
+							align-items: center;
+							gap: 20px;
+							.pagination-box {
+								width: 100%;
+								align-items: center;
+							}
+							.total-result {
+								p {
+									color: #1c1b18;
+									text-align: center;
+									font-family: $font;
+									font-size: 24px;
+									font-style: normal;
+									font-weight: 275;
+									line-height: 26px;
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}
+```
+
+(The `svg.com-icon` / `.com-icon { display: none; }` rules hide the existing followers/followings inline `<svg>` icons and the `<img className="com-icon">` icons purely visually — their elements stay in the DOM untouched, no JSX removed, so the active/inactive black-vs-white icon-swap logic keeps working exactly as before, it's just invisible now to match the reference.)
+
+## `scss/pc/mypage/myProfile.scss`
+
+Replace the file's contents with:
+
+```scss
+#pc-wrap {
+	#my-page {
+		#my-profile-page {
+			width: 100%;
+			height: auto;
+			display: flex;
+			flex-direction: column;
+			gap: 8px;
+			.main-title-box {
+				width: auto;
+				height: auto;
+				flex-direction: row;
+				justify-content: space-between;
+				align-items: flex-start;
+				.right-box {
+					width: 315px;
+					.main-title {
+						color: #1c1b18;
+						font-family: $font;
+						font-size: 24px;
+						font-style: normal;
+						font-weight: 700;
+						line-height: normal;
+						letter-spacing: -0.3px;
+						text-transform: none;
+					}
+					.sub-title {
+						margin-top: 4px;
+						color: #8e8c83;
+						font-family: $font;
+						font-size: 13.5px;
+						font-style: normal;
+						font-weight: 400;
+						line-height: 22px;
+					}
+				}
+				.status-badge {
+					flex-direction: row;
+					align-items: center;
+					gap: 6px;
+					padding: 5px 14px;
+					border-radius: 999px;
+					&.is-active {
+						background: #e3f4e7;
+						.status-dot {
+							background: #3fa065;
+						}
+						p {
+							color: #3fa065;
+						}
+					}
+					&.is-inactive {
+						background: #f4f3ef;
+						.status-dot {
+							background: #8e8c83;
+						}
+						p {
+							color: #8e8c83;
+						}
+					}
+					.status-dot {
+						width: 6px;
+						height: 6px;
+						border-radius: 50%;
+					}
+					p {
+						font-family: $font;
+						font-size: 12.5px;
+						font-weight: 600;
+					}
+				}
+			}
+			.top-box {
+				width: 100%;
+				padding: 30px;
+				margin-top: 20px;
+				gap: 28px;
+				border-radius: 16px;
+				border: 1px solid #ece7dc;
+				background: #fff;
+				box-shadow: 0 2px 8px rgba(28, 27, 24, 0.04);
+				.photo-box {
+					flex-direction: row;
+					align-items: center;
+					gap: 18px;
+					padding: 18px 20px;
+					border-radius: 14px;
+					background: #f6f2ea;
+					border: 1px solid #ece7dc;
+					.image-box {
+						position: relative;
+						width: 56px;
+						height: 56px;
+						border-radius: 50%;
+						overflow: hidden;
+						background: #f6d2c2;
+						display: flex;
+						align-items: center;
+						justify-content: center;
+						flex-shrink: 0;
+						img {
+							width: 100%;
+							height: 100%;
+							object-fit: cover;
+						}
+					}
+					.photo-info {
+						gap: 3px;
+						flex: 1;
+						.photo-title {
+							color: #1c1b18;
+							font-family: $font;
+							font-size: 14.5px;
+							font-style: normal;
+							font-weight: 700;
+							line-height: normal;
+						}
+						.upload-text {
+							color: #8e8c83;
+							font-family: $font;
+							font-size: 12px;
+							font-style: normal;
+							font-weight: 400;
+							line-height: 20px;
+						}
+					}
+					.upload-btn {
+						display: flex;
+						flex-direction: row;
+						align-items: center;
+						gap: 6px;
+						padding: 9px 18px;
+						border-radius: 999px;
+						background-color: #e8856a;
+						cursor: pointer;
+						transition: background 0.15s ease;
+						white-space: nowrap;
+						color: #ffffff;
+						font-family: $font;
+						font-size: 13px;
+						font-weight: 600;
+						&:hover {
+							background-color: #d2674c;
+						}
+					}
+				}
+				.small-input-box {
+					width: 100%;
+					height: auto;
+					flex-direction: row;
+					flex-wrap: wrap;
+					gap: 30px;
+					.input-box {
+						width: 48%;
+						gap: 8px;
+						.title {
+							color: #8e8c83;
+							font-family: $font;
+							font-size: 11px;
+							font-style: normal;
+							font-weight: 700;
+							letter-spacing: 0.5px;
+							text-transform: uppercase;
+							line-height: normal;
+						}
+						input {
+							height: 46px;
+							outline: none;
+							padding: 0 16px;
+							border-radius: 10px;
+							border: 1px solid #ece7dc;
+							background: #f6f2ea;
+							font-family: $font;
+							font-size: 14px;
+							color: #1c1b18;
+							transition: border-color 0.15s ease;
+							&:focus {
+								border-color: #e8856a;
+							}
+							::placeholder {
+								color: #8e8c83;
+								font-family: $font;
+								font-size: 14px;
+								font-style: normal;
+								font-weight: 400;
+								line-height: 26px;
+							}
+						}
+					}
+				}
+				.address-box {
+					gap: 8px;
+					.title {
+						color: #8e8c83;
+						font-family: $font;
+						font-size: 11px;
+						font-style: normal;
+						font-weight: 700;
+						letter-spacing: 0.5px;
+						text-transform: uppercase;
+						line-height: normal;
+					}
+					input {
+						height: 46px;
+						outline: none;
+						padding: 0 16px;
+						border-radius: 10px;
+						border: 1px solid #ece7dc;
+						background: #f6f2ea;
+						font-family: $font;
+						font-size: 14px;
+						color: #1c1b18;
+						transition: border-color 0.15s ease;
+						&:focus {
+							border-color: #e8856a;
+						}
+						::placeholder {
+							color: #8e8c83;
+							font-family: $font;
+							font-style: normal;
+							font-weight: 400;
+							line-height: 26px;
+						}
+					}
+				}
+				.about-me-box {
+					flex-direction: row;
+					align-items: center;
+					justify-content: space-between;
+					padding-top: 18px;
+					border-top: 1px solid #ece7dc;
+					margin-top: 6px;
+					.saved-note {
+						color: #8e8c83;
+						font-family: $font;
+						font-size: 12.5px;
+						font-style: normal;
+						font-weight: 400;
+					}
+					.update-button {
+						display: flex;
+						width: 170px;
+						height: 42px;
+						justify-content: center;
+						align-items: center;
+						gap: 8px;
+						border-radius: 999px;
+						background-color: #1c1b18;
+						transition: background 0.15s ease;
+						&:hover {
+							background-color: #000000;
+						}
+						p {
+							color: #fff;
+							font-family: $font;
+							font-size: 13px;
+							font-style: normal;
+							font-weight: 600;
+							line-height: normal;
+						}
+					}
+					button:disabled {
+						background: #ece7dc;
+						p {
+							color: #8e8c83;
+						}
+					}
+				}
+			}
+			.bottom-box {
+				width: 100%;
+				padding: 30px;
+				gap: 25px;
+				border-radius: 16px;
+				border: 1px solid #ece7dc;
+				background: #fff;
+				box-shadow: 0 2px 8px rgba(28, 27, 24, 0.04);
+				.top-inner-box {
+					gap: 20px;
+					.title {
+						color: #1c1b18;
+						font-family: $font;
+						font-size: 15px;
+						font-style: normal;
+						font-weight: 600;
+						line-height: normal;
+					}
+					.old-password-box {
+						gap: 8px;
+						.title {
+							color: #8e8c83;
+							font-family: $font;
+							font-size: 11px;
+							font-style: normal;
+							font-weight: 700;
+							letter-spacing: 0.5px;
+							text-transform: uppercase;
+							line-height: normal;
+						}
+						input {
+							width: 50%;
+							height: 46px;
+							outline: none;
+							padding: 0 16px;
+							border-radius: 10px;
+							border: 1px solid #ece7dc;
+							background: #f6f2ea;
+							font-family: $font;
+							font-size: 14px;
+							color: #1c1b18;
+							::placeholder {
+								color: #8e8c83;
+								font-family: $font;
+								font-size: 14px;
+								font-style: normal;
+								font-weight: 400;
+								line-height: 26px;
+							}
+						}
+					}
+				}
+				.bottom-inner-box {
+					width: 100%;
+					flex-direction: row;
+					gap: 45px;
+					.new-password-box {
+						width: 100%;
+						gap: 8px;
+						.title {
+							color: #8e8c83;
+							font-family: $font;
+							font-size: 11px;
+							font-style: normal;
+							font-weight: 700;
+							letter-spacing: 0.5px;
+							text-transform: uppercase;
+							line-height: normal;
+						}
+						input {
+							height: 46px;
+							outline: none;
+							padding: 0 16px;
+							border-radius: 10px;
+							border: 1px solid #ece7dc;
+							background: #f6f2ea;
+							font-family: $font;
+							font-size: 14px;
+							color: #1c1b18;
+							::placeholder {
+								color: #8e8c83;
+								font-family: $font;
+								font-style: normal;
+								font-weight: 400;
+								line-height: 26px;
+							}
+						}
+					}
+				}
+				.change-password {
+					display: flex;
+					width: 170px;
+					height: 42px;
+					justify-content: center;
+					align-items: center;
+					gap: 8px;
+					align-self: flex-end;
+					margin-top: 18px;
+					border-radius: 999px;
+					background-color: #1c1b18;
+					p {
+						color: #fff;
+						font-family: $font;
+						font-size: 13px;
+						font-style: normal;
+						font-weight: 600;
+						line-height: normal;
+					}
+				}
+			}
+		}
+	}
+}
+```
+
+Verify after implementing: the page renders with the warm beige background and white cards exactly as in the reference; the sidebar shows no icons, plain right-aligned gray counts, and the active "My Profile" row shows only a thin coral left bar + coral bold text (no fill). The "Active"/other status pill at the top right of the main card reflects `user.memberStatus` from the real logged-in session (test by checking it shows green "Active" for a normal active account — if you can access a blocked test account, confirm the badge switches to the gray inactive style and shows that status text, with no other behavior change). The photo box shows the coral-icon avatar (or the real photo once uploaded — confirm `uploadImage` still successfully uploads and swaps the icon for the real photo exactly as before), and clicking "↑ Upload" still opens the file picker via the same hidden `<input id="hidden-input">`. Username/Phone/Address inputs still read from and write to `updateData` exactly as before (typing updates state, nothing else changes). "Update Profile →" stays disabled exactly when `doDisabledCheck()` returns true (any of nick/phone/address/image empty) and calls `updateUniversityHandler` unchanged when enabled, still showing the success alert and refreshing `userVar`/JWT on completion.

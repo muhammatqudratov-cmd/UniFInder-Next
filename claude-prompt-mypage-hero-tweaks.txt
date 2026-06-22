@@ -1,0 +1,136 @@
+Context: two small, visual-only tweaks to the MyPage hero added in the previous `claude-prompt-mypage-hero-redesign.txt` prompt. Edit only `libs/components/layout/LayoutBasic.tsx` and `scss/pc/main.scss`. No GraphQL/state/handler logic changes — this purely removes one label and adds entrance/count-up animation to the profile card, reusing the file's own existing `heroVisible` state and `CountUpStat` helper component (both already defined and already used by the other hero variants in this same file) rather than inventing anything new.
+
+## 1. Remove the "MY PAGE" eyebrow label
+
+In the `/mypage` JSX branch (inside `router.pathname === '/mypage' ? (...)`), delete this line entirely:
+
+```tsx
+<Stack className={'eyebrow plain'}>{t(memoizedValues.eyebrow!)}</Stack>
+```
+
+So `mypage-hero-text` starts directly with the heading:
+
+```tsx
+<Stack className={'mypage-hero-text'}>
+	<strong className={'mypage-heading'}>
+		Welcome to
+		<br />
+		your profile
+	</strong>
+	<span className={'underline-bar'} />
+	<p className={'mypage-lead'}>{t(memoizedValues.desc)}</p>
+</Stack>
+```
+
+(Leave `memoizedValues.eyebrow = 'MY PAGE'` itself untouched in the switch-case — it's harmless unused data, and removing it risks affecting the `eyebrow` variable's type/shape used by other routes' branches.)
+
+## 2. Animate the profile card on the right
+
+Reuse the file's existing `heroVisible` boolean (already toggled true/false on every route change via the existing `useEffect` a few lines above) to trigger a fade-in-up on mount, and reuse the existing `CountUpStat` component (already imported/defined at the top of this same file, already used by the `/university` and `/agent` stat rows) to animate the three numbers counting up instead of rendering static digits.
+
+Replace the `mypage-profile-card` block:
+
+```tsx
+<Stack className={'mypage-profile-card'}>
+	<Stack className={'mypage-profile-top'}>
+		<Stack className={'mypage-avatar'}>
+			{user?.memberImage ? (
+				<img src={`${REACT_APP_API_URL}/${user.memberImage}`} alt="" />
+			) : (
+				<PersonIcon />
+			)}
+		</Stack>
+		<Stack className={'mypage-profile-info'}>
+			<span className={'mypage-name'}>{user?.memberNick}</span>
+			<span className={'mypage-phone'}>{user?.memberPhone}</span>
+			{user?.memberType && <span className={'mypage-type-badge'}>{user.memberType}</span>}
+		</Stack>
+	</Stack>
+	<span className={'mypage-card-divider'} />
+	<Stack className={'mypage-stats-row'}>
+		<Stack className={'mypage-stat'}>
+			<strong>{user?.memberUniversities ?? 0}</strong>
+			<span>Listings</span>
+		</Stack>
+		<span className={'mypage-stat-divider'} />
+		<Stack className={'mypage-stat'}>
+			<strong>{(user as any)?.memberFollowers ?? 0}</strong>
+			<span>Followers</span>
+		</Stack>
+		<span className={'mypage-stat-divider'} />
+		<Stack className={'mypage-stat'}>
+			<strong>98%</strong>
+			<span>Response</span>
+		</Stack>
+	</Stack>
+</Stack>
+```
+
+with:
+
+```tsx
+<Stack className={`mypage-profile-card${heroVisible ? ' fade-in-up delay-1' : ''}`}>
+	<Stack className={'mypage-profile-top'}>
+		<Stack className={'mypage-avatar'}>
+			{user?.memberImage ? (
+				<img src={`${REACT_APP_API_URL}/${user.memberImage}`} alt="" />
+			) : (
+				<PersonIcon />
+			)}
+		</Stack>
+		<Stack className={'mypage-profile-info'}>
+			<span className={'mypage-name'}>{user?.memberNick}</span>
+			<span className={'mypage-phone'}>{user?.memberPhone}</span>
+			{user?.memberType && <span className={'mypage-type-badge'}>{user.memberType}</span>}
+		</Stack>
+	</Stack>
+	<span className={'mypage-card-divider'} />
+	<Stack className={'mypage-stats-row'}>
+		<Stack className={'mypage-stat'}>
+			<CountUpStat target={user?.memberUniversities ?? 0} suffix={''} decimals={0} duration={900} />
+			<span>Listings</span>
+		</Stack>
+		<span className={'mypage-stat-divider'} />
+		<Stack className={'mypage-stat'}>
+			<CountUpStat target={(user as any)?.memberFollowers ?? 0} suffix={''} decimals={0} duration={900} />
+			<span>Followers</span>
+		</Stack>
+		<span className={'mypage-stat-divider'} />
+		<Stack className={'mypage-stat'}>
+			<CountUpStat target={98} suffix={'%'} decimals={0} duration={900} />
+			<span>Response</span>
+		</Stack>
+	</Stack>
+</Stack>
+```
+
+Note: `CountUpStat` renders a `<strong>` internally (see its definition at the top of `LayoutBasic.tsx`), so this is a drop-in replacement for the old static `<strong>{...}</strong>` lines — the existing `.mypage-stat strong { ... }` SCSS selector still applies unchanged.
+
+## 3. `scss/pc/main.scss` — give the card a hover lift to match the new entrance animation
+
+Inside the existing `&.mypage-hero { ... }` block (added by the previous prompt), add a `transition` + `:hover` to `.mypage-profile-card`:
+
+```scss
+.mypage-profile-card {
+	position: relative;
+	z-index: 1;
+	width: 224px;
+	background: #ffffff;
+	border-radius: 16px;
+	border: 1px solid #e9e7e0;
+	box-shadow: 0 8px 24px rgba(28, 27, 24, 0.05);
+	padding: 18px 20px;
+	transition: transform 0.25s ease, box-shadow 0.25s ease;
+
+	&:hover {
+		transform: translateY(-4px);
+		box-shadow: 0 14px 32px rgba(28, 27, 24, 0.08);
+	}
+
+	// ...keep all existing nested rules (.mypage-profile-top, .mypage-card-divider, .mypage-stats-row, etc.) exactly as they are
+}
+```
+
+(The `.fade-in-up` / `.delay-1` classes and the `heroFadeUp` keyframe used above already exist in `scss/pc/main.scss` — no new keyframes needed.)
+
+Verify after implementing: visiting `/mypage` no longer shows the "MY PAGE" label above the heading; the profile card on the right fades up into place ~0.15s after the hero mounts (same timing as the plain-hero lead paragraph elsewhere); the Listings/Followers/Response numbers count up from 0 instead of appearing instantly; hovering the card lifts it slightly; all displayed values are still exactly `user?.memberUniversities`, `user?.memberFollowers`, and the static `98%` placeholder — no data source changed; every other route's hero is unaffected.

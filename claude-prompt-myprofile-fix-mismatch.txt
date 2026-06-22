@@ -1,0 +1,195 @@
+Context: follow-up correction. `claude-prompt-mypage-myprofile-claude-design.txt` was already applied — all the SCSS in `scss/pc/mypage/mypage.scss` and `scss/pc/mypage/myProfile.scss` from that prompt is correctly in place (verified by reading both files; matches the spec exactly: `.view-list` coral pill, `.focus` coral pill nav state, `.nav-count` badges, `.image-box` coral-tint circle, `.labeler p` coral underline, `.update-button` black pill with `button:disabled` gray state — all present).
+
+The remaining mismatch between the live result and the target reference screenshot is caused by three small leftovers that the previous prompt did not cover:
+
+1. Both avatar circles (`MyMenu.tsx`'s small sidebar avatar and `MyProfile.tsx`'s big photo-upload avatar) fall back to `<img src="/img/profile/defaultUser.svg">` when there is no real `memberImage`. That SVG file is a flat square graphic that fills the entire circle edge-to-edge via `object-fit: cover`, so it completely covers the `#fbede7` coral-tint background already set on `.image-box` / `.profile-img` — that's why the avatar still looks plain gray instead of coral. The fix is purely presentational: when there's no real image, render a centered MUI `PersonIcon` (colored coral) on the coral-tint circle instead of the flat SVG file — this is the exact same fallback pattern already used for the avatar in `libs/components/layout/LayoutBasic.tsx` (`import PersonIcon from '@mui/icons-material/Person';`), just reused here. No data/logic changes — `user?.memberImage` / `updateData?.memberImage` is still the only thing being checked.
+
+2. The upload link in `MyProfile.tsx` still says "Upload Profile Image" — the target design renames it to "Change photo" with a small upward-arrow glyph in front, matching the reference screenshot. Pure copy/markup change, same `<label htmlFor="hidden-input">` element, same `uploadImage` handler, nothing else changes.
+
+3. The "Update Profile" button appearing gray/disabled in the live screenshot is NOT a styling bug — `doDisabledCheck()` correctly disables it whenever `memberAddress` (or nick/phone/image) is still an empty string for that account, and the `button:disabled` gray style is intentionally showing that real, correct state. No change needed there; once the user fills in the missing field(s) the button will show its black pill state as designed.
+
+## `libs/components/mypage/MyMenu.tsx`
+
+1. Add the icon import (same import already used in `LayoutBasic.tsx`):
+
+```tsx
+import PersonIcon from '@mui/icons-material/Person';
+```
+
+2. Replace:
+
+```tsx
+<Box component={'div'} className={'profile-img'}>
+	<img
+		src={user?.memberImage ? `${REACT_APP_API_URL}/${user?.memberImage}` : '/img/profile/defaultUser.svg'}
+		alt={'member-photo'}
+	/>
+</Box>
+```
+
+with:
+
+```tsx
+<Box component={'div'} className={'profile-img'}>
+	{user?.memberImage ? (
+		<img src={`${REACT_APP_API_URL}/${user?.memberImage}`} alt={'member-photo'} />
+	) : (
+		<PersonIcon sx={{ color: '#d2674c', fontSize: 22 }} />
+	)}
+</Box>
+```
+
+## `scss/pc/mypage/mypage.scss`
+
+Replace the `.profile-img` rule:
+
+```scss
+.profile-img {
+	img {
+		width: 44px;
+		height: 44px;
+		border-radius: 50%;
+		object-fit: cover;
+	}
+}
+```
+
+with:
+
+```scss
+.profile-img {
+	width: 44px;
+	height: 44px;
+	border-radius: 50%;
+	background: #fbede7;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+	img {
+		width: 44px;
+		height: 44px;
+		border-radius: 50%;
+		object-fit: cover;
+	}
+}
+```
+
+## `libs/components/mypage/MyProfile.tsx`
+
+1. Add the same icon import:
+
+```tsx
+import PersonIcon from '@mui/icons-material/Person';
+```
+
+2. Replace:
+
+```tsx
+<Stack className="image-box">
+	<img
+		src={
+			updateData?.memberImage
+				? `${REACT_APP_API_URL}/${updateData?.memberImage}`
+				: `/img/profile/defaultUser.svg`
+		}
+		alt=""
+	/>
+</Stack>
+```
+
+with:
+
+```tsx
+<Stack className="image-box">
+	{updateData?.memberImage ? (
+		<img src={`${REACT_APP_API_URL}/${updateData?.memberImage}`} alt="" />
+	) : (
+		<PersonIcon sx={{ color: '#d2674c', fontSize: 28 }} />
+	)}
+</Stack>
+```
+
+3. Replace the upload label text:
+
+```tsx
+<label htmlFor="hidden-input" className="labeler">
+	<Typography>Upload Profile Image</Typography>
+</label>
+```
+
+with:
+
+```tsx
+<label htmlFor="hidden-input" className="labeler">
+	<Typography>{'↑'} Change photo</Typography>
+</label>
+```
+
+(Keep `onChange={uploadImage}` on the hidden `<input>` exactly as-is — only the visible label text/markup changes, the upload handler is untouched.)
+
+## `scss/pc/mypage/myProfile.scss`
+
+Replace the `.image-box` rule:
+
+```scss
+.image-box {
+	position: relative;
+	width: 64px;
+	height: 64px;
+	border-radius: 50%;
+	overflow: hidden;
+	background: #fbede7;
+	img {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+	}
+	.delete-box {
+		position: absolute;
+		top: 10px;
+		left: 10px;
+		width: 36px;
+		height: 32px;
+		background-color: #ffffff;
+		align-items: center;
+		justify-content: center;
+		border-radius: 12px;
+	}
+}
+```
+
+with:
+
+```scss
+.image-box {
+	position: relative;
+	width: 64px;
+	height: 64px;
+	border-radius: 50%;
+	overflow: hidden;
+	background: #fbede7;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+	img {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+	}
+	.delete-box {
+		position: absolute;
+		top: 10px;
+		left: 10px;
+		width: 36px;
+		height: 32px;
+		background-color: #ffffff;
+		align-items: center;
+		justify-content: center;
+		border-radius: 12px;
+	}
+}
+```
+
+Verify after implementing: with no `memberImage` set, both the sidebar avatar and the big profile-photo circle show a solid coral (#fbede7) circle with a centered coral person icon, matching the reference screenshot — and as soon as a real photo is uploaded, both go back to showing that actual photo exactly as before (no regression to the upload flow). The upload link reads "↑ Change photo" and still opens the same file picker and calls the same `uploadImage` handler on selection. The "Update Profile" button still correctly disables/enables based on `doDisabledCheck()` — confirm by filling in every field (username, phone, address, and uploading a photo) that the button turns into its solid black pill, fully clickable, and successfully calls `updateUniversityHandler` exactly as before.

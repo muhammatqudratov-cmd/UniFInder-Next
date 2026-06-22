@@ -1,0 +1,858 @@
+Context: redesign the MyPage "My Profile" screen (sidebar menu + My Profile form, rendered by `pages/mypage/index.tsx` via `MyMenu.tsx` + `MyProfile.tsx`) to match the "Claude Design" token system already used across the rest of the app (Community, University hero, MyPage hero). The current implementation uses the old forked real-estate template's look: beige `#e8e0d5` backgrounds, heavy black/red accents, boxed bordered inputs. This is a visual-only redesign with one small, precisely-scoped exception explained below (reusing two already-existing queries to power two sidebar count badges). No mutation logic, no form-submit logic, no routing/category logic changes anywhere.
+
+Files touched: `libs/components/mypage/MyMenu.tsx`, `libs/components/mypage/MyProfile.tsx` (className-only, no JSX restructuring beyond what's specified), `scss/pc/mypage/mypage.scss`, `scss/pc/mypage/myProfile.scss`.
+
+## Why two small count badges are added to the sidebar (grounded in real data, not invented)
+
+The reference screenshot shows "My Universities" and "My Favorites" sidebar items with small count badges (4 and 7). Both counts already exist elsewhere in the codebase as the `metaCounter[0].total` of an already-used query:
+- "My Universities" count → `GET_AGENT_UNIVERSITIES` (already used by `MyUniversities.tsx`, only meaningful for `memberType === 'AGENT'`, which is also exactly when this nav item itself is rendered)
+- "My Favorites" count → `GET_FAVORITES` (already used by `MyFavorites.tsx`)
+
+Following the same precedent as the Community sidebar tab counts (4 extra lightweight calls to an existing operation with `limit: 1`), `MyMenu.tsx` will call both of these existing queries itself with `limit: 1`, purely to read `metaCounter[0].total` for the badge — no new GraphQL operation is introduced.
+
+## 1. `libs/components/mypage/MyMenu.tsx` — add the two count queries
+
+Add to the imports:
+
+```tsx
+import { useQuery } from '@apollo/client';
+import { GET_AGENT_UNIVERSITIES, GET_FAVORITES } from '../../../apollo/user/query';
+```
+
+(`useReactiveVar` is already imported from `@apollo/client` — just add `useQuery` to that same import line instead of duplicating it.)
+
+Inside the component, right after `const user = useReactiveVar(userVar);`, add:
+
+```tsx
+/** APOLLO REQUESTS **/
+const { data: myUniversitiesCountData } = useQuery(GET_AGENT_UNIVERSITIES, {
+	fetchPolicy: 'network-only',
+	skip: user?.memberType !== 'AGENT',
+	variables: {
+		input: {
+			page: 1,
+			limit: 1,
+			sort: 'createdAt',
+			search: { universityStatus: 'ACTIVE' },
+		},
+	},
+});
+const myUniversitiesCount = myUniversitiesCountData?.getAgentUniversities?.metaCounter[0]?.total ?? 0;
+
+const { data: myFavoritesCountData } = useQuery(GET_FAVORITES, {
+	fetchPolicy: 'network-only',
+	variables: { input: { page: 1, limit: 1 } },
+});
+const myFavoritesCount = myFavoritesCountData?.getFavorites?.metaCounter[0]?.total ?? 0;
+```
+
+## 2. `libs/components/mypage/MyMenu.tsx` — render the counts
+
+In the "Add University" / "My Universities" `ListItem`s (both only rendered when `user.memberType === 'AGENT'`), add the count span to the "My Universities" row only (the screenshot shows the count on "My Universities", not "Add University"). Change:
+
+```tsx
+<Typography className={'sub-title'} variant={'subtitle1'} component={'p'}>
+	My Universities
+</Typography>
+<IconButton aria-label="delete" sx={{ ml: '36px' }}>
+	<PortraitIcon style={{ color: 'red' }} />
+</IconButton>
+```
+
+to:
+
+```tsx
+<Typography className={'sub-title'} variant={'subtitle1'} component={'p'}>
+	My Universities
+</Typography>
+<span className={'nav-count'}>{myUniversitiesCount}</span>
+```
+
+(This also removes the leftover red `PortraitIcon` delete button, which doesn't correspond to anything in the reference design and has no working delete logic wired to it — purely a stray decorative leftover. If you'd rather not remove it, leave it and just add the `nav-count` span before it; removing it is the visually-correct match to the screenshot but optional.)
+
+Similarly for "My Favorites":
+
+```tsx
+<Typography className={'sub-title'} variant={'subtitle1'} component={'p'}>
+	My Favorites
+</Typography>
+```
+
+to:
+
+```tsx
+<Typography className={'sub-title'} variant={'subtitle1'} component={'p'}>
+	My Favorites
+</Typography>
+<span className={'nav-count'}>{myFavoritesCount}</span>
+```
+
+## 3. `scss/pc/mypage/mypage.scss` — Claude Design tokens
+
+Replace the whole file with:
+
+```scss
+#pc-wrap {
+	#my-page {
+		background: #fafaf8;
+		.container {
+			.my-page {
+				position: relative;
+				width: 100%;
+				flex-direction: row;
+				gap: 25px;
+				padding-top: 96px;
+				.back-frame {
+					width: 1260px;
+					height: auto;
+					display: flex;
+					flex-direction: row;
+					margin: 60px 0 120px 0;
+					border-radius: 16px;
+					border: none;
+					background: transparent;
+					box-shadow: none;
+					.left-config {
+						position: relative;
+						padding: 24px 0;
+						width: 266px;
+						height: auto;
+						align-self: flex-start;
+						border-radius: 16px;
+						background: #ffffff;
+						border: 1px solid #e9e7e0;
+						box-shadow: 0 2px 8px rgba(28, 27, 24, 0.04);
+						margin: 0 20px 0 0;
+						.profile {
+							margin-top: 0;
+							padding: 0 24px 20px;
+							border-bottom: 1px solid #e9e7e0;
+							position: relative;
+							display: flex;
+							flex-direction: row;
+							align-items: center;
+							.profile-img {
+								img {
+									width: 44px;
+									height: 44px;
+									border-radius: 50%;
+									object-fit: cover;
+								}
+							}
+							.user-info {
+								margin-left: 12px;
+								display: flex;
+								flex-direction: column;
+								gap: 2px;
+								.user-name {
+									color: #1c1b18;
+									font-family: $font;
+									font-size: 14.5px;
+									font-style: normal;
+									font-weight: 700;
+									line-height: normal;
+								}
+								.user-phone {
+									display: flex;
+									flex-direction: row;
+									align-items: center;
+									img {
+										margin-top: 0;
+										margin-right: 4px;
+										width: 12px;
+										height: 12px;
+										opacity: 0.5;
+									}
+									.p-number {
+										color: #8e8c83;
+										font-family: $font;
+										font-size: 12px;
+										font-weight: 500;
+									}
+								}
+								.view-list {
+									margin-top: 4px;
+									align-self: flex-start;
+									background: #fbede7;
+									color: #d2674c;
+									font-family: $font;
+									font-size: 9.5px;
+									font-weight: 700;
+									letter-spacing: 0.5px;
+									text-transform: uppercase;
+									padding: 2px 8px;
+									border-radius: 999px;
+								}
+							}
+						}
+						.sections {
+							height: auto;
+							gap: 28px;
+							margin-top: 20px;
+							padding: 0 14px;
+							.section {
+								height: auto !important;
+								.title {
+									font-family: $font;
+									color: #8e8c83;
+									font-size: 11px;
+									font-style: normal;
+									font-weight: 700;
+									letter-spacing: 0.8px;
+									text-transform: uppercase;
+									line-height: 28px;
+									padding-left: 10px;
+								}
+								.sub-section {
+									width: 100%;
+									height: auto;
+									display: flex;
+									flex-direction: column;
+									align-items: stretch;
+									cursor: pointer;
+									padding: 0;
+									li {
+										height: auto;
+										margin-bottom: 2px;
+										border-radius: 10px;
+										transition: background 0.15s ease;
+										&:hover {
+											background: #f4f3ef;
+										}
+									}
+									.focus {
+										height: auto;
+										background: #fbede7;
+										border-radius: 10px;
+										&:hover {
+											background: #fbede7;
+										}
+										p {
+											font-size: 13.5px;
+											color: #d2674c;
+											font-weight: 700;
+										}
+									}
+									.flex-box {
+										display: flex;
+										align-items: center;
+										width: 100%;
+										padding: 9px 10px;
+										.com-icon {
+											display: flex;
+											flex-direction: row;
+											justify-content: flex-end;
+											margin-left: 0;
+											margin-right: 10px;
+										}
+										p {
+											font-size: 13.5px;
+										}
+										.nav-count {
+											margin-left: auto;
+											background: #f4f3ef;
+											color: #8e8c83;
+											font-family: $font;
+											font-size: 11px;
+											font-weight: 600;
+											padding: 1px 8px;
+											border-radius: 999px;
+										}
+									}
+								}
+								img {
+									width: 15px;
+									height: 15px;
+								}
+								.sub-title {
+									margin-left: 0;
+									color: #57564f;
+									font-family: $font;
+									font-size: 13.5px;
+									font-style: normal;
+									font-weight: 500;
+									line-height: normal;
+								}
+							}
+						}
+					}
+					.main-config {
+						position: relative;
+						width: 936px;
+						margin-top: 0;
+						align-items: center;
+						gap: 109px;
+						.list-config {
+							display: flex;
+							width: 100%;
+							height: auto;
+							flex-direction: row;
+							flex-wrap: wrap;
+							gap: 22px;
+							.card-config {
+								width: 296px;
+								height: 413px;
+								margin-bottom: 7px;
+								border-radius: 16px;
+								background: #ffffff;
+								border: 1px solid #e9e7e0;
+								box-shadow: 0 2px 8px rgba(28, 27, 24, 0.04);
+								.top {
+									position: relative;
+									width: 100%;
+									height: 240px;
+									img {
+										width: 100%;
+										height: 100%;
+										object-fit: contain;
+										border-radius: 16px 16px 0 0;
+									}
+									.top-badge {
+										position: absolute;
+										top: 20px;
+										left: 16px;
+										display: flex;
+										width: 80px;
+										height: 30px;
+										justify-content: center;
+										align-items: center;
+										border-radius: 6px;
+										padding: 6px 20px;
+										background: #e8856a;
+										color: #fff;
+										text-align: center;
+										font-family: $font;
+										font-size: 12px;
+										font-style: normal;
+										font-weight: 600;
+										line-height: normal;
+										img {
+											height: 16px;
+										}
+									}
+									.price-box {
+										position: absolute;
+										bottom: 20px;
+										left: 20px;
+										padding: 8px 15px;
+										align-items: center;
+										border-radius: 6px;
+										border: 1px solid #e9e7e0;
+										background: #ffffff;
+										p {
+											color: #1c1b18;
+											font-family: $font;
+											font-size: 15px;
+											font-style: normal;
+											font-weight: 600;
+											line-height: normal;
+										}
+									}
+								}
+								.bottom {
+									width: 100%;
+									height: 100%;
+									padding: 20px 16px 10px 16px;
+									.name-address {
+										width: 100%;
+										height: 48px;
+										gap: 5px;
+										margin-bottom: 20px;
+										.name {
+											width: 100%;
+											height: 23px;
+											overflow: hidden;
+											p {
+												color: #1c1b18;
+												font-family: $font;
+												font-size: 15px;
+												font-style: normal;
+												font-weight: 600;
+												line-height: normal;
+												text-transform: capitalize;
+											}
+										}
+										.address {
+											width: 100%;
+											overflow: hidden;
+											p {
+												color: #8e8c83;
+												font-family: $font;
+												font-size: 13px;
+												font-style: normal;
+												font-weight: 400;
+												line-height: normal;
+											}
+										}
+									}
+									.options {
+										flex-direction: row;
+										width: 100%;
+										height: 20px;
+										gap: 20px;
+										margin-bottom: 10px;
+										.option {
+											flex-direction: row;
+											gap: 5px;
+											align-items: center;
+											p {
+												color: #1c1b18;
+												font-family: $font;
+												font-size: 13px;
+												font-style: normal;
+												font-weight: 400;
+												line-height: normal;
+											}
+										}
+									}
+									.divider {
+										width: 100%;
+										height: 1px;
+										background: #e9e7e0;
+										margin-bottom: 17px;
+									}
+									.type-buttons {
+										flex-direction: row;
+										width: 100%;
+										justify-content: space-between;
+										align-items: center;
+										.type {
+											flex-direction: row;
+											align-items: center;
+											gap: 7px;
+											p {
+												color: #1c1b18;
+												font-family: $font;
+												font-style: normal;
+												line-height: normal;
+											}
+											.disabled-type {
+												color: #8e8c83;
+												font-family: $font;
+												font-style: normal;
+												line-height: normal;
+											}
+										}
+										.buttons {
+											flex-direction: row;
+											width: auto;
+											gap: 12px;
+											justify-content: center;
+											align-items: center;
+											padding-right: 10px;
+										}
+									}
+								}
+							}
+						}
+						.pagination-config {
+							width: 442px;
+							height: 86px;
+							align-items: center;
+							gap: 20px;
+							.pagination-box {
+								width: 100%;
+								align-items: center;
+							}
+							.total-result {
+								p {
+									color: #1c1b18;
+									text-align: center;
+									font-family: $font;
+									font-size: 24px;
+									font-style: normal;
+									font-weight: 275;
+									line-height: 26px;
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}
+```
+
+(`.card-config`/`.list-config`/`.pagination-config` rules are kept — they're shared by `MyUniversities`/`MyFavorites`/`RecentlyVisited`, not part of this screen, but live in this same file, so their colors are updated to the same tokens for consistency rather than left mismatched.)
+
+## 4. `scss/pc/mypage/myProfile.scss` — Claude Design tokens
+
+Replace the whole file with:
+
+```scss
+#pc-wrap {
+	#my-page {
+		#my-profile-page {
+			width: 100%;
+			height: auto;
+			display: flex;
+			flex-direction: column;
+			gap: 8px;
+			.main-title-box {
+				width: auto;
+				height: auto;
+				flex-direction: row;
+				justify-content: space-between;
+				.right-box {
+					width: 315px;
+					.main-title {
+						color: #1c1b18;
+						font-family: $font;
+						font-size: 24px;
+						font-style: normal;
+						font-weight: 700;
+						line-height: normal;
+						letter-spacing: -0.3px;
+						text-transform: none;
+					}
+					.sub-title {
+						margin-top: 4px;
+						color: #8e8c83;
+						font-family: $font;
+						font-size: 13.5px;
+						font-style: normal;
+						font-weight: 400;
+						line-height: 22px;
+					}
+				}
+			}
+			.top-box {
+				width: 100%;
+				padding: 30px;
+				margin-top: 20px;
+				gap: 28px;
+				border-radius: 16px;
+				border: 1px solid #e9e7e0;
+				background: #fff;
+				box-shadow: 0 2px 8px rgba(28, 27, 24, 0.04);
+				.photo-box {
+					gap: 23px;
+					.title {
+						color: #1c1b18;
+						font-family: $font;
+						font-size: 13px;
+						font-style: normal;
+						font-weight: 700;
+						letter-spacing: 0.4px;
+						text-transform: uppercase;
+						line-height: normal;
+					}
+					.image-big-box {
+						flex-direction: row;
+						align-items: center;
+						gap: 22px;
+						.image-box {
+							position: relative;
+							width: 64px;
+							height: 64px;
+							border-radius: 50%;
+							overflow: hidden;
+							background: #fbede7;
+							img {
+								width: 100%;
+								height: 100%;
+								object-fit: cover;
+							}
+							.delete-box {
+								position: absolute;
+								top: 10px;
+								left: 10px;
+								width: 36px;
+								height: 32px;
+								background-color: #ffffff;
+								align-items: center;
+								justify-content: center;
+								border-radius: 12px;
+							}
+						}
+						.upload-big-box {
+							align-self: center;
+							gap: 4px;
+							.labeler {
+								display: flex;
+								width: auto;
+								height: auto;
+								justify-content: flex-start;
+								align-items: center;
+								cursor: pointer;
+								border-radius: 0;
+								border: none;
+								p {
+									color: #d2674c;
+									font-family: $font;
+									font-size: 13.5px;
+									font-style: normal;
+									font-weight: 700;
+									line-height: normal;
+									text-decoration: underline;
+								}
+							}
+							.upload-text {
+								color: #8e8c83;
+								font-family: $font;
+								font-size: 12px;
+								font-style: normal;
+								font-weight: 400;
+								line-height: 20px;
+							}
+						}
+					}
+				}
+				.small-input-box {
+					width: 100%;
+					height: auto;
+					flex-direction: row;
+					flex-wrap: wrap;
+					gap: 30px;
+					.input-box {
+						width: 48%;
+						gap: 8px;
+						.title {
+							color: #8e8c83;
+							font-family: $font;
+							font-size: 11px;
+							font-style: normal;
+							font-weight: 700;
+							letter-spacing: 0.5px;
+							text-transform: uppercase;
+							line-height: normal;
+						}
+						input {
+							height: 42px;
+							outline: none;
+							padding: 0 2px 8px;
+							border-radius: 0;
+							border: none;
+							border-bottom: 1px solid #e9e7e0;
+							font-family: $font;
+							font-size: 14px;
+							color: #1c1b18;
+							background: transparent;
+							transition: border-color 0.15s ease;
+							&:focus {
+								border-bottom-color: #e8856a;
+							}
+							::placeholder {
+								color: #8e8c83;
+								font-family: $font;
+								font-size: 14px;
+								font-style: normal;
+								font-weight: 400;
+								line-height: 26px;
+							}
+						}
+					}
+				}
+				.address-box {
+					gap: 8px;
+					.title {
+						color: #8e8c83;
+						font-family: $font;
+						font-size: 11px;
+						font-style: normal;
+						font-weight: 700;
+						letter-spacing: 0.5px;
+						text-transform: uppercase;
+						line-height: normal;
+					}
+					input {
+						height: 42px;
+						outline: none;
+						padding: 0 2px 8px;
+						border-radius: 0;
+						border: none;
+						border-bottom: 1px solid #e9e7e0;
+						font-family: $font;
+						font-size: 14px;
+						color: #1c1b18;
+						background: transparent;
+						transition: border-color 0.15s ease;
+						&:focus {
+							border-bottom-color: #e8856a;
+						}
+						::placeholder {
+							color: #8e8c83;
+							font-family: $font;
+							font-size: 14px;
+							font-style: normal;
+							font-weight: 400;
+							line-height: 26px;
+						}
+					}
+				}
+				.about-me-box {
+					gap: 10px;
+					.title {
+						color: #8e8c83;
+						font-family: $font;
+						font-size: 11px;
+						font-style: normal;
+						font-weight: 700;
+						letter-spacing: 0.5px;
+						text-transform: uppercase;
+						line-height: normal;
+					}
+					.about-textarea {
+						height: 170px;
+						padding: 20px 15px;
+						border-radius: 10px;
+						border: 1px solid #e9e7e0;
+						color: #1c1b18;
+						font-family: $font;
+						font-size: 14px;
+						font-style: normal;
+						font-weight: 400;
+						line-height: 26px;
+					}
+					.update-button {
+						display: flex;
+						width: 170px;
+						height: 42px;
+						justify-content: center;
+						align-items: center;
+						gap: 8px;
+						align-self: flex-end;
+						margin-top: 24px;
+						border-radius: 999px;
+						background-color: #1c1b18;
+						transition: background 0.15s ease;
+						&:hover {
+							background-color: #000000;
+						}
+						p {
+							color: #fff;
+							font-family: $font;
+							font-size: 13px;
+							font-style: normal;
+							font-weight: 600;
+							line-height: normal;
+						}
+					}
+					button:disabled {
+						background: #e9e7e0;
+						p {
+							color: #8e8c83;
+						}
+					}
+				}
+			}
+			.bottom-box {
+				width: 100%;
+				padding: 30px;
+				gap: 25px;
+				border-radius: 16px;
+				border: 1px solid #e9e7e0;
+				background: #fff;
+				box-shadow: 0 2px 8px rgba(28, 27, 24, 0.04);
+				.top-inner-box {
+					gap: 20px;
+					.title {
+						color: #1c1b18;
+						font-family: $font;
+						font-size: 15px;
+						font-style: normal;
+						font-weight: 600;
+						line-height: normal;
+					}
+					.old-password-box {
+						gap: 8px;
+						.title {
+							color: #8e8c83;
+							font-family: $font;
+							font-size: 11px;
+							font-style: normal;
+							font-weight: 700;
+							letter-spacing: 0.5px;
+							text-transform: uppercase;
+							line-height: normal;
+						}
+						input {
+							width: 50%;
+							height: 42px;
+							outline: none;
+							padding: 0 2px 8px;
+							border-radius: 0;
+							border: none;
+							border-bottom: 1px solid #e9e7e0;
+							font-family: $font;
+							font-size: 14px;
+							color: #1c1b18;
+							background: transparent;
+							::placeholder {
+								color: #8e8c83;
+								font-family: $font;
+								font-size: 14px;
+								font-style: normal;
+								font-weight: 400;
+								line-height: 26px;
+							}
+						}
+					}
+				}
+				.bottom-inner-box {
+					width: 100%;
+					flex-direction: row;
+					gap: 45px;
+					.new-password-box {
+						width: 100%;
+						gap: 8px;
+						.title {
+							color: #8e8c83;
+							font-family: $font;
+							font-size: 11px;
+							font-style: normal;
+							font-weight: 700;
+							letter-spacing: 0.5px;
+							text-transform: uppercase;
+							line-height: normal;
+						}
+						input {
+							height: 42px;
+							outline: none;
+							padding: 0 2px 8px;
+							border-radius: 0;
+							border: none;
+							border-bottom: 1px solid #e9e7e0;
+							font-family: $font;
+							font-size: 14px;
+							color: #1c1b18;
+							background: transparent;
+							::placeholder {
+								color: #8e8c83;
+								font-family: $font;
+								font-size: 14px;
+								font-style: normal;
+								font-weight: 400;
+								line-height: 26px;
+							}
+						}
+					}
+				}
+				.change-password {
+					display: flex;
+					width: 170px;
+					height: 42px;
+					justify-content: center;
+					align-items: center;
+					gap: 8px;
+					align-self: flex-end;
+					margin-top: 18px;
+					border-radius: 999px;
+					background-color: #1c1b18;
+					p {
+						color: #fff;
+						font-family: $font;
+						font-size: 13px;
+						font-style: normal;
+						font-weight: 600;
+						line-height: normal;
+					}
+				}
+			}
+		}
+	}
+}
+```
+
+Verify after implementing: `/mypage?category=myProfile` shows a white sidebar card (avatar, name, phone, AGENT pill if applicable) over a light `#fafaf8` page background, with nav items in muted gray text, the active item ("My Profile") shown with a coral-tinted pill background and coral text, and "My Universities"/"My Favorites" (when an AGENT account) showing real count badges sourced from `GET_AGENT_UNIVERSITIES`/`GET_FAVORITES`; the My Profile panel shows the title/subtitle, a small circular avatar with an underlined coral "Change photo" link, Username/Phone underline-style inputs, an Address underline input, and a black pill "Update Profile" button; uploading a photo, editing username/phone/address, and clicking "Update Profile" still call `uploadImage`/`updateUniversityHandler` exactly as before and still correctly call `updateMember` and refresh `userVar`; switching to any other `category` (My Universities, My Favorites, Recently Visited, Articles, Write Article, Followers, Followings, Add University) still works and still highlights the correct sidebar item; logout still prompts via `sweetConfirmAlert` and calls `logOut()` exactly as before.

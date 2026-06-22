@@ -45,12 +45,12 @@ const HeaderFilter = (props: HeaderFilterProps) => {
 	const [searchFilter, setSearchFilter] = useState<UniversitiesInquiry>(initialInput);
 	const locationRef: any = useRef();
 	const typeRef: any = useRef();
-	const roomsRef: any = useRef();
+	const facultiesRef: any = useRef();
 	const router = useRouter();
 	const [openAdvancedFilter, setOpenAdvancedFilter] = useState(false);
 	const [openLocation, setOpenLocation] = useState(false);
 	const [openType, setOpenType] = useState(false);
-	const [openRooms, setOpenRooms] = useState(false);
+	const [openFaculties, setOpenFaculties] = useState(false);
 	const [universityLocation, setUniversityLocation] = useState<UniversityLocation[]>(Object.values(UniversityLocation));
 	const [universityType, setUniversityType] = useState<UniversityType[]>(Object.values(UniversityType));
 	const [yearCheck, setYearCheck] = useState({ start: 1970, end: thisYear });
@@ -67,8 +67,8 @@ const HeaderFilter = (props: HeaderFilterProps) => {
 				setOpenType(false);
 			}
 
-			if (!roomsRef?.current?.contains(event.target)) {
-				setOpenRooms(false);
+			if (!facultiesRef?.current?.contains(event.target)) {
+				setOpenFaculties(false);
 			}
 		};
 
@@ -82,31 +82,31 @@ const HeaderFilter = (props: HeaderFilterProps) => {
 	/** HANDLERS **/
 	const advancedFilterHandler = (status: boolean) => {
 		setOpenLocation(false);
-		setOpenRooms(false);
+		setOpenFaculties(false);
 		setOpenType(false);
 		setOpenAdvancedFilter(status);
 	};
 
 	const locationStateChangeHandler = () => {
 		setOpenLocation((prev) => !prev);
-		setOpenRooms(false);
+		setOpenFaculties(false);
 		setOpenType(false);
 	};
 
 	const typeStateChangeHandler = () => {
 		setOpenType((prev) => !prev);
 		setOpenLocation(false);
-		setOpenRooms(false);
+		setOpenFaculties(false);
 	};
 
-	const roomStateChangeHandler = () => {
-		setOpenRooms((prev) => !prev);
+	const facultiesStateChangeHandler = () => {
+		setOpenFaculties((prev) => !prev);
 		setOpenType(false);
 		setOpenLocation(false);
 	};
 
 	const disableAllStateHandler = () => {
-		setOpenRooms(false);
+		setOpenFaculties(false);
 		setOpenType(false);
 		setOpenLocation(false);
 	};
@@ -139,7 +139,7 @@ const HeaderFilter = (props: HeaderFilterProps) => {
 						typeList: [value],
 					},
 				});
-				roomStateChangeHandler();
+				facultiesStateChangeHandler();
 			} catch (err: any) {
 				console.log('ERROR, universityTypeSelectHandler:', err);
 			}
@@ -147,7 +147,7 @@ const HeaderFilter = (props: HeaderFilterProps) => {
 		[searchFilter],
 	);
 
-	const universityRoomSelectHandler = useCallback(
+	const universityFacultiesSelectHandler = useCallback(
 		async (value: any) => {
 			try {
 				setSearchFilter({
@@ -159,7 +159,7 @@ const HeaderFilter = (props: HeaderFilterProps) => {
 				});
 				disableAllStateHandler();
 			} catch (err: any) {
-				console.log('ERROR, universityRoomSelectHandler:', err);
+				console.log('ERROR, universityFacultiesSelectHandler:', err);
 			}
 		},
 		[searchFilter],
@@ -329,7 +329,7 @@ const HeaderFilter = (props: HeaderFilterProps) => {
 							<span> {searchFilter?.search?.typeList ? searchFilter?.search?.typeList[0] : t('University type')} </span>
 							<ExpandMoreIcon />
 						</Box>
-						<Box className={`box ${openRooms ? 'on' : ''}`} onClick={roomStateChangeHandler} sx={{ flex: 1, padding: '6px 10px', minWidth: 0 }}>
+						<Box className={`box ${openFaculties ? 'on' : ''}`} onClick={facultiesStateChangeHandler} sx={{ flex: 1, padding: '6px 10px', minWidth: 0 }}>
 							<span>
 								{searchFilter?.search?.facultiesList
 									? `${searchFilter?.search?.facultiesList[0]} ${
@@ -376,11 +376,11 @@ const HeaderFilter = (props: HeaderFilterProps) => {
 						})}
 					</div>
 
-					<div className={`filter-rooms ${openRooms ? 'on' : ''}`} ref={roomsRef}>
-						{[1, 2, 3, 4, 5].map((room: number) => {
+					<div className={`filter-rooms ${openFaculties ? 'on' : ''}`} ref={facultiesRef}>
+						{[1, 2, 3, 4, 5].map((faculty: number) => {
 							return (
-								<span onClick={() => universityRoomSelectHandler(room)} key={room}>
-									{room} facult{room > 1 ? 'ies' : 'y'}
+								<span onClick={() => universityFacultiesSelectHandler(faculty)} key={faculty}>
+									{faculty} facult{faculty > 1 ? 'ies' : 'y'}
 								</span>
 							);
 						})}

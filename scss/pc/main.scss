@@ -444,6 +444,16 @@ body::-webkit-scrollbar {
 		}
 	}
 
+	@keyframes mypageBlobFloat {
+		0%,
+		100% {
+			transform: translate(0, 0);
+		}
+		50% {
+			transform: translate(14px, -18px);
+		}
+	}
+
 	@keyframes marqueeScroll {
 		from {
 			transform: translateX(0);
@@ -844,6 +854,7 @@ body::-webkit-scrollbar {
 				border-radius: 50%;
 				border: 1px solid rgba(28, 27, 24, 0.06);
 				z-index: 0;
+				animation: mypageBlobFloat 8s ease-in-out infinite;
 			}
 			.mypage-blob-2 {
 				position: absolute;
@@ -854,6 +865,7 @@ body::-webkit-scrollbar {
 				border-radius: 50%;
 				background: rgba(232, 133, 106, 0.08);
 				z-index: 0;
+				animation: mypageBlobFloat 10s ease-in-out infinite reverse;
 			}
 
 			.mypage-hero-container {
@@ -865,14 +877,14 @@ body::-webkit-scrollbar {
 				padding: 0 5%;
 				flex-direction: row;
 				align-items: center;
-				justify-content: space-between;
+				justify-content: flex-start;
 			}
 
 			.mypage-hero-text {
 				display: flex;
 				flex-direction: column;
 				align-items: flex-start;
-				max-width: 480px;
+				max-width: 560px;
 
 				.eyebrow.plain {
 					color: #e8856a;
@@ -886,135 +898,25 @@ body::-webkit-scrollbar {
 				.mypage-heading {
 					color: #1c1b18;
 					font-family: $font;
-					font-size: 44px;
+					font-size: 54px;
 					font-weight: 800;
 					line-height: 1.15;
 					letter-spacing: -0.5px;
 				}
 				.underline-bar {
-					width: 56px;
+					width: 64px;
 					height: 3px;
 					background: #e8856a;
-					margin-top: 18px;
+					margin-top: 20px;
 					display: block;
 				}
 				.mypage-lead {
-					margin-top: 18px;
+					margin-top: 20px;
 					color: #57564f;
 					font-family: $font;
-					font-size: 15px;
+					font-size: 17px;
 					font-weight: 400;
 					line-height: 1.6;
-				}
-			}
-
-			.mypage-profile-card {
-				position: relative;
-				z-index: 1;
-				width: 224px;
-				background: #ffffff;
-				border-radius: 16px;
-				border: 1px solid #e9e7e0;
-				box-shadow: 0 8px 24px rgba(28, 27, 24, 0.05);
-				padding: 18px 20px;
-
-				.mypage-profile-top {
-					flex-direction: row;
-					align-items: center;
-					gap: 12px;
-
-					.mypage-avatar {
-						width: 44px;
-						height: 44px;
-						border-radius: 50%;
-						background: #fbede7;
-						display: flex;
-						align-items: center;
-						justify-content: center;
-						flex-shrink: 0;
-						overflow: hidden;
-
-						img {
-							width: 100%;
-							height: 100%;
-							object-fit: cover;
-						}
-						.MuiSvgIcon-root {
-							color: #e8856a;
-							font-size: 22px;
-						}
-					}
-
-					.mypage-profile-info {
-						display: flex;
-						flex-direction: column;
-						gap: 2px;
-
-						.mypage-name {
-							color: #1c1b18;
-							font-family: $font;
-							font-size: 14.5px;
-							font-weight: 700;
-						}
-						.mypage-phone {
-							color: #8e8c83;
-							font-family: $font;
-							font-size: 12px;
-							font-weight: 500;
-						}
-						.mypage-type-badge {
-							margin-top: 4px;
-							align-self: flex-start;
-							background: #fbede7;
-							color: #d2674c;
-							font-family: $font;
-							font-size: 10px;
-							font-weight: 700;
-							letter-spacing: 0.5px;
-							text-transform: uppercase;
-							padding: 2px 9px;
-							border-radius: 999px;
-						}
-					}
-				}
-
-				.mypage-card-divider {
-					display: block;
-					width: 100%;
-					height: 1px;
-					background: #e9e7e0;
-					margin: 16px 0 14px;
-				}
-
-				.mypage-stats-row {
-					flex-direction: row;
-					align-items: center;
-					justify-content: space-between;
-
-					.mypage-stat {
-						flex-direction: column;
-						align-items: center;
-						gap: 2px;
-
-						strong {
-							color: #1c1b18;
-							font-family: $font;
-							font-size: 17px;
-							font-weight: 700;
-						}
-						span {
-							color: #8e8c83;
-							font-family: $font;
-							font-size: 10.5px;
-							font-weight: 500;
-						}
-					}
-					.mypage-stat-divider {
-						width: 1px;
-						height: 26px;
-						background: #e9e7e0;
-						flex-shrink: 0;
-					}
 				}
 			}
 		}

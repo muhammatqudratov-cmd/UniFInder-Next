@@ -1,0 +1,87 @@
+Context: pure cosmetic identifier renaming, zero behavior change. In two files, a dropdown/filter that's actually about "faculties" still uses internal variable/handler names leftover from the original real-estate template this project was forked from (named "room" instead of "faculty"). The bound data field is already correct in both places (`universityFaculties` in `AddNewUniversity.tsx`, `facultiesList` in `HeaderFilter.tsx`) — only local variable names, state names, and handler names need renaming for clarity. Do NOT rename any GraphQL field, query/mutation, or the `facultiesList`/`universityFaculties` keys themselves — those are real schema fields and must stay exactly as-is. Also do NOT touch the separate, legitimately-named "room"/"bedroom" capacity filter further down in `HeaderFilter.tsx` (the `searchFilter?.search?.capacityList` / "bedrooms" section, roughly lines 420-440) — that one is unrelated and correctly named.
+
+## `libs/components/mypage/AddNewUniversity.tsx` (around lines 331-345)
+
+Replace:
+
+```tsx
+{[1, 2, 3, 4, 5].map((room: number) => (
+	<option value={`${room}`}>{room}</option>
+))}
+```
+
+with:
+
+```tsx
+{[1, 2, 3, 4, 5].map((faculty: number) => (
+	<option value={`${faculty}`}>{faculty}</option>
+))}
+```
+
+## `libs/components/homepage/HeaderFilter.tsx`
+
+Rename the following identifiers (all local to this file, no external references change):
+
+- `roomsRef` → `facultiesRef`
+- `openRooms` / `setOpenRooms` → `openFaculties` / `setOpenFaculties`
+- `roomStateChangeHandler` → `facultiesStateChangeHandler`
+- `universityRoomSelectHandler` → `universityFacultiesSelectHandler`
+- the `.map((room: number) => ...)` loop variable → `faculty`
+
+Concretely:
+
+```tsx
+const facultiesRef: any = useRef();
+// ...
+const [openFaculties, setOpenFaculties] = useState(false);
+// ...
+if (!facultiesRef?.current?.contains(event.target)) {
+	setOpenFaculties(false);
+}
+// ...
+setOpenFaculties(false); // (all other existing setOpenRooms(false) calls, renamed)
+
+const facultiesStateChangeHandler = () => {
+	setOpenFaculties((prev) => !prev);
+};
+
+const universityFacultiesSelectHandler = useCallback(
+	async (value: any) => {
+		try {
+			setSearchFilter({
+				...searchFilter,
+				search: {
+					...searchFilter.search,
+					facultiesList: [value],
+				},
+			});
+			disableAllStateHandler();
+		} catch (err: any) {
+			console.log('ERROR, universityFacultiesSelectHandler:', err);
+		}
+	},
+	[searchFilter],
+);
+```
+
+And in the JSX:
+
+```tsx
+<Box className={`box ${openFaculties ? 'on' : ''}`} onClick={facultiesStateChangeHandler} sx={{ flex: 1, padding: '6px 10px', minWidth: 0 }}>
+```
+
+```tsx
+<div className={`filter-rooms ${openFaculties ? 'on' : ''}`} ref={facultiesRef}>
+	{[1, 2, 3, 4, 5].map((faculty: number) => {
+		return (
+			<span onClick={() => universityFacultiesSelectHandler(faculty)} key={faculty}>
+				{faculty} facult{faculty > 1 ? 'ies' : 'y'}
+			</span>
+		);
+	})}
+</div>
+```
+
+Note: keep the `filter-rooms` CSS class name exactly as-is (do not rename it) — it's referenced by `scss/pc/main.scss` and `scss/pc/homepage/homepage.scss`, and renaming it would require touching those stylesheets for a purely cosmetic JS-side cleanup with no visual benefit. Only the variable/state/handler identifiers inside the `.tsx` files are being renamed here.
+
+Verify after implementing: the faculties dropdown in "Add New University" still opens, lets you pick 1-5, and saves into `insertUniversityData.universityFaculties` exactly as before; the faculties filter in the homepage header still opens/closes, still sets `searchFilter.search.facultiesList` to the selected value, and the search still triggers correctly; the unrelated "bedrooms"/capacity filter elsewhere in `HeaderFilter.tsx` is completely untouched; no TypeScript errors from the rename (all renamed identifiers are local to their file).

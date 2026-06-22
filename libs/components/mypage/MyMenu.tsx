@@ -3,10 +3,10 @@ import { useRouter } from 'next/router';
 import { Stack, Typography, Box, List, ListItem } from '@mui/material';
 import useDeviceDetect from '../../hooks/useDeviceDetect';
 import Link from 'next/link';
-import { useReactiveVar } from '@apollo/client';
+import { useQuery, useReactiveVar } from '@apollo/client';
 import { userVar } from '../../../apollo/store';
-import PortraitIcon from '@mui/icons-material/Portrait';
-import IconButton from '@mui/material/IconButton';
+import { GET_AGENT_UNIVERSITIES, GET_FAVORITES } from '../../../apollo/user/query';
+import PersonIcon from '@mui/icons-material/Person';
 import { REACT_APP_API_URL } from '../../config';
 import { logOut } from '../../auth';
 import { sweetConfirmAlert, sweetMixinErrorAlert } from '../../sweetAlert';
@@ -17,6 +17,27 @@ const MyMenu = () => {
 	const pathname = router.query.category ?? 'myProfile';
 	const category: any = router.query?.category ?? 'myProfile';
 	const user = useReactiveVar(userVar);
+
+	/** APOLLO REQUESTS **/
+	const { data: myUniversitiesCountData } = useQuery(GET_AGENT_UNIVERSITIES, {
+		fetchPolicy: 'network-only',
+		skip: user?.memberType !== 'AGENT',
+		variables: {
+			input: {
+				page: 1,
+				limit: 1,
+				sort: 'createdAt',
+				search: { universityStatus: 'ACTIVE' },
+			},
+		},
+	});
+	const myUniversitiesCount = myUniversitiesCountData?.getAgentUniversities?.metaCounter[0]?.total ?? 0;
+
+	const { data: myFavoritesCountData } = useQuery(GET_FAVORITES, {
+		fetchPolicy: 'network-only',
+		variables: { input: { page: 1, limit: 1 } },
+	});
+	const myFavoritesCount = myFavoritesCountData?.myFavorites?.metaCounter[0]?.total ?? 0;
 
 	/** HANDLERS **/
 	const logoutHandler = async () => {
@@ -34,10 +55,11 @@ const MyMenu = () => {
 			<Stack width={'100%'} padding={'30px 24px'}>
 				<Stack className={'profile'}>
 					<Box component={'div'} className={'profile-img'}>
-						<img
-							src={user?.memberImage ? `${REACT_APP_API_URL}/${user?.memberImage}` : '/img/profile/defaultUser.svg'}
-							alt={'member-photo'}
-						/>
+						{user?.memberImage ? (
+							<img src={`${REACT_APP_API_URL}/${user?.memberImage}`} alt={'member-photo'} />
+						) : (
+							<PersonIcon sx={{ color: '#d2674c', fontSize: 22 }} />
+						)}
 					</Box>
 					<Stack className={'user-info'}>
 						<Typography className={'user-name'}>{user?.memberNick}</Typography>
@@ -79,9 +101,6 @@ const MyMenu = () => {
 												<Typography className={'sub-title'} variant={'subtitle1'} component={'p'}>
 													Add University
 												</Typography>
-												<IconButton aria-label="delete" sx={{ ml: '40px' }}>
-													<PortraitIcon style={{ color: 'red' }} />
-												</IconButton>
 											</div>
 										</Link>
 									</ListItem>
@@ -102,9 +121,7 @@ const MyMenu = () => {
 												<Typography className={'sub-title'} variant={'subtitle1'} component={'p'}>
 													My Universities
 												</Typography>
-												<IconButton aria-label="delete" sx={{ ml: '36px' }}>
-													<PortraitIcon style={{ color: 'red' }} />
-												</IconButton>
+												<span className={'nav-count'}>{myUniversitiesCount}</span>
 											</div>
 										</Link>
 									</ListItem>
@@ -128,6 +145,7 @@ const MyMenu = () => {
 										<Typography className={'sub-title'} variant={'subtitle1'} component={'p'}>
 											My Favorites
 										</Typography>
+										<span className={'nav-count'}>{myFavoritesCount}</span>
 									</div>
 								</Link>
 							</ListItem>

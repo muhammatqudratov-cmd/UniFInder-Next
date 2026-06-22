@@ -1,0 +1,102 @@
+Context: continues the MyPage hero work from `claude-prompt-mypage-hero-redesign.txt` and `claude-prompt-mypage-hero-tweaks.txt`. Two changes, both visual-only, both inside `libs/components/layout/LayoutBasic.tsx` and `scss/pc/main.scss`:
+1. Remove the white agent/profile info card on the right (name, phone, AGENT badge, Listings/Followers/Response stats) entirely.
+2. Animate the decorative background circles instead, so the hero isn't static once the card is gone.
+
+No GraphQL/state/handler logic changes — this only removes JSX that displayed already-fetched `user` fields (the data itself is untouched elsewhere in the app) and adds a CSS keyframe animation to two purely decorative `Stack`s that already exist.
+
+## 1. `libs/components/layout/LayoutBasic.tsx` — remove the profile card
+
+In the `/mypage` JSX branch, delete the entire `mypage-profile-card` block (including the `CountUpStat` usages added by the previous tweak prompt):
+
+```tsx
+<Stack className={`mypage-profile-card${heroVisible ? ' fade-in-up delay-1' : ''}`}>
+	...
+</Stack>
+```
+
+So the branch becomes just:
+
+```tsx
+) : router.pathname === '/mypage' ? (
+	<Stack className={'container mypage-hero-container'}>
+		<Stack className={'mypage-blob-1'} />
+		<Stack className={'mypage-blob-2'} />
+		<Stack className={'mypage-hero-text'}>
+			<strong className={'mypage-heading'}>
+				Welcome to
+				<br />
+				your profile
+			</strong>
+			<span className={'underline-bar'} />
+			<p className={'mypage-lead'}>{t(memoizedValues.desc)}</p>
+		</Stack>
+	</Stack>
+) : (
+```
+
+(`PersonIcon` and `REACT_APP_API_URL` imports may now be unused if nothing else in this file uses them — leave the imports in place regardless, removing imports is out of scope for this visual-only change and risks an unrelated build error if something else relies on them.)
+
+## 2. `scss/pc/main.scss` — center the text now that the card is gone, animate the blobs
+
+Inside the existing `&.mypage-hero { ... }` block:
+
+a) Update `.mypage-hero-container` so the now-single child is centered instead of space-between:
+
+```scss
+.mypage-hero-container {
+	position: relative;
+	z-index: 1;
+	width: 100%;
+	max-width: 1200px;
+	margin: 0 auto;
+	padding: 0 5%;
+	flex-direction: row;
+	align-items: center;
+	justify-content: center;
+}
+```
+
+b) Give the two blobs a slow floating animation:
+
+```scss
+.mypage-blob-1 {
+	position: absolute;
+	top: -60px;
+	left: 4%;
+	width: 320px;
+	height: 320px;
+	border-radius: 50%;
+	border: 1px solid rgba(28, 27, 24, 0.06);
+	z-index: 0;
+	animation: mypageBlobFloat 8s ease-in-out infinite;
+}
+.mypage-blob-2 {
+	position: absolute;
+	bottom: -100px;
+	left: 28%;
+	width: 260px;
+	height: 260px;
+	border-radius: 50%;
+	background: rgba(232, 133, 106, 0.08);
+	z-index: 0;
+	animation: mypageBlobFloat 10s ease-in-out infinite reverse;
+}
+```
+
+c) Remove the now-unused `.mypage-profile-card` rule and all its nested selectors (`.mypage-profile-top`, `.mypage-avatar`, `.mypage-profile-info`, `.mypage-name`, `.mypage-phone`, `.mypage-type-badge`, `.mypage-card-divider`, `.mypage-stats-row`, `.mypage-stat`, `.mypage-stat-divider`) — they have no remaining JSX target after step 1.
+
+d) Add the new keyframe as a sibling of the file's other top-level `@keyframes` blocks (e.g. next to `@keyframes heroFadeUp`):
+
+```scss
+@keyframes mypageBlobFloat {
+	0%,
+	100% {
+		transform: translate(0, 0);
+	}
+	50% {
+		transform: translate(14px, -18px);
+	}
+}
+```
+
+Verify after implementing: visiting `/mypage` no longer shows the white Marco/phone/AGENT/stats card on the right; the heading + lead text block is now centered in the hero; the two background circles drift slowly and continuously instead of sitting static; no console/TypeScript errors from the removed JSX block; every other route's hero (`/agent`, `/university`, `/community`, plain pages) is visually unchanged; switching the `category` query param on `/mypage` still correctly swaps the page content below the hero exactly as before.

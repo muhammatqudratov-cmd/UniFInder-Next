@@ -321,47 +321,13 @@ const withLayoutBasic = (Component: any) => {
 									<Stack className={'mypage-blob-1'} />
 									<Stack className={'mypage-blob-2'} />
 									<Stack className={'mypage-hero-text'}>
-										<Stack className={'eyebrow plain'}>{t(memoizedValues.eyebrow!)}</Stack>
-										<strong className={'mypage-heading'}>
+										<strong className={`mypage-heading${heroVisible ? ' fade-in-up' : ''}`}>
 											Welcome to
 											<br />
 											your profile
 										</strong>
 										<span className={'underline-bar'} />
-										<p className={'mypage-lead'}>{t(memoizedValues.desc)}</p>
-									</Stack>
-									<Stack className={'mypage-profile-card'}>
-										<Stack className={'mypage-profile-top'}>
-											<Stack className={'mypage-avatar'}>
-												{user?.memberImage ? (
-													<img src={`${REACT_APP_API_URL}/${user.memberImage}`} alt="" />
-												) : (
-													<PersonIcon />
-												)}
-											</Stack>
-											<Stack className={'mypage-profile-info'}>
-												<span className={'mypage-name'}>{user?.memberNick}</span>
-												<span className={'mypage-phone'}>{user?.memberPhone}</span>
-												{user?.memberType && <span className={'mypage-type-badge'}>{user.memberType}</span>}
-											</Stack>
-										</Stack>
-										<span className={'mypage-card-divider'} />
-										<Stack className={'mypage-stats-row'}>
-											<Stack className={'mypage-stat'}>
-												<strong>{user?.memberUniversities ?? 0}</strong>
-												<span>Listings</span>
-											</Stack>
-											<span className={'mypage-stat-divider'} />
-											<Stack className={'mypage-stat'}>
-												<strong>{(user as any)?.memberFollowers ?? 0}</strong>
-												<span>Followers</span>
-											</Stack>
-											<span className={'mypage-stat-divider'} />
-											<Stack className={'mypage-stat'}>
-												<strong>98%</strong>
-												<span>Response</span>
-											</Stack>
-										</Stack>
+										<p className={`mypage-lead${heroVisible ? ' fade-in-up delay-1' : ''}`}>{t(memoizedValues.desc)}</p>
 									</Stack>
 								</Stack>
 							) : (

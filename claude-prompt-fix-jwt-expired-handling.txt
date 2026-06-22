@@ -1,0 +1,71 @@
+Context: bug fix, not a visual change. When the access token expires, the backend (jsonwebtoken library) rejects every GraphQL request with the raw error message `"jwt expired"`. Currently `apollo/client.ts`'s `errorLink` shows every GraphQL error message verbatim via `sweetErrorAlert(message)` (unless the message contains the word "input") — so the user just sees a raw, confusing "jwt expired" popup, repeatedly, on every request, forever, because there's no token-refresh or auto-logout logic at all. (`tokenRefreshLink`'s `isTokenValidOrUndefined` always returns `true` and `fetchAccessToken` always returns `null`, so it never actually refreshes anything — this prompt does not touch that token-refresh link; it only adds a graceful fallback for when a request fails specifically because the token already expired.)
+
+Fix: when the GraphQL error message is `"jwt expired"` (or `"invalid token"`/`"invalid signature"`, the other common jsonwebtoken rejection messages for a bad/expired token), show a friendly "session expired" message instead of the raw one, then log the user out and send them to the login page — reusing the app's existing `logOut()` function from `libs/auth/index.ts` (already used by `MyMenu.tsx`'s logout button), which already clears `accessToken` from localStorage and resets `userVar`. Do not modify `logOut()` itself, do not modify `tokenRefreshLink`, do not change any query/mutation.
+
+## `apollo/client.ts`
+
+1. Add `logOut` to the existing auth import (this file already imports from `libs/auth`, and `libs/auth/index.ts` already imports `initializeApollo` from this same file — that circular relationship already exists today and already works; this just adds one more named export off the same import):
+
+```ts
+import { getJwtToken, logOut } from '../libs/auth';
+```
+
+2. Add the friendly-alert helper to the existing sweetAlert import:
+
+```ts
+import { sweetErrorAlert, sweetMixinErrorAlert } from '../libs/sweetAlert';
+```
+
+3. Replace the `errorLink` definition:
+
+```ts
+// Error handling qilish jarayoni
+const errorLink = onError(({ graphQLErrors, networkError, response }) => {
+	if (graphQLErrors) {
+		graphQLErrors.map(({ message, locations, path, extensions }) => {
+			console.log(`[GraphQL error]: Message: ${message}, Location: ${locations}, Path: ${path}`);
+			if (!message.includes('input')) sweetErrorAlert(message);
+		});
+	}
+	if (networkError) console.log(`[Network error]: ${networkError}`);
+	// @ts-ignore
+	if (networkError?.statusCode === 401) {
+	}
+});
+```
+
+with:
+
+```ts
+const SESSION_EXPIRED_MESSAGES = ['jwt expired', 'invalid token', 'invalid signature', 'jwt malformed'];
+
+// Error handling qilish jarayoni
+const errorLink = onError(({ graphQLErrors, networkError, response }) => {
+	if (graphQLErrors) {
+		const sessionExpired = graphQLErrors.some(({ message }) =>
+			SESSION_EXPIRED_MESSAGES.includes((message ?? '').toLowerCase()),
+		);
+
+		if (sessionExpired) {
+			console.log('[GraphQL error]: session expired, logging out');
+			sweetMixinErrorAlert('Your session has expired. Please log in again.').then(() => {
+				logOut();
+			});
+			return;
+		}
+
+		graphQLErrors.map(({ message, locations, path, extensions }) => {
+			console.log(`[GraphQL error]: Message: ${message}, Location: ${locations}, Path: ${path}`);
+			if (!message.includes('input')) sweetErrorAlert(message);
+		});
+	}
+	if (networkError) console.log(`[Network error]: ${networkError}`);
+	// @ts-ignore
+	if (networkError?.statusCode === 401) {
+	}
+});
+```
+
+Note: `logOut()` (in `libs/auth/index.ts`) already does `window.location.reload()` after clearing storage/`userVar` — a full reload with no token will naturally land the user back on a logged-out state, and every page that already guards itself with `if (!user._id) router.push('/')` (e.g. `pages/mypage/index.tsx`) will already redirect correctly once `userVar` is empty. No new redirect logic needs to be added anywhere else.
+
+Verify after implementing: with a valid session, the app behaves exactly as before (no change to any successful or non-auth-related error). Manually expiring/clearing the token's validity (e.g. waiting out its expiry, or temporarily editing the stored token in devtools to corrupt it) and then triggering any GraphQL request shows a single friendly "Your session has expired. Please log in again." popup instead of the raw "jwt expired" text, then logs the user out and reloads to a logged-out state; all other GraphQL error messages (e.g. validation errors, "Definer: login and password do not match", etc.) still show exactly as before, unaffected by this change.

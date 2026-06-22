@@ -339,8 +339,8 @@ const AddUniversity = ({ initialValues, ...props }: any) => {
 										<option disabled={true} selected={true} value={'select'}>
 											Select
 										</option>
-										{[1, 2, 3, 4, 5].map((room: number) => (
-											<option value={`${room}`}>{room}</option>
+										{[1, 2, 3, 4, 5].map((faculty: number) => (
+											<option value={`${faculty}`}>{faculty}</option>
 										))}
 									</select>
 									<div className={'divider'}></div>

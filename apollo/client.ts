@@ -4,9 +4,9 @@ import createUploadLink from 'apollo-upload-client/public/createUploadLink.js';
 import { WebSocketLink } from '@apollo/client/link/ws';
 import { getMainDefinition } from '@apollo/client/utilities';
 import { onError } from '@apollo/client/link/error';
-import { getJwtToken } from '../libs/auth';
+import { getJwtToken, logOut } from '../libs/auth';
 import { TokenRefreshLink } from 'apollo-link-token-refresh';
-import { sweetErrorAlert } from '../libs/sweetAlert';
+import { sweetErrorAlert, sweetMixinErrorAlert } from '../libs/sweetAlert';
 import { socketVar } from './store';
 let apolloClient: ApolloClient<NormalizedCacheObject>;
 
@@ -90,9 +90,23 @@ function createIsomorphicLink() {
 			webSocketImpl: LoggingWebSocket,
 		});
 
+		const SESSION_EXPIRED_MESSAGES = ['jwt expired', 'invalid token', 'invalid signature', 'jwt malformed'];
+
 		// Error handling qilish jarayoni
 		const errorLink = onError(({ graphQLErrors, networkError, response }) => {
 			if (graphQLErrors) {
+				const sessionExpired = graphQLErrors.some(({ message }) =>
+					SESSION_EXPIRED_MESSAGES.includes((message ?? '').toLowerCase()),
+				);
+
+				if (sessionExpired) {
+					console.log('[GraphQL error]: session expired, logging out');
+					sweetMixinErrorAlert('Your session has expired. Please log in again.').then(() => {
+						logOut();
+					});
+					return;
+				}
+
 				graphQLErrors.map(({ message, locations, path, extensions }) => {
 					console.log(`[GraphQL error]: Message: ${message}, Location: ${locations}, Path: ${path}`);
 					if (!message.includes('input')) sweetErrorAlert(message);

@@ -1,0 +1,141 @@
+Context: small correction to the MyPage hero from `claude-prompt-mypage-hero-remove-card-animate-bg.txt`. After removing the profile card, that prompt centered the remaining text block (`justify-content: center` on `.mypage-hero-container`) — revert that so the text stays left-aligned like before, increase its size slightly, and add an entrance animation to the heading/lead text. Visual-only: `scss/pc/main.scss` plus one small className addition in `libs/components/layout/LayoutBasic.tsx` (no state/logic change — it reuses the `heroVisible` boolean and the `.fade-in-up`/`.delay-1` classes + `heroFadeUp` keyframe that already exist in this file/stylesheet and are already used by the plain-hero branch and the previous mypage-profile-card tweak).
+
+## 1. Revert `.mypage-hero-container` alignment
+
+Change:
+
+```scss
+.mypage-hero-container {
+	position: relative;
+	z-index: 1;
+	width: 100%;
+	max-width: 1200px;
+	margin: 0 auto;
+	padding: 0 5%;
+	flex-direction: row;
+	align-items: center;
+	justify-content: center;
+}
+```
+
+back to:
+
+```scss
+.mypage-hero-container {
+	position: relative;
+	z-index: 1;
+	width: 100%;
+	max-width: 1200px;
+	margin: 0 auto;
+	padding: 0 5%;
+	flex-direction: row;
+	align-items: center;
+	justify-content: flex-start;
+}
+```
+
+## 2. Increase text size in `.mypage-hero-text`
+
+Change:
+
+```scss
+.mypage-hero-text {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	max-width: 480px;
+
+	.mypage-heading {
+		color: #1c1b18;
+		font-family: $font;
+		font-size: 44px;
+		font-weight: 800;
+		line-height: 1.15;
+		letter-spacing: -0.5px;
+	}
+	.underline-bar {
+		width: 56px;
+		height: 3px;
+		background: #e8856a;
+		margin-top: 18px;
+		display: block;
+	}
+	.mypage-lead {
+		margin-top: 18px;
+		color: #57564f;
+		font-family: $font;
+		font-size: 15px;
+		font-weight: 400;
+		line-height: 1.6;
+	}
+}
+```
+
+to:
+
+```scss
+.mypage-hero-text {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	max-width: 560px;
+
+	.mypage-heading {
+		color: #1c1b18;
+		font-family: $font;
+		font-size: 54px;
+		font-weight: 800;
+		line-height: 1.15;
+		letter-spacing: -0.5px;
+	}
+	.underline-bar {
+		width: 64px;
+		height: 3px;
+		background: #e8856a;
+		margin-top: 20px;
+		display: block;
+	}
+	.mypage-lead {
+		margin-top: 20px;
+		color: #57564f;
+		font-family: $font;
+		font-size: 17px;
+		font-weight: 400;
+		line-height: 1.6;
+	}
+}
+```
+
+## 3. `libs/components/layout/LayoutBasic.tsx` — fade-in-up the heading/lead text
+
+In the `/mypage` JSX branch, give the heading and lead paragraph the same entrance animation already used by the plain-hero `title`/`lead` (lines further down in this same file) and by the mypage profile-card tweak — driven by the existing `heroVisible` state, no new state/effect needed:
+
+Change:
+
+```tsx
+<Stack className={'mypage-hero-text'}>
+	<strong className={'mypage-heading'}>
+		Welcome to
+		<br />
+		your profile
+	</strong>
+	<span className={'underline-bar'} />
+	<p className={'mypage-lead'}>{t(memoizedValues.desc)}</p>
+</Stack>
+```
+
+to:
+
+```tsx
+<Stack className={'mypage-hero-text'}>
+	<strong className={`mypage-heading${heroVisible ? ' fade-in-up' : ''}`}>
+		Welcome to
+		<br />
+		your profile
+	</strong>
+	<span className={'underline-bar'} />
+	<p className={`mypage-lead${heroVisible ? ' fade-in-up delay-1' : ''}`}>{t(memoizedValues.desc)}</p>
+</Stack>
+```
+
+Verify after implementing: `/mypage` heading/lead text sits back on the left side (not centered) like in the version before the profile card was removed, just visibly larger; on mount/route-entry the heading fades up first and the lead paragraph follows ~0.15s later (same stagger pattern as the plain-hero title/lead elsewhere in this file); the two animated background blobs and the rest of the hero are unaffected; no other route's hero changes.

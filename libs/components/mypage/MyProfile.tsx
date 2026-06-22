@@ -10,6 +10,7 @@ import { userVar } from '../../../apollo/store';
 import { MemberUpdate } from '../../types/member/member.update';
 import { UPDATE_MEMBER } from '../../../apollo/user/mutation';
 import { sweetErrorHandling, sweetMixinSuccessAlert } from '../../sweetAlert';
+import PersonIcon from '@mui/icons-material/Person';
 
 const MyProfile: NextPage = ({ initialValues, ...props }: any) => {
 	const device = useDeviceDetect();
@@ -117,37 +118,36 @@ const MyProfile: NextPage = ({ initialValues, ...props }: any) => {
 				<Stack className="main-title-box">
 					<Stack className="right-box">
 						<Typography className="main-title">My Profile</Typography>
-						<Typography className="sub-title">We are glad to see you again!</Typography>
+						<Typography className="sub-title">Keep your details fresh and up to date.</Typography>
+					</Stack>
+					<Stack className={`status-badge ${user?.memberStatus === 'ACTIVE' ? 'is-active' : 'is-inactive'}`}>
+						<span className="status-dot" />
+						<Typography>{user?.memberStatus === 'ACTIVE' ? 'Active' : user?.memberStatus || 'Unknown'}</Typography>
 					</Stack>
 				</Stack>
 				<Stack className="top-box">
 					<Stack className="photo-box">
-						<Typography className="title">Photo</Typography>
-						<Stack className="image-big-box">
-							<Stack className="image-box">
-								<img
-									src={
-										updateData?.memberImage
-											? `${REACT_APP_API_URL}/${updateData?.memberImage}`
-											: `/img/profile/defaultUser.svg`
-									}
-									alt=""
-								/>
-							</Stack>
-							<Stack className="upload-big-box">
-								<input
-									type="file"
-									hidden
-									id="hidden-input"
-									onChange={uploadImage}
-									accept="image/jpg, image/jpeg, image/png"
-								/>
-								<label htmlFor="hidden-input" className="labeler">
-									<Typography>Upload Profile Image</Typography>
-								</label>
-								<Typography className="upload-text">A photo must be in JPG, JPEG or PNG format!</Typography>
-							</Stack>
+						<Stack className="image-box">
+							{updateData?.memberImage ? (
+								<img src={`${REACT_APP_API_URL}/${updateData?.memberImage}`} alt="" />
+							) : (
+								<PersonIcon sx={{ color: '#d2674c', fontSize: 28 }} />
+							)}
 						</Stack>
+						<Stack className="photo-info">
+							<Typography className="photo-title">Profile photo</Typography>
+							<Typography className="upload-text">JPG, JPEG or PNG · max 5MB.</Typography>
+						</Stack>
+						<input
+							type="file"
+							hidden
+							id="hidden-input"
+							onChange={uploadImage}
+							accept="image/jpg, image/jpeg, image/png"
+						/>
+						<label htmlFor="hidden-input" className="upload-btn">
+							<span>{'↑'}</span> Upload
+						</label>
 					</Stack>
 					<Stack className="small-input-box">
 						<Stack className="input-box">
@@ -179,6 +179,7 @@ const MyProfile: NextPage = ({ initialValues, ...props }: any) => {
 						/>
 					</Stack>
 					<Stack className="about-me-box">
+						<Typography className="saved-note">Saved to your public agent profile.</Typography>
 						<Button className="update-button" onClick={updateUniversityHandler} disabled={doDisabledCheck()}>
 							<Typography>Update Profile</Typography>
 							<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 13 13" fill="none">
