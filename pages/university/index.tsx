@@ -234,7 +234,7 @@ UniversityList.defaultProps = {
 		search: {
 			squaresRange: {
 				start: 0,
-				end: 1000,
+				end: 1600000,
 			},
 			pricesRange: {
 				start: 0,

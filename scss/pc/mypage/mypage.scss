@@ -111,6 +111,10 @@
 									align-items: stretch;
 									cursor: pointer;
 									padding: 0;
+									a {
+										display: block;
+										width: 100%;
+									}
 									li {
 										height: auto;
 										margin-bottom: 2px;
@@ -151,12 +155,12 @@
 										}
 										.nav-count {
 											margin-left: auto;
+											padding-left: 10px;
 											background: transparent;
 											color: #8e8c83;
 											font-family: $font;
 											font-size: 13px;
 											font-weight: 500;
-											padding: 0;
 											border-radius: 0;
 										}
 									}

@@ -791,7 +791,7 @@ const Filter = (props: FilterType) => {
 										disabled={(searchFilter?.search?.squaresRange?.end || 0) < square}
 										key={square}
 									>
-										{square}
+										{square.toLocaleString()} m²
 									</MenuItem>
 								))}
 							</Select>
@@ -802,7 +802,7 @@ const Filter = (props: FilterType) => {
 							<Select
 								labelId="demo-simple-select-label"
 								id="demo-simple-select"
-								value={searchFilter?.search?.squaresRange?.end ?? 500}
+								value={searchFilter?.search?.squaresRange?.end ?? 1600000}
 								label="Max"
 								onChange={(e: any) => universityCampusSizeHandler(e, 'end')}
 								MenuProps={MenuProps}
@@ -814,7 +814,7 @@ const Filter = (props: FilterType) => {
 										disabled={(searchFilter?.search?.squaresRange?.start || 0) > square}
 										key={square}
 									>
-										{square}
+										{square.toLocaleString()} m²
 									</MenuItem>
 								))}
 							</Select>

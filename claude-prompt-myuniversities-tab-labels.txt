@@ -1,0 +1,45 @@
+Context: pure copy/text change, no logic change. In `libs/components/mypage/MyUniversities.tsx`, the two tabs above the listings table are leftover real-estate-template copy ("On Sale" / "On Sold") that don't make sense for a university-listing context. The tabs already toggle the real `universityStatus` filter via the existing `changeStatusHandler(UniversityStatus.ACTIVE)` / `changeStatusHandler(UniversityStatus.INACTIVE)` calls (see `libs/enums/university.enum.ts`: `ACTIVE`, `INACTIVE`, `DELETE`), and the table's own "Status" column already renders the raw value (e.g. literally shows `ACTIVE` in a pill, per `UniversityCard.tsx` line 76: `{university.universityStatus}`). So the clearest, most consistent fix is to just rename the tab labels to match that same status vocabulary — no change to `changeStatusHandler`, no change to the enum, no change to the query/variables.
+
+## `libs/components/mypage/MyUniversities.tsx`
+
+Replace:
+
+```tsx
+<Stack className="tab-name-box">
+	<Typography
+		onClick={() => changeStatusHandler(UniversityStatus.ACTIVE)}
+		className={searchFilter.search.universityStatus === 'ACTIVE' ? 'active-tab-name' : 'tab-name'}
+	>
+		On Sale
+	</Typography>
+	<Typography
+		onClick={() => changeStatusHandler(UniversityStatus.INACTIVE)}
+		className={searchFilter.search.universityStatus === 'INACTIVE' ? 'active-tab-name' : 'tab-name'}
+	>
+		On Sold
+	</Typography>
+</Stack>
+```
+
+with:
+
+```tsx
+<Stack className="tab-name-box">
+	<Typography
+		onClick={() => changeStatusHandler(UniversityStatus.ACTIVE)}
+		className={searchFilter.search.universityStatus === 'ACTIVE' ? 'active-tab-name' : 'tab-name'}
+	>
+		Active
+	</Typography>
+	<Typography
+		onClick={() => changeStatusHandler(UniversityStatus.INACTIVE)}
+		className={searchFilter.search.universityStatus === 'INACTIVE' ? 'active-tab-name' : 'tab-name'}
+	>
+		Inactive
+	</Typography>
+</Stack>
+```
+
+(`onClick` handlers, `className` logic, and every prop/value stay byte-for-byte identical — only the two visible label strings change.)
+
+Verify after implementing: clicking the first tab still filters the list to universities with `universityStatus === 'ACTIVE'` (label now reads "Active") and the second tab still filters to `'INACTIVE'` (label now reads "Inactive") — same data, same pagination, same "Action" column visibility (only shown for the Active tab, unchanged), only the tab text changed from "On Sale"/"On Sold".

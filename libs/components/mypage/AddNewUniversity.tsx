@@ -3,7 +3,7 @@ import { useRouter } from 'next/router';
 import { Button, Stack, Typography } from '@mui/material';
 import useDeviceDetect from '../../hooks/useDeviceDetect';
 import { UniversityLocation, UniversityType } from '../../enums/university.enum';
-import { REACT_APP_API_URL, universityCampusSize } from '../../config';
+import { REACT_APP_API_URL } from '../../config';
 import { UniversityInput } from '../../types/university/university.input';
 import axios from 'axios';
 import { getJwtToken } from '../../auth';
@@ -12,6 +12,22 @@ import { useMutation, useQuery, useReactiveVar } from '@apollo/client';
 import { userVar } from '../../../apollo/store';
 import { GET_UNIVERSITY } from '../../../apollo/user/query';
 import { CREATE_UNIVERSITY, UPDATE_UNIVERSITY } from '../../../apollo/user/mutation';
+
+const universityCapacityRanges = [
+	{ label: '3,000 - 10,000 students', value: 3000 },
+	{ label: '10,000 - 20,000 students', value: 10000 },
+	{ label: '20,000 - 30,000 students', value: 20000 },
+	{ label: '30,000 - 40,000 students', value: 30000 },
+	{ label: '40,000 - 50,000 students', value: 40000 },
+];
+
+const universityCampusSizeRanges = [
+	{ label: '200,000 - 400,000 m²', value: 200000 },
+	{ label: '400,000 - 600,000 m²', value: 400000 },
+	{ label: '600,000 - 900,000 m²', value: 600000 },
+	{ label: '900,000 - 1,200,000 m²', value: 900000 },
+	{ label: '1,200,000 - 1,600,000 m²', value: 1200000 },
+];
 
 const AddUniversity = ({ initialValues, ...props }: any) => {
 	const device = useDeviceDetect();
@@ -339,7 +355,7 @@ const AddUniversity = ({ initialValues, ...props }: any) => {
 										<option disabled={true} selected={true} value={'select'}>
 											Select
 										</option>
-										{[1, 2, 3, 4, 5].map((faculty: number) => (
+										{[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((faculty: number) => (
 											<option value={`${faculty}`}>{faculty}</option>
 										))}
 									</select>
@@ -359,8 +375,10 @@ const AddUniversity = ({ initialValues, ...props }: any) => {
 										<option disabled={true} selected={true} value={'select'}>
 											Select
 										</option>
-										{[1, 2, 3, 4, 5].map((bed: number) => (
-											<option value={`${bed}`}>{bed}</option>
+										{universityCapacityRanges.map((range) => (
+											<option key={range.value} value={`${range.value}`}>
+												{range.label}
+											</option>
 										))}
 									</select>
 									<div className={'divider'}></div>
@@ -379,11 +397,11 @@ const AddUniversity = ({ initialValues, ...props }: any) => {
 										<option disabled={true} selected={true} value={'select'}>
 											Select
 										</option>
-										{universityCampusSize.map((square: number) => {
-											if (square !== 0) {
-												return <option value={`${square}`}>{square}</option>;
-											}
-										})}
+										{universityCampusSizeRanges.map((range) => (
+											<option key={range.value} value={`${range.value}`}>
+												{range.label}
+											</option>
+										))}
 									</select>
 									<div className={'divider'}></div>
 									<img src={'/img/icons/Vector.svg'} className={'arrow-down'} />

@@ -10,7 +10,7 @@ for (let i = 1970; i <= thisYear; i++) {
 	universityYears.push(String(i));
 }
 
-export const universityCampusSize = [0, 25, 50, 75, 100, 125, 150, 200, 300, 500];
+export const universityCampusSize = [0, 200000, 400000, 600000, 900000, 1200000, 1600000];
 
 export const Messages = {
 	error1: 'Something went wrong!',

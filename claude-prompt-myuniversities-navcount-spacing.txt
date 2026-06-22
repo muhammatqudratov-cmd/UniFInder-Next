@@ -1,0 +1,85 @@
+Context: pure CSS fix, no logic change. In the sidebar (`scss/pc/mypage/mypage.scss`), `.sub-section .flex-box` already has `width: 100%` and `.nav-count` already has `margin-left: auto` (meant to push the count to the far right of the row), but the count still renders squished right against the label text ("My Universities1", "My Favorites2"). The root cause: each `.flex-box` sits inside the `<a>` tag rendered by Next.js's `<Link>` in `MyMenu.tsx`, and that anchor is inline-level by default, so it only sizes to its content's width — meaning `.flex-box`'s `width: 100%` is 100% of that shrunk anchor, not 100% of the sidebar row, leaving no room for `margin-left: auto` to push into. Making the anchor a block element fixes this without touching any markup or logic.
+
+## `scss/pc/mypage/mypage.scss`
+
+Inside `.left-config .sections .section .sub-section`, add a rule for the anchor tag. Find:
+
+```scss
+.sub-section {
+	width: 100%;
+	height: auto;
+	display: flex;
+	flex-direction: column;
+	align-items: stretch;
+	cursor: pointer;
+	padding: 0;
+	li {
+		height: auto;
+		margin-bottom: 2px;
+		border-radius: 0;
+		border-left: 2px solid transparent;
+		transition: border-color 0.15s ease;
+		&:hover {
+			background: #f8f6f1;
+		}
+	}
+```
+
+and add an `a` rule right after the opening, so it reads:
+
+```scss
+.sub-section {
+	width: 100%;
+	height: auto;
+	display: flex;
+	flex-direction: column;
+	align-items: stretch;
+	cursor: pointer;
+	padding: 0;
+	a {
+		display: block;
+		width: 100%;
+	}
+	li {
+		height: auto;
+		margin-bottom: 2px;
+		border-radius: 0;
+		border-left: 2px solid transparent;
+		transition: border-color 0.15s ease;
+		&:hover {
+			background: #f8f6f1;
+		}
+	}
+```
+
+Also, as a small extra safety margin so the number never touches the label even in edge cases, update `.nav-count` from:
+
+```scss
+.nav-count {
+	margin-left: auto;
+	background: transparent;
+	color: #8e8c83;
+	font-family: $font;
+	font-size: 13px;
+	font-weight: 500;
+	padding: 0;
+	border-radius: 0;
+}
+```
+
+to:
+
+```scss
+.nav-count {
+	margin-left: auto;
+	padding-left: 10px;
+	background: transparent;
+	color: #8e8c83;
+	font-family: $font;
+	font-size: 13px;
+	font-weight: 500;
+	border-radius: 0;
+}
+```
+
+Verify after implementing: "My Universities" and "My Favorites" now show their count pushed to the far right edge of the sidebar row (clearly separated from the label text, not touching it), matching how "Recently Visited" / "My Followers" / "My Followings" (which have no count) already look. Clicking any sidebar item still navigates exactly as before — only spacing changed, no link/route/handler touched.

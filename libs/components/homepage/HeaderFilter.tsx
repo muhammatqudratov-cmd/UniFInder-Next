@@ -515,7 +515,7 @@ const HeaderFilter = (props: HeaderFilterProps) => {
 															disabled={(searchFilter?.search?.squaresRange?.end || 0) < square}
 															key={square}
 														>
-															{square}
+															{square.toLocaleString()} m²
 														</MenuItem>
 													))}
 												</Select>
@@ -535,7 +535,7 @@ const HeaderFilter = (props: HeaderFilterProps) => {
 															disabled={(searchFilter?.search?.squaresRange?.start || 0) > square}
 															key={square}
 														>
-															{square}
+															{square.toLocaleString()} m²
 														</MenuItem>
 													))}
 												</Select>

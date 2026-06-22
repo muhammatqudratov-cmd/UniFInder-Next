@@ -106,13 +106,13 @@ const MyUniversities: NextPage = ({ initialInput, ...props }: any) => {
 							onClick={() => changeStatusHandler(UniversityStatus.ACTIVE)}
 							className={searchFilter.search.universityStatus === 'ACTIVE' ? 'active-tab-name' : 'tab-name'}
 						>
-							On Sale
+							Active
 						</Typography>
 						<Typography
 							onClick={() => changeStatusHandler(UniversityStatus.INACTIVE)}
 							className={searchFilter.search.universityStatus === 'INACTIVE' ? 'active-tab-name' : 'tab-name'}
 						>
-							On Sold
+							Inactive
 						</Typography>
 					</Stack>
 					<Stack className="list-box">
