@@ -1,0 +1,100 @@
+Context: pure CSS change, no logic. Four list/landing pages currently use flat light backgrounds for their root page container: Universities (`#university-list-page`, `#fafaf8`), Agents (`.agent-list-page`, `#fafaf8`), Community (`#community-list-page`, `#fafaf8`), and My Page (`#my-page`, `#f3efe7`). This replaces all four with the same dark gradient — `linear-gradient(135deg, #15140f 0%, #1c2620 50%, #1a2230 100%)` (black → forest green → navy) — already approved for the homepage hero section. Only the root `background` declaration on each page wrapper changes; every inner element (filter bars, cards, inputs, sidebars) already has its own explicit `background: #fff` / `#ffffff`, so they keep showing as white cards on top of the new dark page background, the same contrast pattern as the homepage hero already uses. No JSX/component file changes, no GraphQL/state/handler changes.
+
+## 1. `scss/pc/university/university.scss` — line ~4
+
+Find:
+
+```scss
+#pc-wrap {
+	#university-list-page {
+		padding-bottom: 40px;
+		background: #fafaf8;
+```
+
+Replace with:
+
+```scss
+#pc-wrap {
+	#university-list-page {
+		padding-bottom: 40px;
+		background: linear-gradient(135deg, #15140f 0%, #1c2620 50%, #1a2230 100%);
+```
+
+## 2. `scss/pc/agent/agent.scss` — line ~10
+
+Find:
+
+```scss
+#pc-wrap {
+	.agent-list-page {
+		position: relative;
+		padding: 147px 0 75px;
+		width: 100%;
+		height: auto;
+		display: flex;
+		flex-direction: row;
+		justify-content: center;
+		background: #fafaf8;
+```
+
+Replace with:
+
+```scss
+#pc-wrap {
+	.agent-list-page {
+		position: relative;
+		padding: 147px 0 75px;
+		width: 100%;
+		height: auto;
+		display: flex;
+		flex-direction: row;
+		justify-content: center;
+		background: linear-gradient(135deg, #15140f 0%, #1c2620 50%, #1a2230 100%);
+```
+
+## 3. `scss/pc/community/community.scss` — line ~4
+
+Find:
+
+```scss
+#pc-wrap {
+	#community-list-page {
+		position: relative;
+		background: #fafaf8;
+```
+
+Replace with:
+
+```scss
+#pc-wrap {
+	#community-list-page {
+		position: relative;
+		background: linear-gradient(135deg, #15140f 0%, #1c2620 50%, #1a2230 100%);
+```
+
+## 4. `scss/pc/mypage/mypage.scss` — line ~3
+
+Find:
+
+```scss
+#pc-wrap {
+	#my-page {
+		background: #f3efe7;
+```
+
+Replace with:
+
+```scss
+#pc-wrap {
+	#my-page {
+		background: linear-gradient(135deg, #15140f 0%, #1c2620 50%, #1a2230 100%);
+```
+
+---
+
+Verify after implementing:
+1. The Universities (`/university`), Agents (`/agent`), Community (`/community`), and My Page (`/mypage`) pages all now show the same dark black → forest green → navy gradient as their page background, matching the homepage hero.
+2. All white cards (university cards, agent cards, community cards, mypage panels/filters/inputs) still render as white/light surfaces with clear contrast against the new dark background — no card, filter, or panel background was touched.
+3. No layout, spacing, grid, or padding changed — only the one root `background` line in each of the 4 files changed.
+4. No GraphQL query, mutation, component prop, or event handler was touched anywhere — this is SCSS-only across 4 files.
+5. Mobile view is unaffected — all 4 changes are inside `#pc-wrap` (desktop-only) selectors.

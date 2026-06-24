@@ -1,0 +1,132 @@
+Context: pure CSS change, no logic. Five homepage section wrappers in `scss/pc/homepage/homepage.scss` currently have inconsistent backgrounds (`white`, `#f4f3ef`, `#ffffff`) for their outer section, while the inner cards inside each section are already `white` (`.trend-uni-card`, `.popular-uni-card`, `.top-uni-card`, `.agent-card`, `.community-card`). This change unifies all five section backgrounds to one warm gray tone — `#f5f3ef` — so the white cards show clear, consistent contrast across every section. Only the `background` property on each section wrapper changes; nothing else in any of these rules is touched, and no JSX/component file changes at all.
+
+## 1. Trend Universities — line ~1242
+
+Find:
+
+```scss
+.trend-universities {
+	padding: 72px 48px;
+	background: white;
+	width: 100%;
+	box-sizing: border-box;
+}
+```
+
+Replace with:
+
+```scss
+.trend-universities {
+	padding: 72px 48px;
+	background: #f5f3ef;
+	width: 100%;
+	box-sizing: border-box;
+}
+```
+
+## 2. Popular Universities — line ~1434
+
+Find:
+
+```scss
+.popular-universities {
+  padding: 72px 48px;
+  background: white;
+  width: 100%;
+  box-sizing: border-box;
+}
+```
+
+Replace with:
+
+```scss
+.popular-universities {
+  padding: 72px 48px;
+  background: #f5f3ef;
+  width: 100%;
+  box-sizing: border-box;
+}
+```
+
+## 3. Top Universities — line ~1588
+
+Find:
+
+```scss
+.top-universities {
+  padding: 72px 48px;
+  background: #f4f3ef;
+  width: 100%;
+  box-sizing: border-box;
+}
+```
+
+Replace with:
+
+```scss
+.top-universities {
+  padding: 72px 48px;
+  background: #f5f3ef;
+  width: 100%;
+  box-sizing: border-box;
+}
+```
+
+## 4. Top Agents — line ~1750
+
+Find:
+
+```scss
+.top-agents {
+  padding: 72px 48px !important;
+  background: white !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  display: flex !important;
+```
+
+Replace with:
+
+```scss
+.top-agents {
+  padding: 72px 48px !important;
+  background: #f5f3ef !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  display: flex !important;
+```
+
+## 5. Community Board (includes the "Free Board" tab) — line ~1899
+
+Find:
+
+```scss
+.community-board {
+  padding: 60px 48px !important;
+  background: #ffffff !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  display: block !important;
+```
+
+Replace with:
+
+```scss
+.community-board {
+  padding: 60px 48px !important;
+  background: #f5f3ef !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  display: block !important;
+```
+
+(The "Free Board" tab button itself is just `.community-tab` text inside this section — it has no background of its own to change, it inherits this section's new background automatically.)
+
+---
+
+Verify after implementing:
+1. On desktop, Trend Universities, Popular Universities, Top Universities, Top Agents, and Community Board (with its News/Free Board tabs) sections all now show the same warm gray `#f5f3ef` background instead of the previous mismatched white/`#f4f3ef`/white tones.
+2. The white cards inside each section (`trend-uni-card`, `popular-uni-card`, `top-uni-card`, `agent-card`, `community-card`) still render as white and now show clearer contrast against the new background.
+3. No card content, hover effects, grid layout, or spacing changed — only the 5 outer section `background` values changed.
+4. No GraphQL query, mutation, component prop, or event handler was touched in any of the 5 components (`TrendUniversities.tsx`, `PopularUniversities.tsx`, `TopUniversities.tsx`, `TopAgents.tsx`, `CommunityBoards.tsx`) — this is SCSS-only.
+5. Mobile view is unaffected — these 5 rules live under the desktop-only selectors in `scss/pc/homepage/homepage.scss`, not `scss/mobile/main.scss`.

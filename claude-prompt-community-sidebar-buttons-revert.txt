@@ -1,0 +1,90 @@
+Context: pure CSS revert, no logic. The Community page sidebar's active tab and "+ Write a post" button (`scss/pc/community/community.scss`) were previously changed to a `#f5f3ef` background. This reverts both back to their original styling — exactly as they were before any of these changes.
+
+## `scss/pc/community/community.scss`
+
+Find:
+
+```scss
+				.tab-button.active {
+					width: 100%;
+					height: 38px;
+					padding: 0 4px;
+					justify-content: flex-start;
+					align-items: center;
+					background-color: #f5f3ef;
+					color: #1c1b18;
+					font-weight: 700;
+					border-radius: 8px;
+					margin-bottom: 2px;
+					font-family: $font;
+					font-size: 14px;
+
+					.tab-label-row .tab-label-left .tab-dot {
+						background: #e8856a;
+						border-color: #e8856a;
+					}
+					.tab-label-row .tab-count {
+						color: #d2674c;
+						font-weight: 700;
+					}
+				}
+				.write-post-btn {
+					width: 100%;
+					height: 44px;
+					margin-top: 14px;
+					border-radius: 999px;
+					background: #f5f3ef;
+					color: #1c1b18;
+					font-family: $font;
+					font-size: 13.5px;
+					font-weight: 700;
+					text-transform: none;
+				}
+```
+
+Replace with:
+
+```scss
+				.tab-button.active {
+					width: 100%;
+					height: 38px;
+					padding: 0 4px;
+					justify-content: flex-start;
+					align-items: center;
+					background-color: transparent;
+					color: #1c1b18;
+					font-weight: 700;
+					border-radius: 8px;
+					margin-bottom: 2px;
+					font-family: $font;
+					font-size: 14px;
+
+					.tab-label-row .tab-label-left .tab-dot {
+						background: #e8856a;
+						border-color: #e8856a;
+					}
+					.tab-label-row .tab-count {
+						color: #d2674c;
+						font-weight: 700;
+					}
+				}
+				.write-post-btn {
+					width: 100%;
+					height: 44px;
+					margin-top: 14px;
+					border-radius: 999px;
+					background: #1c1b18;
+					color: #ffffff;
+					font-family: $font;
+					font-size: 13.5px;
+					font-weight: 700;
+					text-transform: none;
+				}
+```
+
+---
+
+Verify after implementing:
+1. On the Community page (`/community`), the active sidebar tab (Free Board, Recommendation, News, Humor) is back to no background fill, dark `#1c1b18` text, coral dot, and coral count — same as before any of the recent color changes.
+2. The "+ Write a post" button is back to a near-black `#1c1b18` background with white text.
+3. No routing, tab-switching logic, or query/mutation code touched — `community.scss` only.

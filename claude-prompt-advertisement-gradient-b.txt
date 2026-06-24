@@ -1,0 +1,87 @@
+Context: pure CSS change, no logic. Add the "A world of universities, one platform" Advertisement section (`libs/components/homepage/Advertisement.tsx`, styled by `.advertisement` in `scss/pc/homepage/homepage.scss` line ~484) to the same dark gradient already applied to the other homepage sections — `linear-gradient(135deg, #15140f 0%, #1c2620 50%, #1a2230 100%)`.
+
+This section currently has no background of its own (it sits on the page's light background), with dark text (`color: #1c1b18` title, `color: #57564f` subtitle) meant for a light surface. Since the new background is dark, the title and subtitle colors must switch to light tones — reusing the exact tokens the site's own dark hero (`.header-basic` in `scss/pc/main.scss`) already uses for text on this same dark family of backgrounds: `#ffffff` for the heading and `rgba(255, 255, 255, 0.65)` for the muted subtitle. The coral "Explore Universities" button (`#e8856a` background, white text) already has strong contrast on dark and is left unchanged. The video card (`.ad-video-card`) is untouched. No JSX/component file changes, no GraphQL/state/handler changes — `homepage.scss` only.
+
+## `scss/pc/homepage/homepage.scss`
+
+Find:
+
+```scss
+		.advertisement {
+			width: 100%;
+			height: 480px;
+			display: flex;
+			flex-direction: row;
+			align-items: stretch;
+			gap: 40px;
+			padding: 0 48px;
+			.ad-text {
+				flex: 1;
+				display: flex;
+				flex-direction: column;
+				justify-content: center;
+				gap: 16px;
+				.ad-title {
+					font-family: $font;
+					font-size: 32px;
+					font-weight: 700;
+					color: #1c1b18;
+					line-height: 1.25;
+					margin: 0;
+				}
+				.ad-subtitle {
+					font-family: $font;
+					font-size: 15px;
+					font-weight: 400;
+					color: #57564f;
+					line-height: 1.6;
+					margin: 0;
+					max-width: 420px;
+				}
+```
+
+Replace with:
+
+```scss
+		.advertisement {
+			width: 100%;
+			height: 480px;
+			display: flex;
+			flex-direction: row;
+			align-items: stretch;
+			gap: 40px;
+			padding: 0 48px;
+			background: linear-gradient(135deg, #15140f 0%, #1c2620 50%, #1a2230 100%);
+			.ad-text {
+				flex: 1;
+				display: flex;
+				flex-direction: column;
+				justify-content: center;
+				gap: 16px;
+				.ad-title {
+					font-family: $font;
+					font-size: 32px;
+					font-weight: 700;
+					color: #ffffff;
+					line-height: 1.25;
+					margin: 0;
+				}
+				.ad-subtitle {
+					font-family: $font;
+					font-size: 15px;
+					font-weight: 400;
+					color: rgba(255, 255, 255, 0.65);
+					line-height: 1.6;
+					margin: 0;
+					max-width: 420px;
+				}
+```
+
+---
+
+Verify after implementing:
+1. The "A world of universities, one platform" Advertisement section now shows the same black → forest green → navy gradient as the other homepage sections and the hero.
+2. The heading is white and the subtitle is a soft translucent white — both clearly readable on the dark background, matching how the dark hero (`.header-basic`) already styles its own heading/lead text.
+3. The "Explore Universities" button keeps its coral background and white text unchanged; the video card is untouched.
+4. No layout, sizing, or spacing changed — only `background` was added and the two text colors changed.
+5. No component file, GraphQL query, or handler touched — SCSS-only, `homepage.scss` only.

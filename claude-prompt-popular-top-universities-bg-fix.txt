@@ -1,0 +1,56 @@
+Context: bug fix, no logic change. "Popular Universities" and "Top Universities" section backgrounds did not change to `#f5f3ef` after the previous prompt, even though `scss/pc/homepage/homepage.scss` was edited correctly at the flat `.popular-universities` (line ~1434) and `.top-universities` (line ~1588) rules. Root cause: the same file also contains an older, unused nested copy of these rules left over from an earlier version of the homepage layout — `#pc-wrap { .home-page { ... .popular-universities { ... background: white; ... } ... .top-universities { ... background: #f4f3ef; ... } ... } }` (around lines 281 and 545). Because that nested selector compiles to `#pc-wrap .home-page .popular-universities` / `...top-universities`, it has higher CSS specificity than the flat `.popular-universities`/`.top-universities` rules, so its old `background` value silently wins over the new one — the exact same kind of cascade issue already found and fixed once before for the Advertisement section's `flex-direction`.
+
+The safest fix without deleting the old dead block (to avoid touching its other still-rendering child styles) is to add `!important` to the two flat rules' `background`, the same way `.top-agents` and `.community-board` already do — which is why those two sections updated correctly while these two didn't.
+
+## `scss/pc/homepage/homepage.scss`
+
+Find:
+
+```scss
+.popular-universities {
+  padding: 72px 48px;
+  background: #f5f3ef;
+  width: 100%;
+  box-sizing: border-box;
+}
+```
+
+Replace with:
+
+```scss
+.popular-universities {
+  padding: 72px 48px;
+  background: #f5f3ef !important;
+  width: 100%;
+  box-sizing: border-box;
+}
+```
+
+Find:
+
+```scss
+.top-universities {
+  padding: 72px 48px;
+  background: #f5f3ef;
+  width: 100%;
+  box-sizing: border-box;
+}
+```
+
+Replace with:
+
+```scss
+.top-universities {
+  padding: 72px 48px;
+  background: #f5f3ef !important;
+  width: 100%;
+  box-sizing: border-box;
+}
+```
+
+---
+
+Verify after implementing:
+1. On the homepage, "Popular Universities" and "Top Universities" sections now show the `#f5f3ef` background — matching Trend Universities, Top Agents, and Community Board.
+2. No layout, grid, or card styling changed — only `!important` was added to the `background` declaration on these two rules.
+3. No component file, GraphQL query, or handler touched — SCSS-only.

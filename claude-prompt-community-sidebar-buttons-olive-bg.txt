@@ -1,0 +1,96 @@
+Context: pure CSS change, no logic. On the Community page sidebar (`pages/community/index.tsx`, styled by `scss/pc/community/community.scss`), two buttons currently don't use the new warm-gray accent color:
+1. The active "Free Board" tab (`.tab-button.active` — also covers Recommendation/News/Humor when selected) currently has `background-color: transparent`, so the sidebar shows no fill behind the selected tab, only bold dark text.
+2. The "+ Write a post" button (`.write-post-btn`, routes to `/mypage?category=writeArticle`) currently has `background: #1c1b18` (near-black).
+
+You want both filled with `#f5f3ef` instead. Since `#f5f3ef` is a light tone, both buttons keep dark text for readability: the active tab keeps its existing dark `#1c1b18` label text and coral `#e8856a`/`#d2674c` dot+count (these already read fine on a light fill, so they are left unchanged), and the "+ Write a post" button switches its text from white to dark `#1c1b18` since white-on-`#f5f3ef` would not be readable. No routing, tab-switching logic, or query/mutation code is touched — only `background`/`color` values in `community.scss`.
+
+## `scss/pc/community/community.scss`
+
+Find:
+
+```scss
+				.tab-button.active {
+					width: 100%;
+					height: 38px;
+					padding: 0 4px;
+					justify-content: flex-start;
+					align-items: center;
+					background-color: transparent;
+					color: #1c1b18;
+					font-weight: 700;
+					border-radius: 8px;
+					margin-bottom: 2px;
+					font-family: $font;
+					font-size: 14px;
+
+					.tab-label-row .tab-label-left .tab-dot {
+						background: #e8856a;
+						border-color: #e8856a;
+					}
+					.tab-label-row .tab-count {
+						color: #d2674c;
+						font-weight: 700;
+					}
+				}
+				.write-post-btn {
+					width: 100%;
+					height: 44px;
+					margin-top: 14px;
+					border-radius: 999px;
+					background: #1c1b18;
+					color: #ffffff;
+					font-family: $font;
+					font-size: 13.5px;
+					font-weight: 700;
+					text-transform: none;
+				}
+```
+
+Replace with:
+
+```scss
+				.tab-button.active {
+					width: 100%;
+					height: 38px;
+					padding: 0 4px;
+					justify-content: flex-start;
+					align-items: center;
+					background-color: #f5f3ef;
+					color: #1c1b18;
+					font-weight: 700;
+					border-radius: 8px;
+					margin-bottom: 2px;
+					font-family: $font;
+					font-size: 14px;
+
+					.tab-label-row .tab-label-left .tab-dot {
+						background: #e8856a;
+						border-color: #e8856a;
+					}
+					.tab-label-row .tab-count {
+						color: #d2674c;
+						font-weight: 700;
+					}
+				}
+				.write-post-btn {
+					width: 100%;
+					height: 44px;
+					margin-top: 14px;
+					border-radius: 999px;
+					background: #f5f3ef;
+					color: #1c1b18;
+					font-family: $font;
+					font-size: 13.5px;
+					font-weight: 700;
+					text-transform: none;
+				}
+```
+
+---
+
+Verify after implementing:
+1. On the Community page (`/community`), whichever sidebar tab is active (Free Board, Recommendation, News, Humor) now shows a filled warm gray (`#f5f3ef`) pill behind it, with dark `#1c1b18` label text, coral dot, and coral count number — readable, not the old fully transparent style.
+2. The "+ Write a post" button below the tabs is now `#f5f3ef` instead of near-black, with dark `#1c1b18` text instead of white.
+3. Inactive tabs are unchanged (still no background fill, dark `#57564f` text).
+4. Clicking any tab still switches the board category and updates the URL query exactly as before; clicking "+ Write a post" still navigates to `/mypage?category=writeArticle` — no handler or routing logic touched.
+5. No other page (homepage, community detail page, mypage) is affected — this change is scoped to `scss/pc/community/community.scss` only.

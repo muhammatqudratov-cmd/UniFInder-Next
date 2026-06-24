@@ -1,0 +1,43 @@
+Context: pure CSS change, no logic. The "A world of universities, one platform" Advertisement section (`libs/components/homepage/Advertisement.tsx`, styled by `.advertisement` in `scss/pc/homepage/homepage.scss` line ~484) currently has no background of its own — it sits directly on the page's white background. This gives it the same warm gray `#f5f3ef` background already used on the other homepage sections (Trend Universities, Popular Universities, Top Universities, Top Agents, Community Board), so it's visually consistent with them.
+
+Note: the gradient version of this prompt (`claude-prompt-advertisement-gradient-b.txt`, dark gradient + white text) was never applied — this is a fresh edit starting from the original file. Since `#f5f3ef` is a light tone, the existing dark text colors (`#1c1b18` title, `#57564f` subtitle) already have correct contrast and are left unchanged.
+
+## `scss/pc/homepage/homepage.scss`
+
+Find:
+
+```scss
+		.advertisement {
+			width: 100%;
+			height: 480px;
+			display: flex;
+			flex-direction: row;
+			align-items: stretch;
+			gap: 40px;
+			padding: 0 48px;
+			.ad-text {
+```
+
+Replace with:
+
+```scss
+		.advertisement {
+			width: 100%;
+			height: 480px;
+			display: flex;
+			flex-direction: row;
+			align-items: stretch;
+			gap: 40px;
+			padding: 0 48px;
+			background: #f5f3ef;
+			.ad-text {
+```
+
+---
+
+Verify after implementing:
+1. The "A world of universities, one platform" Advertisement section now shows the same `#f5f3ef` warm gray background as Trend Universities, Popular Universities, Top Universities, Top Agents, and Community Board.
+2. Heading and subtitle text stay dark (`#1c1b18` / `#57564f`) and remain clearly readable — no text color change needed on this light background.
+3. The "Explore Universities" button and the video card are untouched.
+4. No layout, sizing, or spacing changed — only one `background` line added.
+5. No component file, GraphQL query, or handler touched — SCSS-only, `homepage.scss` only.

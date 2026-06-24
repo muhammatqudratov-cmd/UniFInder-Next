@@ -1,0 +1,99 @@
+Context: pure CSS revert, no logic. The root page backgrounds of Universities (`scss/pc/university/university.scss`), Agents (`scss/pc/agent/agent.scss`), Community (`scss/pc/community/community.scss`), and My Page (`scss/pc/mypage/mypage.scss`) were changed to a dark gradient. This reverts all four back to their original light backgrounds exactly as before.
+
+## 1. `scss/pc/university/university.scss`
+
+Find:
+
+```scss
+#pc-wrap {
+	#university-list-page {
+		padding-bottom: 40px;
+		background: linear-gradient(135deg, #15140f 0%, #1c2620 50%, #1a2230 100%);
+```
+
+Replace with:
+
+```scss
+#pc-wrap {
+	#university-list-page {
+		padding-bottom: 40px;
+		background: #fafaf8;
+```
+
+## 2. `scss/pc/agent/agent.scss`
+
+Find:
+
+```scss
+#pc-wrap {
+	.agent-list-page {
+		position: relative;
+		padding: 147px 0 75px;
+		width: 100%;
+		height: auto;
+		display: flex;
+		flex-direction: row;
+		justify-content: center;
+		background: linear-gradient(135deg, #15140f 0%, #1c2620 50%, #1a2230 100%);
+```
+
+Replace with:
+
+```scss
+#pc-wrap {
+	.agent-list-page {
+		position: relative;
+		padding: 147px 0 75px;
+		width: 100%;
+		height: auto;
+		display: flex;
+		flex-direction: row;
+		justify-content: center;
+		background: #fafaf8;
+```
+
+## 3. `scss/pc/community/community.scss`
+
+Find:
+
+```scss
+#pc-wrap {
+	#community-list-page {
+		position: relative;
+		background: linear-gradient(135deg, #15140f 0%, #1c2620 50%, #1a2230 100%);
+```
+
+Replace with:
+
+```scss
+#pc-wrap {
+	#community-list-page {
+		position: relative;
+		background: #fafaf8;
+```
+
+## 4. `scss/pc/mypage/mypage.scss`
+
+Find:
+
+```scss
+#pc-wrap {
+	#my-page {
+		background: linear-gradient(135deg, #15140f 0%, #1c2620 50%, #1a2230 100%);
+```
+
+Replace with:
+
+```scss
+#pc-wrap {
+	#my-page {
+		background: #f3efe7;
+```
+
+---
+
+Verify after implementing:
+1. Universities, Agents, and Community pages are back to their original light `#fafaf8` page background.
+2. My Page is back to its original light `#f3efe7` page background.
+3. No layout, card, filter, or panel styling changed — only the one root `background` line in each of the 4 files reverted.
+4. No GraphQL query, mutation, component prop, or event handler touched — SCSS-only across 4 files.

@@ -489,6 +489,7 @@
 			align-items: stretch;
 			gap: 40px;
 			padding: 0 48px;
+			background: #f5f3ef;
 			.ad-text {
 				flex: 1;
 				display: flex;
@@ -1241,7 +1242,7 @@
 /* ─── Trend Universities Section ──────────────────────────── */
 .trend-universities {
 	padding: 72px 48px;
-	background: white;
+	background: #f5f3ef;
 	width: 100%;
 	box-sizing: border-box;
 }
@@ -1433,7 +1434,7 @@
 /* ── Popular Universities ── */
 .popular-universities {
   padding: 72px 48px;
-  background: white;
+  background: #f5f3ef !important;
   width: 100%;
   box-sizing: border-box;
 }
@@ -1587,7 +1588,7 @@
 /* ── Top Universities ── */
 .top-universities {
   padding: 72px 48px;
-  background: #f4f3ef;
+  background: #f5f3ef !important;
   width: 100%;
   box-sizing: border-box;
 }
@@ -1749,7 +1750,7 @@
 /* ── Top Agents ── */
 .top-agents {
   padding: 72px 48px !important;
-  background: white !important;
+  background: #f5f3ef !important;
   width: 100% !important;
   box-sizing: border-box !important;
   display: flex !important;
@@ -1898,7 +1899,7 @@
 
 .community-board {
   padding: 60px 48px !important;
-  background: #ffffff !important;
+  background: #f5f3ef !important;
   width: 100% !important;
   box-sizing: border-box !important;
   display: block !important;
