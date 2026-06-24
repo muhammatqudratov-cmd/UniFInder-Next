@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/router';
 import useDeviceDetect from '../../hooks/useDeviceDetect';
 import Head from 'next/head';
@@ -15,6 +15,14 @@ import PersonIcon from '@mui/icons-material/Person';
 import 'swiper/css';
 import 'swiper/css/pagination';
 import 'swiper/css/navigation';
+
+export const AgentHeroNameContext = createContext<{
+	agentHeroName: string;
+	setAgentHeroName: (name: string) => void;
+}>({
+	agentHeroName: '',
+	setAgentHeroName: () => {},
+});
 
 interface StatItem {
 	numericValue: number;
@@ -75,6 +83,7 @@ const withLayoutBasic = (Component: any) => {
 		const [browsingIndex, setBrowsingIndex] = useState(0);
 		const [browsingKey, setBrowsingKey] = useState(0);
 		const user = useReactiveVar(userVar);
+		const [agentHeroName, setAgentHeroName] = useState('');
 
 		const memoizedValues = useMemo(() => {
 			let title = '',
@@ -123,8 +132,9 @@ const withLayoutBasic = (Component: any) => {
 					break;
 				case '/agent/detail':
 					title = 'Agent Page';
-					desc = 'Home / For Rent';
-					bgImage = '/img/banner/korea2.jpg';
+					desc = 'Helping students find the right campus, dormitory and scholarship — one listing at a time.';
+					bgImage = '';
+					eyebrow = 'VERIFIED AGENT';
 					break;
 				case '/mypage':
 					title = 'Welcome to your profile';
@@ -164,7 +174,7 @@ const withLayoutBasic = (Component: any) => {
 			}
 
 			return { title, desc, bgImage, eyebrow, stats, marqueeItems };
-		}, [router.pathname]);
+		}, [router.pathname, agentHeroName]);
 
 		/** LIFECYCLES **/
 		useEffect(() => {
@@ -222,6 +232,7 @@ const withLayoutBasic = (Component: any) => {
 			);
 		} else {
 			return (
+				<AgentHeroNameContext.Provider value={{ agentHeroName, setAgentHeroName }}>
 				<>
 					<Head>
 						<title>UniFinder</title>
@@ -238,7 +249,7 @@ const withLayoutBasic = (Component: any) => {
 								router.pathname === '/university' ? 'university-hero' : ''
 							} ${router.pathname === '/community' ? 'community-hero' : ''} ${
 								router.pathname === '/mypage' ? 'mypage-hero' : ''
-							}`}
+							} ${router.pathname === '/agent/detail' ? 'agent-detail-hero' : ''}`}
 							style={
 								memoizedValues.bgImage
 									? { backgroundImage: `url(${memoizedValues.bgImage})`, backgroundSize: 'cover' }
@@ -331,6 +342,16 @@ const withLayoutBasic = (Component: any) => {
 										<p className={`mypage-lead${heroVisible ? ' fade-in-up delay-1' : ''}`}>{t(memoizedValues.desc)}</p>
 									</Stack>
 								</Stack>
+							) : router.pathname === '/agent/detail' ? (
+								<Stack className={'container agent-detail-hero-container'}>
+									<span className={'agent-detail-breadcrumb'}>Home / Agents / {agentHeroName || '...'}</span>
+									<Stack className={'verified-badge'}>
+										<span className={'verified-dot'} />
+										{t(memoizedValues.eyebrow!)}
+									</Stack>
+									<strong className={'agent-detail-heading'}>{t(memoizedValues.title)}</strong>
+									<p className={'agent-detail-lead'}>{t(memoizedValues.desc)}</p>
+								</Stack>
 							) : (
 								<Stack className={`container${memoizedValues.stats ? ' has-stats' : ''}`}>
 									{memoizedValues.stats ? (
@@ -375,6 +396,7 @@ const withLayoutBasic = (Component: any) => {
 						</Stack>
 					</Stack>
 				</>
+				</AgentHeroNameContext.Provider>
 			);
 		}
 	};

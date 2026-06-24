@@ -1,0 +1,818 @@
+Context: redesign the Agent detail page (`/agent/detail`, file `pages/agent/detail.tsx`) hero + profile block + portfolio header to match the new reference design (dark gradient hero with "VERIFIED AGENT" badge and breadcrumb, a white profile card overlapping the hero bottom with avatar/name/phone/stats/Contact button, and a "PORTFOLIO / Listed universities" header with decorative filter pills above the existing university card grid).
+
+Ground rules for this change:
+- No GraphQL query/mutation is added, removed, or modified. No existing handler's behavior changes.
+- `universityTotal` and `commentTotal` are REAL data already fetched on this page (server-side counts) — used for the "Listings" and "Reviews" stats. There is no real "rating" field anywhere in the schema, so "Rating" is a static placeholder (`4.8★`) purely for visual match — this is an intentional, explicitly-approved design liberty, not invented business data.
+- There is no "verified"/"approved" field in the schema either, so "VERIFIED AGENT" is a static decorative badge, not bound to any real verification logic — also an explicitly-approved design liberty.
+- The "All / Dormitory / Scholarship" filter pills above the card grid are purely visual (no working filter logic is added) — "All" is always shown active. Wiring real filtering is out of scope for this change.
+- The breadcrumb's agent name ("Home / Agents / Marco") IS real data — it requires lifting the already-fetched agent name from the page up into the shared `LayoutBasic` header via a small new React Context (`AgentHeroNameContext`). This is new presentational-only plumbing (a context + one `useState` + one `setAgentHeroName(...)` call after data is fetched) — it does not touch any GraphQL/Apollo logic, only forwards an already-fetched display string.
+
+---
+
+## PART 1 — `libs/components/layout/LayoutBasic.tsx`
+
+### 1.1 Add `createContext`/`useContext` to the React import
+
+Find:
+
+```tsx
+import React, { useEffect, useMemo, useState } from 'react';
+```
+
+Replace with:
+
+```tsx
+import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
+```
+
+### 1.2 Export a new context for the agent hero name
+
+Find:
+
+```tsx
+import 'swiper/css';
+import 'swiper/css/pagination';
+import 'swiper/css/navigation';
+
+interface StatItem {
+```
+
+Replace with:
+
+```tsx
+import 'swiper/css';
+import 'swiper/css/pagination';
+import 'swiper/css/navigation';
+
+export const AgentHeroNameContext = createContext<{
+	agentHeroName: string;
+	setAgentHeroName: (name: string) => void;
+}>({
+	agentHeroName: '',
+	setAgentHeroName: () => {},
+});
+
+interface StatItem {
+```
+
+### 1.3 Add local state for the agent hero name inside `withLayoutBasic`
+
+Find:
+
+```tsx
+		const [browsingIndex, setBrowsingIndex] = useState(0);
+		const [browsingKey, setBrowsingKey] = useState(0);
+		const user = useReactiveVar(userVar);
+```
+
+Replace with:
+
+```tsx
+		const [browsingIndex, setBrowsingIndex] = useState(0);
+		const [browsingKey, setBrowsingKey] = useState(0);
+		const user = useReactiveVar(userVar);
+		const [agentHeroName, setAgentHeroName] = useState('');
+```
+
+### 1.4 Update the `/agent/detail` switch case
+
+Find:
+
+```tsx
+			case '/agent/detail':
+				title = 'Agent Page';
+				desc = 'Home / For Rent';
+				bgImage = '/img/banner/korea2.jpg';
+				break;
+```
+
+Replace with:
+
+```tsx
+			case '/agent/detail':
+				title = 'Agent Page';
+				desc = 'Helping students find the right campus, dormitory and scholarship — one listing at a time.';
+				bgImage = '';
+				eyebrow = 'VERIFIED AGENT';
+				break;
+```
+
+### 1.5 Add `agentHeroName` to the `memoizedValues` dependency array
+
+Find:
+
+```tsx
+		return { title, desc, bgImage, eyebrow, stats, marqueeItems };
+	}, [router.pathname]);
+```
+
+Replace with:
+
+```tsx
+		return { title, desc, bgImage, eyebrow, stats, marqueeItems };
+	}, [router.pathname, agentHeroName]);
+```
+
+### 1.6 Add the `agent-detail-hero` modifier class
+
+Find:
+
+```tsx
+							className={`header-basic ${authHeader && 'auth'} ${memoizedValues.marqueeItems ? 'agent-hero' : ''} ${
+								router.pathname === '/university' ? 'university-hero' : ''
+							} ${router.pathname === '/community' ? 'community-hero' : ''} ${
+								router.pathname === '/mypage' ? 'mypage-hero' : ''
+							}`}
+```
+
+Replace with:
+
+```tsx
+							className={`header-basic ${authHeader && 'auth'} ${memoizedValues.marqueeItems ? 'agent-hero' : ''} ${
+								router.pathname === '/university' ? 'university-hero' : ''
+							} ${router.pathname === '/community' ? 'community-hero' : ''} ${
+								router.pathname === '/mypage' ? 'mypage-hero' : ''
+							} ${router.pathname === '/agent/detail' ? 'agent-detail-hero' : ''}`}
+```
+
+### 1.7 Add a dedicated JSX branch for `/agent/detail`, right before the default branch
+
+Find:
+
+```tsx
+							) : (
+								<Stack className={`container${memoizedValues.stats ? ' has-stats' : ''}`}>
+```
+
+Replace with:
+
+```tsx
+							) : router.pathname === '/agent/detail' ? (
+								<Stack className={'container agent-detail-hero-container'}>
+									<span className={'agent-detail-breadcrumb'}>Home / Agents / {agentHeroName || '...'}</span>
+									<Stack className={'verified-badge'}>
+										<span className={'verified-dot'} />
+										{t(memoizedValues.eyebrow!)}
+									</Stack>
+									<strong className={'agent-detail-heading'}>{t(memoizedValues.title)}</strong>
+									<p className={'agent-detail-lead'}>{t(memoizedValues.desc)}</p>
+								</Stack>
+							) : (
+								<Stack className={`container${memoizedValues.stats ? ' has-stats' : ''}`}>
+```
+
+### 1.8 Wrap the desktop return in the new context Provider
+
+Find:
+
+```tsx
+		} else {
+			return (
+				<>
+					<Head>
+						<title>UniFinder</title>
+						<meta name={'title'} content={`UniFinder`} />
+					</Head>
+					<Stack id="pc-wrap">
+```
+
+Replace with:
+
+```tsx
+		} else {
+			return (
+				<AgentHeroNameContext.Provider value={{ agentHeroName, setAgentHeroName }}>
+				<>
+					<Head>
+						<title>UniFinder</title>
+						<meta name={'title'} content={`UniFinder`} />
+					</Head>
+					<Stack id="pc-wrap">
+```
+
+Find:
+
+```tsx
+						<Stack id={'footer'}>
+							<Footer />
+						</Stack>
+					</Stack>
+				</>
+			);
+		}
+	};
+};
+```
+
+Replace with:
+
+```tsx
+						<Stack id={'footer'}>
+							<Footer />
+						</Stack>
+					</Stack>
+				</>
+				</AgentHeroNameContext.Provider>
+			);
+		}
+	};
+};
+```
+
+(Run Prettier/your formatter afterward to re-indent the `<>...</>` JSX now nested one level deeper inside the Provider — purely whitespace, no logic change.)
+
+---
+
+## PART 2 — `pages/agent/detail.tsx`
+
+### 2.1 Import the context
+
+Find:
+
+```tsx
+import React, { ChangeEvent, useEffect, useState } from 'react';
+import { NextPage } from 'next';
+import useDeviceDetect from '../../libs/hooks/useDeviceDetect';
+import withLayoutBasic from '../../libs/components/layout/LayoutBasic';
+```
+
+Replace with:
+
+```tsx
+import React, { ChangeEvent, useContext, useEffect, useState } from 'react';
+import { NextPage } from 'next';
+import useDeviceDetect from '../../libs/hooks/useDeviceDetect';
+import withLayoutBasic, { AgentHeroNameContext } from '../../libs/components/layout/LayoutBasic';
+```
+
+### 2.2 Read the context setter and push the agent's name up once fetched
+
+Find:
+
+```tsx
+	const [insertCommentData, setInsertCommentData] = useState<CommentInput>({
+		commentGroup: CommentGroup.MEMBER,
+		commentContent: '',
+		commentRefId: '',
+	});
+```
+
+Replace with:
+
+```tsx
+	const [insertCommentData, setInsertCommentData] = useState<CommentInput>({
+		commentGroup: CommentGroup.MEMBER,
+		commentContent: '',
+		commentRefId: '',
+	});
+	const { setAgentHeroName } = useContext(AgentHeroNameContext);
+```
+
+Find:
+
+```tsx
+		onCompleted: (data: T) => {
+			setAgent(data?.getMember);
+			setSearchFilter({
+```
+
+Replace with:
+
+```tsx
+		onCompleted: (data: T) => {
+			setAgent(data?.getMember);
+			setAgentHeroName(data?.getMember?.memberFullName ?? data?.getMember?.memberNick ?? '');
+			setSearchFilter({
+```
+
+### 2.3 Replace the `.agent-info` block with the new floating profile card
+
+Find:
+
+```tsx
+				<Stack className={'container'}>
+					<Stack className={'agent-info'}>
+						<img
+							src={agent?.memberImage ? `${REACT_APP_API_URL}/${agent?.memberImage}` : '/img/profile/defaultUser.svg'}
+							alt=""
+						/>
+						<Box component={'div'} className={'info'} onClick={() => redirectToMemberPageHandler(agent?._id as string)}>
+							<strong>{agent?.memberFullName ?? agent?.memberNick}</strong>
+							<div>
+								<img src="/img/icons/call.svg" alt="" />
+								<span>{agent?.memberPhone}</span>
+							</div>
+						</Box>
+					</Stack>
+					<Stack className={'agent-home-list'}>
+						<Stack className={'card-wrap'}>
+```
+
+Replace with:
+
+```tsx
+				<Stack className={'container'}>
+					<Stack className={'agent-profile-card'}>
+						<Stack className={'agent-profile-avatar'}>
+							<img
+								src={agent?.memberImage ? `${REACT_APP_API_URL}/${agent?.memberImage}` : '/img/profile/defaultUser.svg'}
+								alt=""
+								onClick={() => redirectToMemberPageHandler(agent?._id as string)}
+							/>
+							<span className={'agent-profile-avatar-check'}>✓</span>
+						</Stack>
+						<Box
+							component={'div'}
+							className={'agent-profile-info'}
+							onClick={() => redirectToMemberPageHandler(agent?._id as string)}
+						>
+							<Stack className={'agent-profile-name-row'}>
+								<strong>{agent?.memberFullName ?? agent?.memberNick}</strong>
+								<span className={'agent-profile-badge'}>AGENT</span>
+							</Stack>
+							<div className={'agent-profile-phone'}>
+								<img src="/img/icons/call.svg" alt="" />
+								<span>{agent?.memberPhone}</span>
+							</div>
+						</Box>
+						<Stack className={'agent-profile-stats'}>
+							<Stack className={'agent-profile-stat'}>
+								<strong>{universityTotal}</strong>
+								<span>Listings</span>
+							</Stack>
+							<span className={'agent-profile-stat-divider'} />
+							<Stack className={'agent-profile-stat'}>
+								<strong>{commentTotal}</strong>
+								<span>Reviews</span>
+							</Stack>
+							<span className={'agent-profile-stat-divider'} />
+							<Stack className={'agent-profile-stat'}>
+								<strong>
+									4.8<span className={'agent-profile-star'}>★</span>
+								</strong>
+								<span>Rating</span>
+							</Stack>
+						</Stack>
+						<button
+							className={'agent-profile-contact-btn'}
+							onClick={() => redirectToMemberPageHandler(agent?._id as string)}
+						>
+							Contact {agent?.memberFullName ?? agent?.memberNick}
+							<span className={'agent-profile-contact-arrow'}>↗</span>
+						</button>
+					</Stack>
+					<Stack className={'agent-home-list'}>
+						<Stack className={'agent-portfolio-header'}>
+							<Stack className={'agent-portfolio-heading'}>
+								<span className={'agent-portfolio-eyebrow'}>PORTFOLIO</span>
+								<span className={'agent-portfolio-title'}>Listed universities</span>
+							</Stack>
+							<Stack className={'agent-portfolio-filters'}>
+								<span className={'agent-portfolio-filter-pill active'}>All</span>
+								<span className={'agent-portfolio-filter-pill'}>Dormitory</span>
+								<span className={'agent-portfolio-filter-pill'}>Scholarship</span>
+							</Stack>
+						</Stack>
+						<Stack className={'card-wrap'}>
+```
+
+(The `redirectToMemberPageHandler` call is the exact same existing handler, only moved from wrapping the whole old `.info` box onto the avatar image and the new Contact button individually — no new navigation behavior.)
+
+---
+
+## PART 3 — `scss/pc/agent/detail.scss`
+
+### 3.1 Add the page background
+
+Find:
+
+```scss
+#pc-wrap {
+	.agent-detail-page {
+		position: relative;
+		padding: 133px 0 75px;
+		width: 100%;
+		height: auto;
+		display: flex;
+		flex-direction: row;
+		justify-content: center;
+```
+
+Replace with:
+
+```scss
+#pc-wrap {
+	.agent-detail-page {
+		position: relative;
+		padding: 133px 0 75px;
+		width: 100%;
+		height: auto;
+		display: flex;
+		flex-direction: row;
+		justify-content: center;
+		background: #f5f3ef;
+```
+
+### 3.2 Replace the old `.agent-info` block with the new `.agent-profile-card` styles
+
+Find:
+
+```scss
+			.agent-info {
+				margin-left: 58px;
+				width: 100%;
+				display: flex;
+				flex-direction: row;
+				align-items: center;
+				img {
+					margin-right: 32px;
+					width: 135px;
+					height: 135px;
+					border-radius: 50%;
+					cursor: pointer;
+					object-fit: cover;
+				}
+				.info {
+					display: flex;
+					flex-direction: column;
+					strong {
+						color: #181a20;
+						font-family: $font;
+						font-size: 24px;
+						font-style: normal;
+						font-weight: 600;
+						line-height: normal;
+						text-transform: capitalize;
+						cursor: pointer;
+					}
+					div {
+						margin-top: 13px;
+						display: flex;
+						flex-direction: row;
+						align-items: center;
+						img {
+							margin-right: 10px;
+							width: 16px;
+							height: 16px;
+						}
+						span {
+							color: #181a20;
+							font-family: $font;
+							font-size: 20px;
+							font-style: normal;
+							font-weight: 400;
+							line-height: 28px;
+						}
+					}
+				}
+			}
+```
+
+Replace with:
+
+```scss
+			.agent-profile-card {
+				position: relative;
+				z-index: 5;
+				margin-top: -90px;
+				width: 100%;
+				padding: 28px 36px;
+				display: flex;
+				flex-direction: row;
+				align-items: center;
+				gap: 28px;
+				border-radius: 20px;
+				background: #fff;
+				box-shadow: 0px 12px 32px rgba(28, 27, 24, 0.1);
+				box-sizing: border-box;
+				.agent-profile-avatar {
+					position: relative;
+					flex-shrink: 0;
+					img {
+						width: 60px;
+						height: 60px;
+						border-radius: 16px;
+						object-fit: cover;
+						cursor: pointer;
+					}
+					.agent-profile-avatar-check {
+						position: absolute;
+						bottom: -4px;
+						right: -4px;
+						width: 18px;
+						height: 18px;
+						border-radius: 50%;
+						background: #2ea36b;
+						border: 2px solid #fff;
+						color: #fff;
+						font-size: 10px;
+						font-weight: 700;
+						display: flex;
+						align-items: center;
+						justify-content: center;
+					}
+				}
+				.agent-profile-info {
+					display: flex;
+					flex-direction: column;
+					cursor: pointer;
+					.agent-profile-name-row {
+						flex-direction: row;
+						align-items: center;
+						gap: 10px;
+						strong {
+							color: #1c1b18;
+							font-family: $font;
+							font-size: 18px;
+							font-style: normal;
+							font-weight: 700;
+							line-height: normal;
+							text-transform: capitalize;
+						}
+						.agent-profile-badge {
+							padding: 2px 10px;
+							border-radius: 999px;
+							background: #f5f3ef;
+							color: #8e8c83;
+							font-family: $font;
+							font-size: 10px;
+							font-weight: 700;
+							letter-spacing: 0.06em;
+							text-transform: uppercase;
+						}
+					}
+					.agent-profile-phone {
+						margin-top: 6px;
+						display: flex;
+						flex-direction: row;
+						align-items: center;
+						img {
+							margin-right: 8px;
+							width: 14px;
+							height: 14px;
+						}
+						span {
+							color: #8e8c83;
+							font-family: $font;
+							font-size: 13px;
+							font-style: normal;
+							font-weight: 400;
+							line-height: normal;
+						}
+					}
+				}
+				.agent-profile-stats {
+					margin-left: auto;
+					flex-direction: row;
+					align-items: center;
+					gap: 28px;
+					.agent-profile-stat {
+						align-items: center;
+						strong {
+							color: #1c1b18;
+							font-family: $font;
+							font-size: 20px;
+							font-weight: 700;
+							display: flex;
+							align-items: center;
+							gap: 2px;
+						}
+						span {
+							margin-top: 2px;
+							color: #8e8c83;
+							font-family: $font;
+							font-size: 12px;
+							font-weight: 400;
+						}
+						.agent-profile-star {
+							color: #e8856a;
+							font-size: 14px;
+						}
+					}
+					.agent-profile-stat-divider {
+						width: 1px;
+						height: 28px;
+						background: #efede7;
+					}
+				}
+				.agent-profile-contact-btn {
+					flex-shrink: 0;
+					padding: 12px 22px;
+					border: none;
+					border-radius: 999px;
+					background: #1c1b18;
+					color: #fff;
+					font-family: $font;
+					font-size: 14px;
+					font-weight: 600;
+					cursor: pointer;
+					display: flex;
+					align-items: center;
+					gap: 8px;
+					transition: background 0.2s;
+					&:hover {
+						background: #e8856a;
+					}
+					.agent-profile-contact-arrow {
+						font-size: 14px;
+					}
+				}
+			}
+```
+
+### 3.3 Add the "PORTFOLIO / Listed universities" header above the card grid
+
+Find:
+
+```scss
+			.agent-home-list {
+				position: relative;
+				width: 100%;
+				margin-top: 33px;
+				padding: 0px 0 46px;
+				display: flex;
+				flex-direction: column;
+				border-radius: 12px;
+				background: #fff;
+				box-shadow: 0px 1px 4px 0px rgba(24, 26, 32, 0.07);
+				.card-wrap {
+```
+
+Replace with:
+
+```scss
+			.agent-home-list {
+				position: relative;
+				width: 100%;
+				margin-top: 33px;
+				padding: 0px 0 46px;
+				display: flex;
+				flex-direction: column;
+				border-radius: 12px;
+				background: #fff;
+				box-shadow: 0px 1px 4px 0px rgba(24, 26, 32, 0.07);
+				.agent-portfolio-header {
+					width: 100%;
+					padding: 38px 38px 0;
+					display: flex;
+					flex-direction: row;
+					align-items: flex-end;
+					justify-content: space-between;
+					box-sizing: border-box;
+					.agent-portfolio-heading {
+						display: flex;
+						flex-direction: column;
+						.agent-portfolio-eyebrow {
+							color: #8e8c83;
+							font-family: $font;
+							font-size: 11px;
+							font-weight: 700;
+							letter-spacing: 0.12em;
+							text-transform: uppercase;
+							margin-bottom: 6px;
+						}
+						.agent-portfolio-title {
+							color: #1c1b18;
+							font-family: $font;
+							font-size: 26px;
+							font-weight: 700;
+						}
+					}
+					.agent-portfolio-filters {
+						display: flex;
+						flex-direction: row;
+						gap: 8px;
+						.agent-portfolio-filter-pill {
+							padding: 8px 18px;
+							border-radius: 999px;
+							font-family: $font;
+							font-size: 13px;
+							font-weight: 600;
+							cursor: default;
+							background: transparent;
+							border: 1px solid #e2e0d8;
+							color: #8e8c83;
+							&.active {
+								background: #1c1b18;
+								border-color: #1c1b18;
+								color: #fff;
+							}
+						}
+					}
+				}
+				.card-wrap {
+```
+
+---
+
+## PART 4 — `scss/pc/main.scss`
+
+### 4.1 Add the `&.agent-detail-hero` hero modifier (gradient B, left-aligned text, breadcrumb, verified badge)
+
+Find:
+
+```scss
+				.mypage-lead {
+					margin-top: 20px;
+					color: rgba(255, 255, 255, 0.65);
+					font-family: $font;
+					font-size: 17px;
+					font-weight: 400;
+					line-height: 1.6;
+				}
+			}
+		}
+	}
+
+	.review-card {
+```
+
+Replace with:
+
+```scss
+				.mypage-lead {
+					margin-top: 20px;
+					color: rgba(255, 255, 255, 0.65);
+					font-family: $font;
+					font-size: 17px;
+					font-weight: 400;
+					line-height: 1.6;
+				}
+			}
+		}
+
+		&.agent-detail-hero {
+			background: linear-gradient(135deg, #15140f 0%, #1c2620 50%, #1a2230 100%);
+			.agent-detail-hero-container {
+				position: relative;
+				z-index: 1;
+				align-self: flex-start;
+				margin-left: 12%;
+				margin-top: 110px;
+				display: flex;
+				flex-direction: column;
+				align-items: flex-start;
+				.agent-detail-breadcrumb {
+					color: rgba(255, 255, 255, 0.55);
+					font-family: $font;
+					font-size: 13px;
+					font-weight: 400;
+					margin-bottom: 20px;
+				}
+				.verified-badge {
+					flex-direction: row;
+					align-items: center;
+					gap: 8px;
+					padding: 6px 14px;
+					border-radius: 999px;
+					border: 1px solid rgba(255, 255, 255, 0.25);
+					background: rgba(255, 255, 255, 0.06);
+					color: rgba(255, 255, 255, 0.85);
+					font-family: $font;
+					font-size: 12px;
+					font-weight: 700;
+					letter-spacing: 0.6px;
+					text-transform: uppercase;
+					margin-bottom: 20px;
+					.verified-dot {
+						width: 6px;
+						height: 6px;
+						border-radius: 50%;
+						background: #2ea36b;
+						display: inline-block;
+					}
+				}
+				.agent-detail-heading {
+					color: #fff;
+					font-family: $font;
+					font-size: 50px;
+					font-weight: 800;
+					line-height: 1.1;
+					letter-spacing: -0.5px;
+				}
+				.agent-detail-lead {
+					max-width: 480px;
+					margin-top: 16px;
+					color: rgba(255, 255, 255, 0.65);
+					font-family: $font;
+					font-size: 17px;
+					font-weight: 400;
+					line-height: 1.6;
+				}
+			}
+		}
+	}
+
+	.review-card {
+```
+
+---
+
+Verify after implementing:
+1. `/agent/detail` hero now shows gradient B (black → forest green → navy) instead of the old sky-photo background, with breadcrumb "Home / Agents / {real agent name}", an outlined "● VERIFIED AGENT" badge (green dot), "Agent Page" title, and the subtitle paragraph — all left-aligned like the University/Agent-directory heroes.
+2. The breadcrumb shows the actual fetched agent name (e.g. "Marco"), not a placeholder — confirm it updates correctly when navigating between different agents' detail pages (it comes from the real `getMember` query response via the new context, not hardcoded).
+3. A white profile card now overlaps the bottom of the hero, showing: avatar (real photo or default image, rounded square with a green checkmark badge), name + "AGENT" pill, phone number, "Listings"/"Reviews"/"Rating" stats (Listings and Reviews are real counts; Rating is the static `4.8★` placeholder), and a black "Contact {name}" button that turns coral on hover.
+4. Clicking the avatar, the name/phone block, or the Contact button all still navigate via the same existing `redirectToMemberPageHandler` — to `/member?memberId=...` for other users or `/mypage?memberId=...` if viewing your own profile, exactly as before.
+5. Below the profile card, "PORTFOLIO / Listed universities" appears with "All / Dormitory / Scholarship" pills (All shown active, pills are decorative only — clicking them does nothing yet) above the existing university card grid, which is otherwise untouched (same cards, same like/view counts, same pagination, same "Total X university available" text).
+6. No GraphQL query/mutation was added or modified; `universityTotal`, `commentTotal`, and `redirectToMemberPageHandler` are reused exactly as they already existed.
+7. Other routes using `LayoutBasic` (`/university`, `/agent`, `/community`, `/mypage`, `/cs`, `/member`, `/account/join`) are visually unaffected — the new context, branch, and CSS only apply to `/agent/detail`.

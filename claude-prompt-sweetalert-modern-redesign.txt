@@ -1,0 +1,244 @@
+Context: replace the existing SweetAlert2 theme block in `scss/app.scss` (added in a previous prompt) with a more modern design, approved by the user from a mockup: a compact white card with a thin colored accent bar across the top (coral for error, green for success, dark for question/confirm), a small 30x30 rounded-square icon badge (not the default circular ring) sitting top-left with the title text beside it, an optional smaller muted subtitle line below, and compact pill-style action buttons left-aligned under the text. This is a pure CSS rewrite of the same `.swal2-*` class overrides already in `scss/app.scss` — no JSX, no `libs/sweetAlert.ts`, no call-site logic changes anywhere.
+
+Because SweetAlert2 draws its default icon as a large circle with absolutely-positioned checkmark/x line divs tuned for that bigger size, those default line/ring elements are hidden via `display:none` and replaced with a simple `::after` character glyph (✕ / ✓ / ?) so the icon can be shrunk down to a small square badge cleanly, with no JS or extra image assets needed.
+
+## `scss/app.scss`
+
+Find this exact block (everything from the `/** SweetAlert2 **/` comment through the closing `}` of `.swal2-toast`):
+
+```scss
+/** SweetAlert2 — site-wide alert/notification theme **/
+.swal2-popup {
+	border-radius: 18px !important;
+	padding: 32px 28px !important;
+	background: #fff !important;
+	box-shadow: 0 24px 48px rgba(28, 27, 24, 0.14) !important;
+	border: 1px solid #e9e7e0 !important;
+	font-family: $font !important;
+}
+.swal2-title {
+	color: #1c1b18 !important;
+	font-family: $font !important;
+	font-size: 18px !important;
+	font-weight: 700 !important;
+}
+.swal2-html-container {
+	color: #57564f !important;
+	font-family: $font !important;
+	font-size: 14px !important;
+}
+.swal2-icon {
+	&.swal2-error {
+		border-color: #e8856a !important;
+		color: #e8856a !important;
+		[class^='swal2-x-mark-line'] {
+			background-color: #e8856a !important;
+		}
+	}
+	&.swal2-success {
+		border-color: #5a8a52 !important;
+		color: #5a8a52 !important;
+		.swal2-success-ring {
+			border-color: rgba(90, 138, 82, 0.3) !important;
+		}
+		[class^='swal2-success-line'] {
+			background-color: #5a8a52 !important;
+		}
+	}
+	&.swal2-question {
+		border-color: #8e8c83 !important;
+		color: #8e8c83 !important;
+	}
+}
+.swal2-confirm.swal2-styled {
+	background-color: #1c1b18 !important;
+	border-radius: 10px !important;
+	font-family: $font !important;
+	font-size: 14px !important;
+	font-weight: 600 !important;
+	box-shadow: none !important;
+	padding: 10px 24px !important;
+}
+.swal2-cancel.swal2-styled {
+	background-color: #f5f3ef !important;
+	color: #1c1b18 !important;
+	border-radius: 10px !important;
+	font-family: $font !important;
+	font-size: 14px !important;
+	font-weight: 600 !important;
+	box-shadow: none !important;
+	padding: 10px 24px !important;
+}
+.swal2-timer-progress-bar {
+	background: #e8856a !important;
+}
+.swal2-toast {
+	border-radius: 12px !important;
+	padding: 12px 18px !important;
+	font-family: $font !important;
+	font-size: 13px !important;
+	box-shadow: 0 8px 24px rgba(28, 27, 24, 0.12) !important;
+}
+```
+
+Replace with:
+
+```scss
+/** SweetAlert2 — site-wide alert/notification theme (modern card, top accent bar, square icon badge) **/
+.swal2-popup {
+	position: relative !important;
+	overflow: hidden !important;
+	border-radius: 18px !important;
+	padding: 26px 24px 22px !important;
+	background: #fff !important;
+	box-shadow: 0 16px 40px rgba(28, 27, 24, 0.2) !important;
+	border: none !important;
+	font-family: $font !important;
+	text-align: left !important;
+	&::before {
+		content: '';
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		height: 4px;
+		background: #1c1b18;
+	}
+	&:has(.swal2-icon.swal2-error)::before {
+		background: #e8856a;
+	}
+	&:has(.swal2-icon.swal2-success)::before {
+		background: #5a8a52;
+	}
+	&:has(.swal2-icon.swal2-question)::before {
+		background: #1c1b18;
+	}
+}
+.swal2-icon {
+	position: absolute !important;
+	top: 26px !important;
+	left: 24px !important;
+	width: 30px !important;
+	height: 30px !important;
+	min-width: 30px !important;
+	margin: 0 !important;
+	border: none !important;
+	border-radius: 9px !important;
+	display: flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	&::before,
+	&::after {
+		content: none !important;
+	}
+	.swal2-success-ring,
+	.swal2-success-fix,
+	[class^='swal2-success-line'],
+	[class^='swal2-x-mark-line'] {
+		display: none !important;
+	}
+	&.swal2-error {
+		background: rgba(232, 133, 106, 0.12) !important;
+		&::after {
+			content: '\2715' !important;
+			font-size: 14px;
+			color: #e8856a;
+		}
+	}
+	&.swal2-success {
+		background: rgba(90, 138, 82, 0.12) !important;
+		&::after {
+			content: '\2713' !important;
+			font-size: 15px;
+			color: #5a8a52;
+		}
+	}
+	&.swal2-question {
+		background: #f5f3ef !important;
+		&::after {
+			content: '?' !important;
+			font-size: 14px;
+			font-weight: 700;
+			color: #1c1b18;
+		}
+	}
+}
+.swal2-title {
+	margin: 0 0 4px 40px !important;
+	padding: 0 !important;
+	color: #1c1b18 !important;
+	font-family: $font !important;
+	font-size: 13.5px !important;
+	font-weight: 500 !important;
+	line-height: 1.4 !important;
+	text-align: left !important;
+}
+.swal2-html-container {
+	margin: 0 0 14px 40px !important;
+	padding: 0 !important;
+	color: #8e8c83 !important;
+	font-family: $font !important;
+	font-size: 11.5px !important;
+	text-align: left !important;
+}
+.swal2-actions {
+	margin: 4px 0 0 40px !important;
+	justify-content: flex-start !important;
+	gap: 8px;
+}
+.swal2-confirm.swal2-styled {
+	background-color: #e8856a !important;
+	color: #fff !important;
+	border-radius: 8px !important;
+	font-family: $font !important;
+	font-size: 11.5px !important;
+	font-weight: 500 !important;
+	box-shadow: none !important;
+	padding: 7px 16px !important;
+}
+.swal2-cancel.swal2-styled {
+	background-color: #f5f3ef !important;
+	color: #1c1b18 !important;
+	border-radius: 8px !important;
+	font-family: $font !important;
+	font-size: 11.5px !important;
+	font-weight: 500 !important;
+	box-shadow: none !important;
+	padding: 7px 16px !important;
+}
+.swal2-timer-progress-bar {
+	background: #e8856a !important;
+}
+.swal2-toast {
+	border-radius: 12px !important;
+	padding: 12px 18px !important;
+	font-family: $font !important;
+	font-size: 13px !important;
+	box-shadow: 0 8px 24px rgba(28, 27, 24, 0.12) !important;
+	&::before {
+		content: none !important;
+	}
+	.swal2-icon {
+		position: static !important;
+		width: 20px !important;
+		height: 20px !important;
+		min-width: 20px !important;
+		margin: 0 10px 0 0 !important;
+	}
+	.swal2-title {
+		margin: 0 !important;
+		font-size: 12.5px !important;
+	}
+}
+```
+
+Do not change anything else in `app.scss` (the `body`, `hr`, `#pc-wrap` blocks above/below stay exactly as they are), and do not touch `libs/sweetAlert.ts` or any of its call sites — same messages, icons, timers, and promise-resolution logic as before, only the visual theme changes.
+
+---
+
+Verify after implementing:
+1. Trigger an error alert (e.g. try to write a review on your own agent profile) — popup is a compact white card with a thin coral line across the top, a small coral rounded-square badge with an ✕ glyph top-left, and the message text starting right beside it (not centered, not the old big circular ring icon).
+2. Trigger a success alert (e.g. like a university) — same card shape but with a green top accent bar and a green ✓ badge.
+3. Trigger a confirm dialog (e.g. `sweetConfirmAlert`) — dark top accent bar, a "?" badge, and two small pill buttons (coral "Confirm", beige "Cancel") left-aligned under the question text instead of centered/full-width default buttons.
+4. Trigger a toast (e.g. `sweetTopSmallSuccessAlert`) — stays a small top-right/inline toast with a small inline icon and text, not affected by the absolute-positioned badge layout used in the full popup.
+5. All alert trigger conditions, messages, timers, and confirm/cancel promise resolution are unchanged — only the visual appearance changed.

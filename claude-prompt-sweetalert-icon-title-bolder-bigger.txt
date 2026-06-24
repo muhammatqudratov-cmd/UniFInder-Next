@@ -1,0 +1,176 @@
+Context: follow-up visual tweak to the SweetAlert2 modern theme in `scss/app.scss` (the same block already modified by the two previous SweetAlert2 prompts — modern redesign, then the top-bar corner-radius fix). User feedback on the latest screenshot: the small icon badge glyph (currently the coral ✕ for error, at 14px) and the popup title text (currently 13.5px / font-weight 500) both read as too small and too light/washed-out. Requested: make the icon glyph and the title text both bigger and visually darker/bolder.
+
+Changes, pure CSS, no JSX/logic/markup touched:
+1. Icon badge: enlarge the badge from 30x30px to 38x38px (border-radius bumped from 9px to 10px to stay proportional) and reposition slightly (top 26px -> 24px) so it stays vertically centered against the now-larger badge.
+2. Icon glyphs: increase glyph font-size (error ✕ 14px -> 20px, success ✓ 15px -> 21px, question "?" 14px -> 20px) and make all three glyphs bold (font-weight: 700) and a single solid dark color (#1c1b18) instead of the error/success glyphs using their tinted accent color — the colored circular background behind each glyph still carries the error/success/question color-coding, so the glyph itself reads dark and bold for legibility while the badge background still communicates the alert type.
+3. Title: increase font-size from 13.5px to 16px and font-weight from 500 to 600 for a bolder, darker visual read (color was already #1c1b18, kept as-is).
+4. Subtitle (`.swal2-html-container`) and buttons (`.swal2-actions`) margin-left bumped from 40px to 50px, and title margin-left also bumped from 40px to 50px, to stay correctly aligned next to the now-wider 38px badge (badge width + gap).
+
+## `scss/app.scss`
+
+Find this exact block:
+
+```scss
+.swal2-icon {
+	position: absolute !important;
+	top: 26px !important;
+	left: 24px !important;
+	width: 30px !important;
+	height: 30px !important;
+	min-width: 30px !important;
+	margin: 0 !important;
+	border: none !important;
+	border-radius: 9px !important;
+	display: flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	&::before,
+	&::after {
+		content: none !important;
+	}
+	.swal2-success-ring,
+	.swal2-success-fix,
+	[class^='swal2-success-line'],
+	[class^='swal2-x-mark-line'] {
+		display: none !important;
+	}
+	&.swal2-error {
+		background: rgba(232, 133, 106, 0.12) !important;
+		&::after {
+			content: '\2715' !important;
+			font-size: 14px;
+			color: #e8856a;
+		}
+	}
+	&.swal2-success {
+		background: rgba(90, 138, 82, 0.12) !important;
+		&::after {
+			content: '\2713' !important;
+			font-size: 15px;
+			color: #5a8a52;
+		}
+	}
+	&.swal2-question {
+		background: #f5f3ef !important;
+		&::after {
+			content: '?' !important;
+			font-size: 14px;
+			font-weight: 700;
+			color: #1c1b18;
+		}
+	}
+}
+.swal2-title {
+	margin: 0 0 4px 40px !important;
+	padding: 0 !important;
+	color: #1c1b18 !important;
+	font-family: $font !important;
+	font-size: 13.5px !important;
+	font-weight: 500 !important;
+	line-height: 1.4 !important;
+	text-align: left !important;
+}
+.swal2-html-container {
+	margin: 0 0 14px 40px !important;
+	padding: 0 !important;
+	color: #8e8c83 !important;
+	font-family: $font !important;
+	font-size: 11.5px !important;
+	text-align: left !important;
+}
+.swal2-actions {
+	margin: 4px 0 0 40px !important;
+	justify-content: flex-start !important;
+	gap: 8px;
+}
+```
+
+Replace with:
+
+```scss
+.swal2-icon {
+	position: absolute !important;
+	top: 24px !important;
+	left: 24px !important;
+	width: 38px !important;
+	height: 38px !important;
+	min-width: 38px !important;
+	margin: 0 !important;
+	border: none !important;
+	border-radius: 10px !important;
+	display: flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	&::before,
+	&::after {
+		content: none !important;
+	}
+	.swal2-success-ring,
+	.swal2-success-fix,
+	[class^='swal2-success-line'],
+	[class^='swal2-x-mark-line'] {
+		display: none !important;
+	}
+	&.swal2-error {
+		background: rgba(232, 133, 106, 0.12) !important;
+		&::after {
+			content: '\2715' !important;
+			font-size: 20px;
+			font-weight: 700;
+			color: #1c1b18;
+		}
+	}
+	&.swal2-success {
+		background: rgba(90, 138, 82, 0.12) !important;
+		&::after {
+			content: '\2713' !important;
+			font-size: 21px;
+			font-weight: 700;
+			color: #1c1b18;
+		}
+	}
+	&.swal2-question {
+		background: #f5f3ef !important;
+		&::after {
+			content: '?' !important;
+			font-size: 20px;
+			font-weight: 700;
+			color: #1c1b18;
+		}
+	}
+}
+.swal2-title {
+	margin: 0 0 4px 50px !important;
+	padding: 0 !important;
+	color: #1c1b18 !important;
+	font-family: $font !important;
+	font-size: 16px !important;
+	font-weight: 600 !important;
+	line-height: 1.4 !important;
+	text-align: left !important;
+}
+.swal2-html-container {
+	margin: 0 0 14px 50px !important;
+	padding: 0 !important;
+	color: #8e8c83 !important;
+	font-family: $font !important;
+	font-size: 12.5px !important;
+	text-align: left !important;
+}
+.swal2-actions {
+	margin: 4px 0 0 50px !important;
+	justify-content: flex-start !important;
+	gap: 8px;
+}
+```
+
+Do not change anything else in `app.scss` — `.swal2-popup`, the accent-bar `::before` rules, `.swal2-confirm`/`.swal2-cancel` button styles, `.swal2-timer-progress-bar`, and `.swal2-toast` all stay exactly as they currently are. Do not touch `libs/sweetAlert.ts` or any `.tsx` call site — same messages, icons, timers, and promise-resolution logic as before, only icon/title size and weight changed.
+
+---
+
+Verify after implementing:
+1. Trigger an error alert — the ✕ icon badge is visibly larger (38px) with a bold, dark ✕ glyph (no longer thin/coral), and the title text next to it is noticeably bigger and bolder/darker than before.
+2. Trigger a success alert — same treatment: larger badge, bold dark ✓ glyph (green tint stays on the badge background only), bigger/bolder title.
+3. Trigger a confirm dialog — larger badge, bold dark "?" glyph, bigger/bolder title, two action buttons still left-aligned under the text with no overlap or misalignment against the wider badge.
+4. Trigger a toast — toast icon/title sizing is untouched (toast has its own `.swal2-icon`/`.swal2-title` overrides inside `.swal2-toast`, not affected by this change).
+5. No GraphQL/Apollo/React state or handler logic touched — confirm by diffing that only the `.swal2-icon`, `.swal2-title`, `.swal2-html-container`, and `.swal2-actions` blocks changed.

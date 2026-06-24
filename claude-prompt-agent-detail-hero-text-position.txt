@@ -1,0 +1,52 @@
+Context: pure CSS change, no logic. Two positioning mismatches in the `/agent/detail` hero text block (breadcrumb / "VERIFIED AGENT" badge / heading / lead), confirmed by reading `scss/pc/main.scss`:
+
+1. `.agent-detail-hero-container` is still a fixed `width: 825px` block centered with `margin-left/right: auto`. But the page's own `.container` below it (in `scss/pc/agent/detail.scss`, holding the white profile card) was already fixed in an earlier change to `max-width: 1300px; padding: 0 24px;` to match the rest of the site. Because the hero text block above still uses the old 825px centered width while the content below now uses 1300px, their left edges no longer line up — the breadcrumb/heading appear shifted right relative to the profile card underneath.
+2. `margin-top: 51px` was tuned for the old, shorter `330px` hero. Now that `.agent-detail-hero`'s height was corrected to `557px` (matching every other page's hero), this text sits too close to the top. Other hero text blocks at this same `557px` height use `margin-top: 120px` (see `.agent-hero-container` and `.container.has-stats`, both `margin-top: 120px`).
+
+## `scss/pc/main.scss`
+
+Find:
+
+```scss
+			.agent-detail-hero-container {
+				position: relative;
+				z-index: 2;
+				align-self: flex-start;
+				width: 825px;
+				max-width: 825px;
+				margin-left: auto;
+				margin-right: auto;
+				margin-top: 51px;
+				display: flex;
+				flex-direction: column;
+				align-items: flex-start;
+```
+
+Replace with:
+
+```scss
+			.agent-detail-hero-container {
+				position: relative;
+				z-index: 2;
+				align-self: flex-start;
+				width: 100%;
+				max-width: 1300px;
+				margin-left: auto;
+				margin-right: auto;
+				padding: 0 24px;
+				box-sizing: border-box;
+				margin-top: 120px;
+				display: flex;
+				flex-direction: column;
+				align-items: flex-start;
+```
+
+Do not change anything inside this block beyond these lines — `.agent-detail-breadcrumb`, `.verified-badge`, `.agent-detail-heading`, `.agent-detail-lead` font/color/spacing styles all stay exactly as they are.
+
+---
+
+Verify after implementing:
+1. Open `/agent/detail` — the breadcrumb ("Home / Agents / Marco"), "VERIFIED AGENT" badge, heading, and lead text now start at the same left edge as the white profile card and "Listed universities" section below them, matching the alignment pattern on other pages.
+2. The vertical position of this text block within the now-557px-tall hero matches the vertical position used on `/agent` and `/university` (text starts a comparable distance from the top, not hugging the very top edge).
+3. The white profile card still overlaps the bottom of the hero the same way it did before (its own negative `margin-top` in `scss/pc/agent/detail.scss` is untouched by this change).
+4. No GraphQL/Apollo/React logic touched — only width/padding/margin values on one CSS selector.

@@ -1,0 +1,90 @@
+Context: found the real root cause of why the university card's bottom-row icons stayed invisible on `/agent/detail` despite multiple fixes already applied to `scss/pc/general.scss`. There is a SECOND, page-specific override block in `scss/pc/agent/detail.scss` (a compact 261x277px variant of the same card, used only in the agent's portfolio grid) that still has the old broken rule: `button { width: 12px; height: 12px; padding: 0; ... }` — forcing the MUI `<IconButton>`'s own box down to a tiny fixed size, which hides/squishes the icon (the same root cause already fixed elsewhere, just not here). It also still references the old class name `.buttons-box`, which no longer matches since the wrapper div's class was already renamed to `buttons` in `libs/components/common/UniversityBigCard.tsx`. Because this block is more deeply nested (higher specificity) than the fix already applied in `general.scss`, it was silently overriding it — which is why the card on `/agent/detail` never visually changed.
+
+## `scss/pc/agent/detail.scss`
+
+Find this exact block:
+
+```scss
+							.bott {
+								margin-top: auto;
+								padding-top: 9px;
+								border-top: 0;
+								p,
+								span {
+									padding: 4px 8px;
+									border-radius: 5px;
+									font-size: 8px;
+									letter-spacing: 0.04em;
+								}
+								p {
+									background: #eeeeec;
+									color: #363b37;
+								}
+								span {
+									background: #f1f0ec;
+									color: #a5a59f;
+								}
+								button {
+									margin-left: 0;
+									width: 12px;
+									height: 12px;
+									padding: 0;
+									svg {
+										width: 13px;
+										height: 13px;
+									}
+								}
+								.buttons-box {
+									gap: 4px;
+									.view-cnt {
+										font-size: 9px;
+									}
+								}
+							}
+```
+
+Replace with:
+
+```scss
+							.bott {
+								margin-top: auto;
+								padding-top: 9px;
+								border-top: 0;
+								p,
+								span {
+									padding: 4px 8px;
+									border-radius: 5px;
+									font-size: 8px;
+									letter-spacing: 0.04em;
+								}
+								p {
+									background: #eeeeec;
+									color: #363b37;
+								}
+								span {
+									background: #f1f0ec;
+									color: #a5a59f;
+								}
+								.buttons {
+									gap: 4px;
+									svg {
+										width: 13px;
+										height: 13px;
+										cursor: pointer;
+									}
+									.view-cnt {
+										font-size: 9px;
+									}
+								}
+							}
+```
+
+Do not change anything else in this file — the rest of the compact card variant (`.card-img`, `.info .title`/`.desc`/`.options`, the `.agent-card` block below it, pagination styles) all stay exactly as they are.
+
+---
+
+Verify after implementing:
+1. On `/agent/detail`, the eye icon and heart icon in each portfolio university card's bottom row are now visible (small ~13px icons next to the view/like counts), matching how they render on `/university`'s card grid.
+2. Liking a university still toggles between the outline heart (not liked) and coral filled heart (liked) exactly as before.
+3. No other part of this compact card (size, tag-pill styling, layout) changed — only the icon-row CSS.
+4. No GraphQL/Apollo/React logic touched — this is a CSS-only fix in a single page-specific selector block.

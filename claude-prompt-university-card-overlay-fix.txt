@@ -1,0 +1,146 @@
+Context: presentational-only change to the university card used on `/agent/detail` (and everywhere else it's reused — `UniversityBigCard`). In the target design, the price tag sits at the TOP-left of the photo, there's a separate circular "favorite" heart toggle at the TOP-right of the photo, and the bottom info row only shows the eye/view count (no separate like-count number). Currently the price sits at the BOTTOM-left of the photo, there is no heart button on the photo, and the bottom row shows both an eye+view-count AND a heart+like-count.
+
+No GraphQL/Apollo logic changes here: the existing `likeUniversityHandler(user, university?._id)` call and the existing `university?.meLiked?.[0]?.myFavorite` check are reused exactly as-is — only their position in the JSX moves (from the bottom row onto the photo), and the now-redundant like-count `<Typography>` next to it is removed since the design no longer shows a number there (the heart icon itself still visually reflects liked/not-liked state).
+
+## `libs/components/common/UniversityBigCard.tsx`
+
+### 1. Add a favorite-toggle button onto the photo, right after the existing `div.price`
+
+Find:
+
+```tsx
+					<div className={'price'}>${formatterStr(university?.universityTuition)}</div>
+				</Box>
+```
+
+Replace with:
+
+```tsx
+					<div className={'price'}>${formatterStr(university?.universityTuition)}</div>
+					<div
+						className={'fav-btn'}
+						onClick={(e: any) => {
+							e.stopPropagation();
+							likeUniversityHandler(user, university?._id);
+						}}
+					>
+						{university?.meLiked && university?.meLiked[0]?.myFavorite ? (
+							<FavoriteIcon fontSize={'small'} style={{ color: '#e8856a' }} />
+						) : (
+							<FavoriteIcon fontSize={'small'} style={{ color: '#8e8c83' }} />
+						)}
+					</div>
+				</Box>
+```
+
+### 2. Remove the heart icon + like-count from the bottom row, keep only the eye icon + view count
+
+Find:
+
+```tsx
+						<div className="buttons-box">
+							<IconButton color={'default'}>
+								<RemoveRedEyeIcon />
+							</IconButton>
+							<Typography className="view-cnt">{university?.universityViews}</Typography>
+							<IconButton
+								color={'default'}
+								onClick={(e: any) => {
+									e.stopPropagation();
+									likeUniversityHandler(user, university?._id);
+								}}
+							>
+								{university?.meLiked && university?.meLiked[0]?.myFavorite ? (
+									<FavoriteIcon style={{ color: 'red' }} />
+								) : (
+									<FavoriteIcon />
+								)}
+							</IconButton>
+							<Typography className="view-cnt">{university?.universityLikes}</Typography>
+						</div>
+```
+
+Replace with:
+
+```tsx
+						<div className="buttons-box">
+							<IconButton color={'default'}>
+								<RemoveRedEyeIcon />
+							</IconButton>
+							<Typography className="view-cnt">{university?.universityViews}</Typography>
+						</div>
+```
+
+## `scss/pc/general.scss`
+
+### 3. Move `.price` to the top, and add the new `.fav-btn` style
+
+Find:
+
+```scss
+			div.price {
+				position: absolute;
+				padding: 8px 14px;
+				left: 12px;
+				bottom: 12px;
+				border-radius: 999px;
+				background: rgba(255, 255, 255, 0.92);
+				color: #1c1b18;
+				font-family: $font;
+				font-size: 14px;
+				font-style: normal;
+				font-weight: 700;
+				line-height: normal;
+				box-shadow: 0 1px 2px rgba(28, 27, 24, 0.03);
+			}
+		}
+```
+
+Replace with:
+
+```scss
+			div.price {
+				position: absolute;
+				padding: 8px 14px;
+				left: 12px;
+				top: 12px;
+				border-radius: 999px;
+				background: rgba(255, 255, 255, 0.92);
+				color: #1c1b18;
+				font-family: $font;
+				font-size: 14px;
+				font-style: normal;
+				font-weight: 700;
+				line-height: normal;
+				box-shadow: 0 1px 2px rgba(28, 27, 24, 0.03);
+			}
+			div.status + div.price {
+				top: 54px;
+			}
+			.fav-btn {
+				position: absolute;
+				right: 12px;
+				top: 12px;
+				width: 34px;
+				height: 34px;
+				border-radius: 50%;
+				background: rgba(255, 255, 255, 0.92);
+				box-shadow: 0 1px 2px rgba(28, 27, 24, 0.03);
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				cursor: pointer;
+			}
+		}
+```
+
+(`div.status + div.price` only takes effect on the rare top-ranked listing that shows both the "top" status badge and the price tag at once, so they stack vertically instead of overlapping. On every normal listing — like the one currently in the screenshots — only `.price` and `.fav-btn` show, top-left and top-right.)
+
+---
+
+Verify after implementing:
+1. On the university card (visible in the agent detail page's "Listed universities" portfolio grid, and anywhere else `UniversityBigCard` is used), the price tag now sits at the top-left of the photo instead of the bottom-left.
+2. A new circular white "favorite" button now sits at the top-right of the photo; clicking it still calls the exact same like/unlike logic as before (heart turns the coral/accent color `#e8856a` when liked, gray `#8e8c83` when not), and the click does not navigate into the university detail page (the `stopPropagation()` is preserved).
+3. The bottom info row now shows only the eye icon + view count — the old heart icon + like-count number that used to sit next to it is gone.
+4. No GraphQL query, mutation, or the `likeUniversityHandler`/`meLiked`/`universityLikes`/`universityViews` data bindings were changed — only where the existing like button is rendered, and one now-unused `<Typography>` removed.
+5. If a university happens to be "top ranked" (shows the small "top" badge), confirm the price tag now sits just below that badge instead of overlapping it.

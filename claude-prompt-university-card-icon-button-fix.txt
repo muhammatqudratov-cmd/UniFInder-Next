@@ -1,0 +1,49 @@
+Context: pure CSS fix, no logic change. The bottom row of the university card (eye+view-count, heart+like-count) looks visually broken — the icons appear squished/malformed and the row looks cramped. Root cause, confirmed in `scss/pc/general.scss`: the `.bott button` rule forces the MUI `<IconButton>` element itself down to a fixed `width: 16px; height: 16px;`, but MUI's `IconButton` has its own internal padding (default ~8px) and a 24px SVG icon inside it. Forcing the outer button box to 16x16 while its internal content wants to be larger causes the icon to render squashed/distorted and makes the whole row look tighter/misaligned than intended — exactly the icon-shape, spacing, and crowding issues seen in the card.
+
+The fix: stop constraining the button's own box size, and instead size the icon (`svg`) inside it directly to 16px, with zero padding on the button itself so there's no mismatch between the outer box and inner icon.
+
+## `scss/pc/general.scss`
+
+Find (inside `.university-big-card-box .info .bott`):
+
+```scss
+			button {
+				margin-left: 8px;
+				width: 16px;
+				height: 16px;
+				box-sizing: border-box;
+				color: #8e8c83;
+				&:hover {
+					color: #e8856a;
+				}
+			}
+```
+
+Replace with:
+
+```scss
+			button {
+				margin-left: 8px;
+				padding: 0;
+				box-sizing: border-box;
+				color: #8e8c83;
+				&:hover {
+					color: #e8856a;
+				}
+				svg {
+					width: 16px;
+					height: 16px;
+				}
+			}
+```
+
+Do not change anything else — `.buttons-box` gap/layout, `.view-cnt` text styling, the tag pills, and everything else in this file stay exactly as they are.
+
+---
+
+Verify after implementing:
+1. On any university card, the eye icon and heart icon in the bottom row now render as clean, correctly-proportioned small icons (not squashed or oddly shaped).
+2. The bottom row (Dormitory/Scholarship pills + eye/heart + counts) no longer looks cramped — there's comfortable, even spacing between all elements and nothing overlaps or clips.
+3. Hovering over either icon still shows the coral hover color (`#e8856a`) as before.
+4. Clicking the heart icon still toggles the like state via `likeUniversityHandler` exactly as before — no behavior change, only the icon's visual box sizing.
+5. No GraphQL/Apollo/React logic touched — purely a CSS sizing correction.

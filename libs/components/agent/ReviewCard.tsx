@@ -27,7 +27,7 @@ const ReviewCard = (props: ReviewCardProps) => {
 						<div>
 							<strong>{comment.memberData?.memberNick}</strong>
 							<span>
-								<Moment format={'DD MMMM'}>{comment.createdAt}</Moment>
+								<Moment fromNow>{comment.createdAt}</Moment>
 							</span>
 						</div>
 					</div>

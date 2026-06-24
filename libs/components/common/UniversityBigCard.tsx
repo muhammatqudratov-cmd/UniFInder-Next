@@ -3,6 +3,7 @@ import { Stack, Box, Divider, Typography } from '@mui/material';
 import IconButton from '@mui/material/IconButton';
 import useDeviceDetect from '../../hooks/useDeviceDetect';
 import FavoriteIcon from '@mui/icons-material/Favorite';
+import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import { University } from '../../types/university/university';
 import { REACT_APP_API_URL, topUniversityRank } from '../../config';
 import { formatterStr } from '../../utils';
@@ -45,6 +46,19 @@ const UniversityBigCard = (props: UniversityBigCardProps) => {
 					)}
 
 					<div className={'price'}>${formatterStr(university?.universityTuition)}</div>
+					<div
+						className={'fav-btn'}
+						onClick={(e: any) => {
+							e.stopPropagation();
+							likeUniversityHandler(user, university?._id);
+						}}
+					>
+						{university?.meLiked && university?.meLiked[0]?.myFavorite ? (
+							<FavoriteIcon fontSize={'small'} style={{ color: '#e8856a' }} />
+						) : (
+							<FavoriteIcon fontSize={'small'} style={{ color: '#8e8c83' }} />
+						)}
+					</div>
 				</Box>
 				<Box component={'div'} className={'info'}>
 					<strong className={'title'}>{university?.universityName}</strong>
@@ -66,10 +80,10 @@ const UniversityBigCard = (props: UniversityBigCardProps) => {
 					<Divider sx={{ mt: '15px', mb: '17px' }} />
 					<div className={'bott'}>
 						<div>
-							{university?.universityDormitory ? <p>Dormitory</p> : <span>Dormitory</span>}
-							{university?.universityScholarship ? <p>Scholarship</p> : <span>Scholarship</span>}
+							{university?.universityDormitory && <p>Dormitory</p>}
+							{university?.universityScholarship && <p>Scholarship</p>}
 						</div>
-						<div className="buttons-box">
+						<div className="buttons">
 							<IconButton color={'default'}>
 								<RemoveRedEyeIcon />
 							</IconButton>
@@ -82,9 +96,9 @@ const UniversityBigCard = (props: UniversityBigCardProps) => {
 								}}
 							>
 								{university?.meLiked && university?.meLiked[0]?.myFavorite ? (
-									<FavoriteIcon style={{ color: 'red' }} />
+									<FavoriteIcon color={'primary'} />
 								) : (
-									<FavoriteIcon />
+									<FavoriteBorderIcon />
 								)}
 							</IconButton>
 							<Typography className="view-cnt">{university?.universityLikes}</Typography>

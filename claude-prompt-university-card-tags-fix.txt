@@ -1,0 +1,89 @@
+Context: fixes a real bug found in the university card, confirmed by reading the live source against the reference design screenshot. The bottom row is supposed to show a "Dormitory" tag only when `university.universityDormitory` is true, and a "Scholarship" tag only when `university.universityScholarship` is true — exactly like the reference, where a card with only scholarship shows just the "SCHOLARSHIP" pill (no Dormitory anything), and a card with only dormitory shows just "DORMITORY" (no Scholarship anything). Right now the code always renders both labels — when a flag is false it falls back to rendering the same word as plain gray text instead of hiding it, so every card incorrectly shows both "Dormitory" and "Scholarship" in some form. Separately, the pill's colors are currently a coral/peach combo, but the reference design uses the site's neutral warm-gray/beige + dark-text tokens already used elsewhere in this redesign.
+
+This is a presentational-only fix: conditional rendering of existing boolean fields already fetched on `university` (no GraphQL/query change), plus a CSS color correction.
+
+## `libs/components/common/UniversityBigCard.tsx`
+
+Find:
+
+```tsx
+					<div className={'bott'}>
+						<div>
+							{university?.universityDormitory ? <p>Dormitory</p> : <span>Dormitory</span>}
+							{university?.universityScholarship ? <p>Scholarship</p> : <span>Scholarship</span>}
+						</div>
+```
+
+Replace with:
+
+```tsx
+					<div className={'bott'}>
+						<div>
+							{university?.universityDormitory && <p>Dormitory</p>}
+							{university?.universityScholarship && <p>Scholarship</p>}
+						</div>
+```
+
+## `scss/pc/general.scss`
+
+Find this exact block (inside `.university-big-card-box .info .bott`):
+
+```scss
+			p {
+				background: #fbede7;
+				color: #d2674c;
+				font-family: $font;
+				font-size: 11px;
+				font-style: normal;
+				font-weight: 700;
+				line-height: normal;
+				text-transform: uppercase;
+				letter-spacing: 0.02em;
+				padding: 3px 9px;
+				border-radius: 6px;
+			}
+			span {
+				margin-left: 0;
+				color: #8e8c83;
+				font-family: $font;
+				font-size: 11px;
+				font-style: normal;
+				font-weight: 600;
+				line-height: normal;
+				text-transform: uppercase;
+				letter-spacing: 0.02em;
+				padding: 3px 9px;
+			}
+```
+
+Replace with:
+
+```scss
+			p {
+				background: #f5f3ef;
+				color: #1c1b18;
+				font-family: $font;
+				font-size: 11px;
+				font-style: normal;
+				font-weight: 700;
+				line-height: normal;
+				text-transform: uppercase;
+				letter-spacing: 0.02em;
+				padding: 3px 9px;
+				border-radius: 6px;
+			}
+```
+
+(The `span` rule is safe to remove — after the TSX change above, the "false" branch no longer renders a `<span>` at all, so this rule has no remaining use. If your SCSS tooling complains about an unused selector being removed, that's expected and fine.)
+
+Do not change anything else — `.options`, `.buttons-box`, eye/heart icons, view/like counts, card image, price, fav-btn are all already correct and untouched by this fix.
+
+---
+
+Verify after implementing:
+1. A university with both `universityDormitory: true` and `universityScholarship: true` shows both "DORMITORY" and "SCHOLARSHIP" pills.
+2. A university with only `universityScholarship: true` (dormitory false) shows only the "SCHOLARSHIP" pill — no "Dormitory" text/label anywhere.
+3. A university with only `universityDormitory: true` shows only "DORMITORY" — no "Scholarship" text/label anywhere.
+4. A university with both false shows neither pill (just the empty tag area on the left of that row, eye/heart counts still show on the right).
+5. Pills that do render now have a light warm-gray/beige background with dark uppercase text, matching the reference design — not the old coral/peach color.
+6. No GraphQL query, mutation, or data binding changed — only how the already-fetched `universityDormitory`/`universityScholarship` booleans are rendered.

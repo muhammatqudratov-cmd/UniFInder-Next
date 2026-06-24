@@ -1,0 +1,29 @@
+Context: pure CSS change, no logic. The `/agent/detail` page's dark hero/banner section is shorter (vertically smaller) than every other page's hero. Confirmed in `scss/pc/main.scss`: the base rule is `.header-basic { height: 557px; }`, and other page-specific variants like `.agent-hero` (used on `/agent`) explicitly match this at `height: 557px`. But `.agent-detail-hero` (used only on `/agent/detail`) currently overrides it down to `height: 330px`, making this page's hero noticeably shorter than the rest of the site.
+
+## `scss/pc/main.scss`
+
+Find:
+
+```scss
+		&.agent-detail-hero {
+			height: 330px;
+			background: linear-gradient(135deg, #15140f 0%, #1c2620 50%, #1a2230 100%);
+```
+
+Replace with:
+
+```scss
+		&.agent-detail-hero {
+			height: 557px;
+			background: linear-gradient(135deg, #15140f 0%, #1c2620 50%, #1a2230 100%);
+```
+
+Do not change anything else in this block — the gradient background, `::before`/`::after` dot-grid and glow overlays, and everything inside `.agent-detail-hero-container` stay exactly as they are; only the `height` value changes.
+
+---
+
+Verify after implementing:
+1. Open `/agent/detail` and compare the dark hero banner height to `/university`, `/agent`, or any other page — they're all now the same height (557px).
+2. The breadcrumb, "VERIFIED AGENT" badge, heading, and lead text inside the hero are still vertically centered/positioned reasonably within the taller hero (if there's now extra empty space at the bottom, that's expected since the content itself didn't change — only the container height).
+3. The white profile card below the hero (which overlaps the hero via negative margin) still sits in the same relative position and isn't pushed or clipped oddly by the taller hero.
+4. No GraphQL/Apollo/React logic touched — single CSS height value change.

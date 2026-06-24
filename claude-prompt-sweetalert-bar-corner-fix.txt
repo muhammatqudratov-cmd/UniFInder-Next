@@ -1,0 +1,41 @@
+Context: small follow-up fix to the SweetAlert2 theme just added to `scss/app.scss`. The top accent bar (`.swal2-popup::before`) is a flat-cornered rectangle spanning the full width, relying on the popup's `overflow: hidden` to get clipped into the card's rounded top corners. SweetAlert2 injects its own default stylesheet into the page at runtime, which can load after our CSS and silently override `overflow: hidden` on `.swal2-popup` — when that happens, the bar's hard right-angle corners sit on top of the popup's rounded corner unclipped, leaving a visible white wedge cut into the bar at the top corners (visible in the latest screenshot). The robust fix is to round the bar's own top corners to match the popup's `border-radius: 18px`, so it looks correct whether or not the parent's overflow clipping wins the cascade race. Pure CSS, one property added — no other change.
+
+## `scss/app.scss`
+
+Find:
+
+```scss
+	&::before {
+		content: '';
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		height: 4px;
+		background: #1c1b18;
+	}
+```
+
+Replace with:
+
+```scss
+	&::before {
+		content: '';
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		height: 4px;
+		border-radius: 18px 18px 0 0;
+		background: #1c1b18;
+	}
+```
+
+Do not change anything else in `app.scss` — this is a one-line addition (`border-radius: 18px 18px 0 0;`) inside the existing `.swal2-popup::before` rule. No JSX or logic files touched.
+
+---
+
+Verify after implementing:
+1. Trigger an error alert again — the coral top bar now follows the popup's rounded top-left and top-right corners cleanly, with no white wedge/notch cut into either corner.
+2. Same check for a success alert (green bar) and a confirm dialog (dark bar).
+3. Everything else from the previous redesign (icon badge, title position, button style) stays exactly as it was.

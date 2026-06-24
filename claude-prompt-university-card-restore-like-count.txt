@@ -1,0 +1,52 @@
+Context: correction to the previous `claude-prompt-university-card-overlay-fix.txt` prompt. Looking at the reference design more closely (zoomed screenshot), the bottom info row actually keeps BOTH the eye+view-count AND a heart+like-count side by side — the heart icon there just mirrors the liked/unliked color state (coral when liked, gray when not) and shows the total like count. Only the top-right photo overlay heart is a separate, count-less toggle button. The previous prompt incorrectly removed the bottom heart+count entirely — this prompt restores it, while keeping everything else (top-left price, top-right favorite toggle on the photo, dark photo tint) exactly as already implemented.
+
+No GraphQL/Apollo logic changes: this restores the exact same `likeUniversityHandler(user, university?._id)` call and the exact same `meLiked`/`universityLikes` bindings that existed in the original code — only the JSX position/presence is being put back.
+
+## `libs/components/common/UniversityBigCard.tsx`
+
+Find:
+
+```tsx
+						<div className="buttons-box">
+							<IconButton color={'default'}>
+								<RemoveRedEyeIcon />
+							</IconButton>
+							<Typography className="view-cnt">{university?.universityViews}</Typography>
+						</div>
+```
+
+Replace with:
+
+```tsx
+						<div className="buttons-box">
+							<IconButton color={'default'}>
+								<RemoveRedEyeIcon />
+							</IconButton>
+							<Typography className="view-cnt">{university?.universityViews}</Typography>
+							<IconButton
+								color={'default'}
+								onClick={(e: any) => {
+									e.stopPropagation();
+									likeUniversityHandler(user, university?._id);
+								}}
+							>
+								{university?.meLiked && university?.meLiked[0]?.myFavorite ? (
+									<FavoriteIcon style={{ color: '#e8856a' }} />
+								) : (
+									<FavoriteIcon />
+								)}
+							</IconButton>
+							<Typography className="view-cnt">{university?.universityLikes}</Typography>
+						</div>
+```
+
+(This is the same block that existed before the earlier prompt removed it, with one small tweak: the liked-state heart color is now `#e8856a` — the site's coral accent — to match the new top-right favorite button, instead of the plain CSS `red` it used originally.)
+
+---
+
+Verify after implementing:
+1. Each university card's bottom row now shows, left to right: eye icon + view count, then heart icon + like count — matching the reference design (e.g. "👁 1  ♥ 1", "👁 34  ♡ 7").
+2. The heart icon in the bottom row turns coral (`#e8856a`) when the university is liked by the current user, and stays its default gray outline otherwise — same logic as the top-right photo overlay button, just a second independent button rendering the same state.
+3. Clicking either the bottom-row heart or the top-right photo overlay heart toggles the like the same way (both call the same `likeUniversityHandler`), and clicking neither navigates into the university detail page (clicks are still stopped from propagating).
+4. The top-left price tag, top-right favorite overlay button, and dark photo tint added in the previous prompt are untouched by this change.
+5. No GraphQL query/mutation, state, or other handler was changed — purely restoring one JSX block exactly as it originally existed.

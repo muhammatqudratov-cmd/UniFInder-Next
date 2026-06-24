@@ -1,7 +1,7 @@
-import React, { ChangeEvent, useEffect, useState } from 'react';
+import React, { ChangeEvent, useContext, useEffect, useState } from 'react';
 import { NextPage } from 'next';
 import useDeviceDetect from '../../libs/hooks/useDeviceDetect';
-import withLayoutBasic from '../../libs/components/layout/LayoutBasic';
+import withLayoutBasic, { AgentHeroNameContext } from '../../libs/components/layout/LayoutBasic';
 import UniversityBigCard from '../../libs/components/common/UniversityBigCard';
 import ReviewCard from '../../libs/components/agent/ReviewCard';
 import { Box, Button, Pagination, Stack, Typography } from '@mui/material';
@@ -38,14 +38,17 @@ const AgentDetail: NextPage = ({ initialInput, initialComment, ...props }: any) 
 	const [searchFilter, setSearchFilter] = useState<UniversitiesInquiry>(initialInput);
 	const [agentUniversities, setAgentUniversities] = useState<University[]>([]);
 	const [universityTotal, setUniversityTotal] = useState<number>(0);
+	const [portfolioFilter, setPortfolioFilter] = useState<'all' | 'dormitory' | 'scholarship'>('all');
 	const [commentInquiry, setCommentInquiry] = useState<CommentsInquiry>(initialComment);
 	const [agentComments, setAgentComments] = useState<Comment[]>([]);
 	const [commentTotal, setCommentTotal] = useState<number>(0);
+	const [reviewRating, setReviewRating] = useState<number>(0);
 	const [insertCommentData, setInsertCommentData] = useState<CommentInput>({
 		commentGroup: CommentGroup.MEMBER,
 		commentContent: '',
 		commentRefId: '',
 	});
+	const { setAgentHeroName } = useContext(AgentHeroNameContext);
 
 	/** APOLLO REQUESTS **/
 	const [createComment] = useMutation(CREATE_COMMENT);
@@ -62,6 +65,7 @@ const AgentDetail: NextPage = ({ initialInput, initialComment, ...props }: any) 
 		notifyOnNetworkStatusChange: true,
 		onCompleted: (data: T) => {
 			setAgent(data?.getMember);
+			setAgentHeroName(data?.getMember?.memberFullName ?? data?.getMember?.memberNick ?? '');
 			setSearchFilter({
 				...searchFilter,
 				search: {
@@ -193,32 +197,100 @@ const AgentDetail: NextPage = ({ initialInput, initialComment, ...props }: any) 
 		return (
 			<Stack className={'agent-detail-page'}>
 				<Stack className={'container'}>
-					<Stack className={'agent-info'}>
-						<img
-							src={agent?.memberImage ? `${REACT_APP_API_URL}/${agent?.memberImage}` : '/img/profile/defaultUser.svg'}
-							alt=""
-						/>
-						<Box component={'div'} className={'info'} onClick={() => redirectToMemberPageHandler(agent?._id as string)}>
-							<strong>{agent?.memberFullName ?? agent?.memberNick}</strong>
-							<div>
+					<Stack className={'agent-profile-card'}>
+						<Stack className={'agent-profile-avatar'}>
+							<img
+								src={agent?.memberImage ? `${REACT_APP_API_URL}/${agent?.memberImage}` : '/img/profile/defaultUser.svg'}
+								alt=""
+								onClick={() => redirectToMemberPageHandler(agent?._id as string)}
+							/>
+							<span className={'agent-profile-avatar-check'}>✓</span>
+						</Stack>
+						<Box
+							component={'div'}
+							className={'agent-profile-info'}
+							onClick={() => redirectToMemberPageHandler(agent?._id as string)}
+						>
+							<Stack className={'agent-profile-name-row'}>
+								<strong>{agent?.memberFullName ?? agent?.memberNick}</strong>
+								<span className={'agent-profile-badge'}>AGENT</span>
+							</Stack>
+							<div className={'agent-profile-phone'}>
 								<img src="/img/icons/call.svg" alt="" />
 								<span>{agent?.memberPhone}</span>
 							</div>
 						</Box>
+						<Stack className={'agent-profile-stats'}>
+							<Stack className={'agent-profile-stat'}>
+								<strong>{universityTotal}</strong>
+								<span>Listings</span>
+							</Stack>
+							<span className={'agent-profile-stat-divider'} />
+							<Stack className={'agent-profile-stat'}>
+								<strong>{commentTotal}</strong>
+								<span>Reviews</span>
+							</Stack>
+							<span className={'agent-profile-stat-divider'} />
+							<Stack className={'agent-profile-stat'}>
+								<strong>
+									4.8<span className={'agent-profile-star'}>★</span>
+								</strong>
+								<span>Rating</span>
+							</Stack>
+						</Stack>
+						<button
+							className={'agent-profile-contact-btn'}
+							onClick={() => redirectToMemberPageHandler(agent?._id as string)}
+						>
+							Contact {agent?.memberFullName ?? agent?.memberNick}
+							<span className={'agent-profile-contact-arrow'}>↗</span>
+						</button>
 					</Stack>
 					<Stack className={'agent-home-list'}>
+						<Stack className={'agent-portfolio-header'}>
+							<Stack className={'agent-portfolio-heading'}>
+								<span className={'agent-portfolio-eyebrow'}>PORTFOLIO</span>
+								<span className={'agent-portfolio-title'}>Listed universities</span>
+							</Stack>
+							<Stack className={'agent-portfolio-filters'}>
+								<span
+									className={`agent-portfolio-filter-pill${portfolioFilter === 'all' ? ' active' : ''}`}
+									onClick={() => setPortfolioFilter('all')}
+								>
+									All
+								</span>
+								<span
+									className={`agent-portfolio-filter-pill${portfolioFilter === 'dormitory' ? ' active' : ''}`}
+									onClick={() => setPortfolioFilter('dormitory')}
+								>
+									Dormitory
+								</span>
+								<span
+									className={`agent-portfolio-filter-pill${portfolioFilter === 'scholarship' ? ' active' : ''}`}
+									onClick={() => setPortfolioFilter('scholarship')}
+								>
+									Scholarship
+								</span>
+							</Stack>
+						</Stack>
 						<Stack className={'card-wrap'}>
-							{agentUniversities.map((university: University) => {
-								return (
-									<div className={'wrap-main'} key={university?._id}>
-										<UniversityBigCard
-											university={university}
-											likeUniversityHandler={likeUniversityHandler}
-											key={university?._id}
-										/>
-									</div>
-								);
-							})}
+							{agentUniversities
+								.filter((university: University) => {
+									if (portfolioFilter === 'dormitory') return !!university?.universityDormitory;
+									if (portfolioFilter === 'scholarship') return !!university?.universityScholarship;
+									return true;
+								})
+								.map((university: University) => {
+									return (
+										<div className={'wrap-main'} key={university?._id}>
+											<UniversityBigCard
+												university={university}
+												likeUniversityHandler={likeUniversityHandler}
+												key={university?._id}
+											/>
+										</div>
+									);
+								})}
 						</Stack>
 						<Stack className={'pagination'}>
 							{universityTotal ? (
@@ -233,7 +305,16 @@ const AgentDetail: NextPage = ({ initialInput, initialComment, ...props }: any) 
 										/>
 									</Stack>
 									<span>
-										Total {universityTotal} university{universityTotal > 1 ? 'ies' : 'y'} available
+										Showing{' '}
+										{
+											agentUniversities.filter((university: University) => {
+												if (portfolioFilter === 'dormitory') return !!university?.universityDormitory;
+												if (portfolioFilter === 'scholarship') return !!university?.universityScholarship;
+												return true;
+											}).length
+										}{' '}
+										of {universityTotal} university
+										{universityTotal > 1 ? 'ies' : 'y'}
 									</span>
 								</>
 							) : (
@@ -245,64 +326,78 @@ const AgentDetail: NextPage = ({ initialInput, initialComment, ...props }: any) 
 						</Stack>
 					</Stack>
 					<Stack className={'review-box'}>
-						<Stack className={'main-intro'}>
-							<span>Reviews</span>
-							<p>we are glad to see you again</p>
-						</Stack>
-						{commentTotal !== 0 && (
-							<Stack className={'review-wrap'}>
-								<Box component={'div'} className={'title-box'}>
-									<StarIcon />
-									<span>
-										{commentTotal} review{commentTotal > 1 ? 's' : ''}
-									</span>
-								</Box>
-								{agentComments?.map((comment: Comment) => {
-									return <ReviewCard comment={comment} key={comment?._id} />;
-								})}
-								<Box component={'div'} className={'pagination-box'}>
-									<Pagination
-										page={commentInquiry.page}
-										count={Math.ceil(commentTotal / commentInquiry.limit) || 1}
-										onChange={commentPaginationChangeHandler}
-										shape="circular"
-										color="primary"
-									/>
-								</Box>
-							</Stack>
-						)}
-
-						<Stack className={'leave-review-config'}>
-							<Typography className={'main-title'}>Leave A Review</Typography>
-							<Typography className={'review-title'}>Review</Typography>
-							<textarea
-								onChange={({ target: { value } }: any) => {
-									setInsertCommentData({ ...insertCommentData, commentContent: value });
-								}}
-								value={insertCommentData.commentContent}
-							></textarea>
-							<Box className={'submit-btn'} component={'div'}>
-								<Button
-									className={'submit-review'}
-									disabled={insertCommentData.commentContent === '' || user?._id === ''}
-									onClick={createCommentHandler}
-								>
-									<Typography className={'title'}>Submit Review</Typography>
-									<svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 17 17" fill="none">
-										<g clipPath="url(#clip0_6975_3642)">
-											<path
-												d="M16.1571 0.5H6.37936C6.1337 0.5 5.93491 0.698792 5.93491 0.944458C5.93491 1.19012 6.1337 1.38892 6.37936 1.38892H15.0842L0.731781 15.7413C0.558156 15.915 0.558156 16.1962 0.731781 16.3698C0.818573 16.4566 0.932323 16.5 1.04603 16.5C1.15974 16.5 1.27345 16.4566 1.36028 16.3698L15.7127 2.01737V10.7222C15.7127 10.9679 15.9115 11.1667 16.1572 11.1667C16.4028 11.1667 16.6016 10.9679 16.6016 10.7222V0.944458C16.6016 0.698792 16.4028 0.5 16.1571 0.5Z"
-												fill="#181A20"
+						<Stack className={'review-columns'}>
+							<Stack className={'review-list-col'}>
+								<Stack className={'main-intro'}>
+									<span className={'review-eyebrow'}>Reviews</span>
+									<strong>What students say</strong>
+									<p>We are glad to see you again.</p>
+								</Stack>
+								{commentTotal !== 0 && (
+									<Stack className={'review-wrap'}>
+										{agentComments?.map((comment: Comment) => {
+											return <ReviewCard comment={comment} key={comment?._id} />;
+										})}
+										<Box component={'div'} className={'pagination-box'}>
+											<Pagination
+												page={commentInquiry.page}
+												count={Math.ceil(commentTotal / commentInquiry.limit) || 1}
+												onChange={commentPaginationChangeHandler}
+												shape="circular"
+												color="primary"
 											/>
-										</g>
-										<defs>
-											<clipPath id="clip0_6975_3642">
-												<rect width="16" height="16" fill="white" transform="translate(0.601562 0.5)" />
-											</clipPath>
-										</defs>
-									</svg>
-								</Button>
-							</Box>
+										</Box>
+									</Stack>
+								)}
+							</Stack>
+							<Stack className={'leave-review-col'}>
+								<Stack className={'leave-review-config'}>
+									<Typography className={'main-title'}>Leave a review</Typography>
+									<Typography className={'review-subtitle'}>
+										Share your experience working with {agent?.memberFullName ?? agent?.memberNick}.
+									</Typography>
+									<Typography className={'rating-label'}>Your rating</Typography>
+									<Stack className={'rating-stars'}>
+										{[1, 2, 3, 4, 5].map((starIndex: number) => (
+											<StarIcon
+												key={starIndex}
+												className={starIndex <= reviewRating ? 'active' : ''}
+												onClick={() => setReviewRating(starIndex)}
+											/>
+										))}
+									</Stack>
+									<Typography className={'review-title'}>Review</Typography>
+									<textarea
+										placeholder={'Share details about your experience...'}
+										onChange={({ target: { value } }: any) => {
+											setInsertCommentData({ ...insertCommentData, commentContent: value });
+										}}
+										value={insertCommentData.commentContent}
+									></textarea>
+									<Box className={'submit-btn'} component={'div'}>
+										<Button
+											className={'submit-review'}
+											disabled={insertCommentData.commentContent === '' || user?._id === ''}
+											onClick={createCommentHandler}
+										>
+											<Typography className={'title'}>Submit review</Typography>
+											<svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 17 17" fill="none">
+												<g clipPath="url(#clip0_6975_3642)">
+													<path
+														d="M16.1571 0.5H6.37936C6.1337 0.5 5.93491 0.698792 5.93491 0.944458C5.93491 1.19012 6.1337 1.38892 6.37936 1.38892H15.0842L0.731781 15.7413C0.558156 15.915 0.558156 16.1962 0.731781 16.3698C0.818573 16.4566 0.932323 16.5 1.04603 16.5C1.15974 16.5 1.27345 16.4566 1.36028 16.3698L15.7127 2.01737V10.7222C15.7127 10.9679 15.9115 11.1667 16.1572 11.1667C16.4028 11.1667 16.6016 10.9679 16.6016 10.7222V0.944458C16.6016 0.698792 16.4028 0.5 16.1571 0.5Z"
+														fill="#181A20"
+													/>
+												</g>
+												<defs>
+													<clipPath id="clip0_6975_3642">
+														<rect width="16" height="16" fill="white" transform="translate(0.601562 0.5)" />
+													</clipPath>
+												</defs>
+											</svg>
+										</Button>
+									</Box>
+								</Stack>
+							</Stack>
 						</Stack>
 					</Stack>
 				</Stack>

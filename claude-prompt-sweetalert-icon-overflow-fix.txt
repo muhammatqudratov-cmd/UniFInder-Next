@@ -1,0 +1,57 @@
+Context: follow-up fix to the SweetAlert2 theme in `scss/app.scss`. Latest screenshot shows the icon badge (pink square with the X glyph) rendering partially outside the white popup card's left edge, sitting on top of the dark dimmed backdrop instead of staying fully inside the card.
+
+Root cause: by the numbers, our `.swal2-icon` is `position: absolute !important; top: 24px; left: 24px;` inside `.swal2-popup` (`position: relative`, padding `26px 24px 22px`) — that math keeps the badge safely inset on all sides, so a static layout bug isn't the explanation. SweetAlert2 ships its own built-in entrance animation for the icon (a `swal2-icon-show` keyframe with a 3D rotation/transform applied via its `animate` option, independent of our CSS), which plays every time an alert opens. That transform runs on top of our absolute positioning and is the most likely explanation for the badge briefly rendering shifted outside the card's bounds (exactly what a screenshot caught). The animation is purely decorative and not required — disabling it removes the transform that's pushing the badge out of place, with zero effect on layout, size, or color.
+
+Pure CSS, one rule added — no JSX, no `libs/sweetAlert.ts`, no call-site logic changes.
+
+## `scss/app.scss`
+
+Find this exact block (the start of the `.swal2-icon` rule):
+
+```scss
+.swal2-icon {
+	position: absolute !important;
+	top: 24px !important;
+	left: 24px !important;
+	width: 38px !important;
+	height: 38px !important;
+	min-width: 38px !important;
+	margin: 0 !important;
+	border: none !important;
+	border-radius: 10px !important;
+	display: flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+```
+
+Replace with:
+
+```scss
+.swal2-icon {
+	position: absolute !important;
+	top: 24px !important;
+	left: 24px !important;
+	width: 38px !important;
+	height: 38px !important;
+	min-width: 38px !important;
+	margin: 0 !important;
+	border: none !important;
+	border-radius: 10px !important;
+	display: flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	animation: none !important;
+	transform: none !important;
+```
+
+(This disables SweetAlert2's built-in icon entrance animation/transform so the badge sits exactly at its final `top: 24px; left: 24px` position immediately, with no transient offset.)
+
+Do not change anything else in `app.scss` — sizes, colors, the popup/title/button rules, and everything else from the previous two SweetAlert2 prompts stay exactly as they are. Do not touch `libs/sweetAlert.ts` or any `.tsx` call site.
+
+---
+
+Verify after implementing:
+1. Trigger an error alert several times in a row — the pink/coral badge with the dark ✕ glyph appears immediately fully inside the white card's top-left padding area, never overlapping the dimmed backdrop outside the card, on every single trigger (not just sometimes).
+2. Same check for a success alert (green-tinted badge) and a confirm dialog ("?" badge).
+3. Badge size (38px), glyph boldness/size, title size/weight, and card shape/accent bar all look exactly as they did after the previous two prompts — only the entrance motion changed.
+4. No GraphQL/Apollo/React state or handler logic touched — confirm by diffing that only `animation: none !important;` and `transform: none !important;` were added to the existing `.swal2-icon` rule.

@@ -1,0 +1,152 @@
+Context: found the real root cause of why the eye/heart icon row on `UniversityBigCard` (the "Listed universities" portfolio cards on `/agent/detail`) shows blank gray boxes instead of icons with plain numbers next to them — and why prior CSS-only icon-sizing fixes never visually changed it.
+
+In the proven-working reference card (`libs/components/university/UniversityCard.tsx` + `scss/pc/university/university.scss`), the Dormitory/Scholarship tag-pill styling is scoped strictly to the tags wrapper: `.type-buttons .type p { ... }` — it never touches `.type-buttons .buttons`, so the view/like count `<Typography className="view-cnt">` elements (which render as plain `<p>` tags by default in MUI) stay unstyled plain numbers.
+
+In `UniversityBigCard.tsx`'s CSS, both `scss/pc/general.scss` and `scss/pc/agent/detail.scss` declare the tag-pill rule directly under `.bott` with NO scoping: `.bott { p { background: ...; padding: ...; border-radius: ...; } .buttons { ... } }`. Because `.view-cnt` is also a `<p>` tag and CSS combines declarations from every matching rule, this unscoped `p` rule's `background`, `padding`, `border-radius`, `text-transform`, and `letter-spacing` leak into the count numbers inside `.buttons` too (only `color`/`font-size`/`font-weight` get overridden by the more specific `.view-cnt` rule) — wrapping each count number in an unwanted gray pill box. That gray pill is exactly the "blank gray box" visible in the screenshot next to the eye/heart icons. This is a pure CSS scoping bug, not a sizing bug — no further icon-button or svg-size tweaking will fix it.
+
+No JSX, GraphQL, Apollo, or handler logic changes — purely scoping the existing CSS more tightly to match the already-correct, already-used pattern from the reference file.
+
+## `scss/pc/general.scss`
+
+Find:
+
+```scss
+			div {
+				width: auto;
+				display: flex;
+				flex-direction: row;
+				align-items: center;
+				gap: 8px;
+			}
+			p {
+				background: #f5f3ef;
+				color: #1c1b18;
+				font-family: $font;
+				font-size: 11px;
+				font-style: normal;
+				font-weight: 700;
+				line-height: normal;
+				text-transform: uppercase;
+				letter-spacing: 0.02em;
+				padding: 3px 9px;
+				border-radius: 6px;
+			}
+			.buttons {
+```
+
+Replace with:
+
+```scss
+			div:not(.buttons) {
+				width: auto;
+				display: flex;
+				flex-direction: row;
+				align-items: center;
+				gap: 8px;
+				p {
+					background: #f5f3ef;
+					color: #1c1b18;
+					font-family: $font;
+					font-size: 11px;
+					font-style: normal;
+					font-weight: 700;
+					line-height: normal;
+					text-transform: uppercase;
+					letter-spacing: 0.02em;
+					padding: 3px 9px;
+					border-radius: 6px;
+				}
+			}
+			.buttons {
+```
+
+(This moves the `p` tag-pill rule to be nested only inside the Dormitory/Scholarship tags wrapper `div`, excluding `.buttons`, instead of applying to every `<p>` inside `.bott`.)
+
+## `scss/pc/agent/detail.scss`
+
+Find this exact block:
+
+```scss
+							.bott {
+								margin-top: auto;
+								padding-top: 9px;
+								border-top: 0;
+								p,
+								span {
+									padding: 4px 8px;
+									border-radius: 5px;
+									font-size: 8px;
+									letter-spacing: 0.04em;
+								}
+								p {
+									background: #eeeeec;
+									color: #363b37;
+								}
+								span {
+									background: #f1f0ec;
+									color: #a5a59f;
+								}
+								.buttons {
+									gap: 4px;
+									svg {
+										width: 13px;
+										height: 13px;
+										cursor: pointer;
+									}
+									.view-cnt {
+										font-size: 9px;
+									}
+								}
+							}
+```
+
+Replace with:
+
+```scss
+							.bott {
+								margin-top: auto;
+								padding-top: 9px;
+								border-top: 0;
+								> div:not(.buttons) {
+									p,
+									span {
+										padding: 4px 8px;
+										border-radius: 5px;
+										font-size: 8px;
+										letter-spacing: 0.04em;
+									}
+									p {
+										background: #eeeeec;
+										color: #363b37;
+									}
+									span {
+										background: #f1f0ec;
+										color: #a5a59f;
+									}
+								}
+								.buttons {
+									gap: 4px;
+									svg {
+										width: 13px;
+										height: 13px;
+										cursor: pointer;
+									}
+									.view-cnt {
+										font-size: 9px;
+									}
+								}
+							}
+```
+
+(Same fix: the tag-pill `p, span` rule now lives only inside the non-`.buttons` wrapper div, so it can never touch the `.view-cnt` count numbers.)
+
+Do not change anything else in either file — card sizing, colors, the `.buttons svg` icon-size rule, pagination, and every other selector stay exactly as they are. Do not change `UniversityBigCard.tsx` or any other `.tsx` file — this is CSS-only.
+
+---
+
+Verify after implementing:
+1. On `/agent/detail`'s "Listed universities" portfolio grid, each card's bottom row now shows: Dormitory/Scholarship tag pills (unchanged, still gray rounded pills) — then a plain eye icon followed by a plain number (no gray box around it) — then a plain heart icon followed by a plain number (no gray box around it).
+2. The eye and heart icons are visibly the small ~13px icons (not blank/invisible), matching the icon style used on `/university`'s card grid.
+3. Liking a university still toggles the heart between outline (not liked) and coral filled (liked) exactly as before — no change to click behavior.
+4. Check any other page that renders `UniversityBigCard` (e.g. a full-size variant elsewhere using `general.scss`'s un-overridden `.bott` styling) — its view/like counts should now also render as plain numbers instead of gray-pill-boxed numbers.
+5. No GraphQL/Apollo/React state or handler logic touched anywhere — confirm by diffing that only the two `.scss` selector blocks above changed.

@@ -1,0 +1,39 @@
+Context: pure CSS fix, no logic change. On the Agent detail page (`/agent/detail`), the white profile card and the "PORTFOLIO / Listed universities" card-list box are currently rendering edge-to-edge (flush against the browser's left and right edges, with the card's left/right corners invisible because there is no horizontal gutter). In the target design they sit inset from the screen edges with a clear margin on both sides, so the rounded corners and the dark hero background around them are visible.
+
+Root cause: in `scss/pc/agent/detail.scss`, the page-specific `.container` rule (nested under `.agent-detail-page`) only sets `display/flex-direction/align-items` and relies on the global `.container` rule in `scss/app.scss` (`width: 1300px; margin: 0 auto;`) to provide the side gutters. That inherited width is not reliably taking effect for this page, so `.agent-profile-card` and `.agent-home-list` (both `width: 100%`) stretch to the full viewport width. The fix is to make the gutter explicit and self-contained on this page's own `.container` rule, instead of depending on the global one.
+
+## `scss/pc/agent/detail.scss`
+
+Find:
+
+```scss
+		.container {
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+```
+
+Replace with:
+
+```scss
+		.container {
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			width: 100%;
+			max-width: 1300px;
+			margin: 0 auto;
+			padding: 0 24px;
+			box-sizing: border-box;
+```
+
+(Leave everything else inside `.container` — `.agent-profile-card`, `.agent-home-list`, etc. — untouched. They already use `width: 100%`, which will now correctly mean "100% of the 1300px-max, padded container" instead of "100% of the browser viewport".)
+
+---
+
+Verify after implementing:
+1. On `/agent/detail`, the white profile card (avatar, name, stats, "Contact" button) no longer touches the left/right edges of the browser window — it has a visible margin on both sides, with the dark hero gradient visible around it, and all four corners of the card are visibly rounded.
+2. The "PORTFOLIO / Listed universities" box and the university card grid below it also sit inset with the same left/right margin as the profile card above (both should line up to the same width).
+3. On a wide browser window (e.g. 1500px+), the content area is centered with roughly equal margins on both sides, capped at 1300px wide — it should not keep growing edge-to-edge on very wide monitors.
+4. The hero text above (breadcrumb, "VERIFIED AGENT" badge, "Agent Page" title) is unaffected by this change — it uses its own separate positioning and should look exactly as before.
+5. No GraphQL/Apollo state, React state, or event handlers were touched — only `.container`'s width/margin/padding in this one SCSS file.

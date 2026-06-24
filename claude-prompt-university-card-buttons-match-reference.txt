@@ -1,0 +1,99 @@
+Context: the eye/heart icons in the bottom row of `UniversityBigCard.tsx` are still invisible after two prior CSS attempts (both confirmed applied in `scss/pc/general.scss`, both targeting the outer MUI `<IconButton>` box — first with a fixed `width/height: 16px`, then with `padding: 0` + a nested `svg` size rule + `.MuiIconButton-root`/`.MuiSvgIcon-root` class selectors). Since both attempts at constraining the `<IconButton>`'s own box failed to fix visibility, stop fighting the IconButton entirely.
+
+Instead, replace this row's styling with the exact approach already proven to work on the reference card: `libs/components/university/UniversityCard.tsx`'s bottom-row icons (styled by `.buttons { svg { width: 24px; height: 24px; cursor: pointer; } }` in `scss/pc/university/university.scss`, lines ~471-484). That CSS never touches the `<IconButton>`'s own padding/margin/width/height at all — it only sets the size directly on the inner `svg`, and lets MUI's `IconButton` keep its native box. This is the simplest, already-working pattern on this site, so we replace this card's button-row logic with that same approach instead of patching further.
+
+The class name on the wrapper div is also renamed from `buttons-box` to `buttons` to match the reference card 1:1.
+
+## 1. `libs/components/common/UniversityBigCard.tsx`
+
+Find:
+
+```tsx
+						<div className="buttons-box">
+```
+
+Replace with:
+
+```tsx
+						<div className="buttons">
+```
+
+(No other JSX in this file changes — same `IconButton`s, same `RemoveRedEyeIcon`/`FavoriteBorderIcon`/`FavoriteIcon color={'primary'}`, same `likeUniversityHandler` call, same `Typography` view/like counts.)
+
+## 2. `scss/pc/general.scss`
+
+Find this exact block (inside `.university-big-card-box .info .bott`):
+
+```scss
+			.MuiIconButton-root {
+				margin-left: 8px;
+				padding: 0;
+				box-sizing: border-box;
+				color: #8e8c83;
+				&:hover {
+					background: transparent;
+					color: #e8856a;
+				}
+				.MuiSvgIcon-root {
+					width: 16px;
+					height: 16px;
+				}
+				.MuiSvgIcon-colorPrimary {
+					color: #e8856a;
+				}
+			}
+			.buttons-box {
+				width: auto;
+				height: auto;
+				display: flex;
+				flex-direction: row;
+				align-items: center;
+				gap: 7px;
+				color: #8e8c83;
+				.view-cnt {
+					color: #8e8c83;
+					font-family: $font;
+					font-size: 13px;
+					font-weight: 500;
+				}
+			}
+```
+
+Replace with:
+
+```scss
+			.buttons {
+				width: auto;
+				height: auto;
+				display: flex;
+				flex-direction: row;
+				align-items: center;
+				gap: 7px;
+				color: #8e8c83;
+				svg {
+					width: 18px;
+					height: 18px;
+					cursor: pointer;
+					color: #8e8c83;
+				}
+				.MuiSvgIcon-colorPrimary {
+					color: #e8856a;
+				}
+				.view-cnt {
+					color: #8e8c83;
+					font-family: $font;
+					font-size: 13px;
+					font-weight: 500;
+				}
+			}
+```
+
+Do not change anything else in `.bott` — the tag pills (`p`), the gap/layout of the row, `.options`, `.desc`, `.title`, etc. all stay exactly as they are.
+
+---
+
+Verify after implementing:
+1. On any university card (`/agent/detail` portfolio grid, `/university` listing, anywhere `UniversityBigCard` renders), the eye icon and heart icon in the bottom row are now clearly visible — clean, properly proportioned icons next to the view/like counts, with no blank gaps.
+2. The heart icon shows `FavoriteBorderIcon` (gray outline) when not liked, and a coral-filled `FavoriteIcon` (`#e8856a`, via `.MuiSvgIcon-colorPrimary`) when liked.
+3. This now visually and structurally matches how the icons render on `/university`'s card grid (`UniversityCard.tsx`) — same sizing approach, same class name (`buttons`), same simple "size the svg directly, don't touch the IconButton box" CSS strategy.
+4. Clicking the heart still toggles like state via `likeUniversityHandler` exactly as before — no GraphQL/Apollo/React logic changed, only the CSS class name and one SCSS rule.

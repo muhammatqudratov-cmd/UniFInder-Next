@@ -1,0 +1,180 @@
+Context: makes the "All / Dormitory / Scholarship" pills on `/agent/detail` actually filter the "Listed universities" card grid. This was previously left as a non-functional, purely visual element (by explicit earlier choice), but the requirement has changed — they must now actually filter.
+
+Important constraint: the GraphQL query used here (`GET_UNIVERSITIES` with `AgentUniversitiesInquiry`, defined in `libs/types/university/university.input.ts`) only supports `search: { universityStatus }` server-side — there is no `universityDormitory`/`universityScholarship` filter param on this query's input type, and adding one would mean changing the GraphQL schema/backend, which is out of scope. So this is implemented as a **client-side filter** over the already-fetched `agentUniversities` list (which already includes `universityDormitory`/`universityScholarship` booleans on every item — confirmed in `libs/types/university/university.ts` and already used by `UniversityBigCard` to render the Dormitory/Scholarship tags). No GraphQL query, mutation, or variables change — only one new local React state value and a `.filter()` over data that is already in memory.
+
+## `pages/agent/detail.tsx`
+
+### 1. Add new local state for the active filter
+
+Find:
+
+```tsx
+	const [agentUniversities, setAgentUniversities] = useState<University[]>([]);
+	const [universityTotal, setUniversityTotal] = useState<number>(0);
+```
+
+Replace with:
+
+```tsx
+	const [agentUniversities, setAgentUniversities] = useState<University[]>([]);
+	const [universityTotal, setUniversityTotal] = useState<number>(0);
+	const [portfolioFilter, setPortfolioFilter] = useState<'all' | 'dormitory' | 'scholarship'>('all');
+```
+
+### 2. Compute the filtered list right before it's rendered
+
+Find:
+
+```tsx
+						<Stack className={'card-wrap'}>
+							{agentUniversities.map((university: University) => {
+								return (
+									<div className={'wrap-main'} key={university?._id}>
+										<UniversityBigCard
+											university={university}
+											likeUniversityHandler={likeUniversityHandler}
+											key={university?._id}
+										/>
+									</div>
+								);
+							})}
+						</Stack>
+```
+
+Replace with:
+
+```tsx
+						<Stack className={'card-wrap'}>
+							{agentUniversities
+								.filter((university: University) => {
+									if (portfolioFilter === 'dormitory') return !!university?.universityDormitory;
+									if (portfolioFilter === 'scholarship') return !!university?.universityScholarship;
+									return true;
+								})
+								.map((university: University) => {
+									return (
+										<div className={'wrap-main'} key={university?._id}>
+											<UniversityBigCard
+												university={university}
+												likeUniversityHandler={likeUniversityHandler}
+												key={university?._id}
+											/>
+										</div>
+									);
+								})}
+						</Stack>
+```
+
+### 3. Wire up the three filter pills (currently static, "All" hardcoded as active)
+
+Find:
+
+```tsx
+								<span className={'agent-portfolio-filter-pill active'}>All</span>
+								<span className={'agent-portfolio-filter-pill'}>Dormitory</span>
+								<span className={'agent-portfolio-filter-pill'}>Scholarship</span>
+```
+
+Replace with:
+
+```tsx
+								<span
+									className={`agent-portfolio-filter-pill${portfolioFilter === 'all' ? ' active' : ''}`}
+									onClick={() => setPortfolioFilter('all')}
+								>
+									All
+								</span>
+								<span
+									className={`agent-portfolio-filter-pill${portfolioFilter === 'dormitory' ? ' active' : ''}`}
+									onClick={() => setPortfolioFilter('dormitory')}
+								>
+									Dormitory
+								</span>
+								<span
+									className={`agent-portfolio-filter-pill${portfolioFilter === 'scholarship' ? ' active' : ''}`}
+									onClick={() => setPortfolioFilter('scholarship')}
+								>
+									Scholarship
+								</span>
+```
+
+### 4. Update the "Showing X of Y" caption to reflect the filtered count being displayed
+
+Find:
+
+```tsx
+									<span>
+										Showing {agentUniversities.length} of {universityTotal} university
+										{universityTotal > 1 ? 'ies' : 'y'}
+									</span>
+```
+
+Replace with:
+
+```tsx
+									<span>
+										Showing{' '}
+										{
+											agentUniversities.filter((university: University) => {
+												if (portfolioFilter === 'dormitory') return !!university?.universityDormitory;
+												if (portfolioFilter === 'scholarship') return !!university?.universityScholarship;
+												return true;
+											}).length
+										}{' '}
+										of {universityTotal} university
+										{universityTotal > 1 ? 'ies' : 'y'}
+									</span>
+```
+
+(If your file doesn't have this exact "Showing X of Y" span yet — i.e. the earlier `claude-prompt-university-pagination-copy.txt` prompt wasn't applied — apply that one first, then come back to this step.)
+
+## `scss/pc/agent/detail.scss`
+
+### 5. Make the pills look clickable
+
+Find:
+
+```scss
+						.agent-portfolio-filter-pill {
+							padding: 8px 18px;
+							border-radius: 999px;
+							font-family: $font;
+							font-size: 13px;
+							font-weight: 600;
+							cursor: default;
+							background: transparent;
+							border: 1px solid #e2e0d8;
+							color: #8e8c83;
+							&.active {
+```
+
+Replace with:
+
+```scss
+						.agent-portfolio-filter-pill {
+							padding: 8px 18px;
+							border-radius: 999px;
+							font-family: $font;
+							font-size: 13px;
+							font-weight: 600;
+							cursor: pointer;
+							transition: background 0.2s, border-color 0.2s, color 0.2s;
+							background: transparent;
+							border: 1px solid #e2e0d8;
+							color: #8e8c83;
+							&:hover {
+								border-color: #1c1b18;
+								color: #1c1b18;
+							}
+							&.active {
+```
+
+---
+
+Verify after implementing:
+1. Clicking "Dormitory" shows only universities where `universityDormitory` is true in the grid below, and updates the "Showing X of Y" count to match; clicking "Scholarship" does the same for `universityScholarship`; clicking "All" shows everything again.
+2. The clicked pill turns into the active (dark filled) style and the other two return to their default outline style — exactly one pill is active at a time.
+3. If a filter matches zero universities, the grid is simply empty with the "Showing 0 of Y" caption — this is acceptable (no special empty-state required unless you want one).
+4. No GraphQL query/variables changed — `GET_UNIVERSITIES` still fetches the same full agent university list as before; only what's rendered from that already-fetched list is filtered client-side.
+5. Pagination (if multiple pages exist) still re-fetches the next page of the agent's full university list as before — the filter re-applies to whatever page is currently loaded.
+6. Hovering over an inactive pill now shows a pointer cursor and a subtle hover state, confirming it's recognized as clickable.

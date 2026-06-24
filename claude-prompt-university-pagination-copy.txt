@@ -1,0 +1,28 @@
+Context: copy-only change, no logic. The pagination caption under the "Listed universities" card grid on `/agent/detail` currently reads "Total {universityTotal} university/ies available". The reference design uses the phrasing "Showing X of Y universities" instead. The pagination circles/arrows themselves (MUI `<Pagination shape="circular" color="primary">`, already rendering as a red filled circle on the active page via the site's theme) are already correct and are not touched by this prompt — only the text label changes, and it still uses only real, already-available data (`agentUniversities.length` for how many are shown on the current page, `universityTotal` for the grand total) — no new query, no invented numbers.
+
+## `pages/agent/detail.tsx`
+
+Find:
+
+```tsx
+									<span>
+										Total {universityTotal} university{universityTotal > 1 ? 'ies' : 'y'} available
+									</span>
+```
+
+Replace with:
+
+```tsx
+									<span>
+										Showing {agentUniversities.length} of {universityTotal} university
+										{universityTotal > 1 ? 'ies' : 'y'}
+									</span>
+```
+
+---
+
+Verify after implementing:
+1. Under the university card grid on `/agent/detail`, the caption now reads "Showing 1 of 1 university" (singular) when there's exactly one listing, or "Showing X of Y universities" (plural) when there are more — matching the reference design's phrasing style.
+2. The numbers shown are still the real `agentUniversities.length` / `universityTotal` values already fetched from `GET_UNIVERSITIES` — no new GraphQL field or query added.
+3. The pagination circles/arrows above this text are unchanged — still circular, red-filled active page, gray arrows.
+4. No other part of the page changed.

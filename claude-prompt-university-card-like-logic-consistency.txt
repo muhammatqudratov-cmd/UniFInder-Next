@@ -1,0 +1,117 @@
+Context: fixes two related problems in the university card's bottom-row eye/heart icons, confirmed by reading the live source.
+
+1. The icons aren't rendering visibly (showing as blank space next to the view/like counts). Root cause: the CSS targets plain `button`/`svg` tag selectors, which have weak specificity against MUI's own injected classes — unreliable. Elsewhere in this exact file (`scss/pc/general.scss`, `.agent-general-card .buttons`), the same kind of icon is styled successfully using MUI's own class selectors (`.MuiSvgIcon-colorPrimary { color: #e8856a; }`), which is the proven, working pattern.
+2. The like/favorite logic here doesn't match how every other card in the codebase implements it. The established, working pattern — used in `libs/components/university/UniversityCard.tsx` and `libs/components/common/AgentCard.tsx` — is: show `<FavoriteBorderIcon />` (outline heart) when not liked, and `<FavoriteIcon color={'primary'} />` (filled heart, using MUI's `color` prop) when liked. This card instead uses an unstyled `<FavoriteIcon />` for "not liked" (no border/outline variant) and an inline `style={{color:'#e8856a'}}` for "liked" — inconsistent with the rest of the site and part of why the icon isn't reliably visible.
+
+The fix: adopt the exact same `FavoriteBorderIcon` / `FavoriteIcon color="primary"` pattern already used elsewhere, and restyle via MUI's own class selectors (matching the already-proven `.MuiSvgIcon-colorPrimary` approach in this same file) instead of plain tag selectors. The like/favorite click handler itself (`likeUniversityHandler`) is untouched — only which icon component renders, and how it's styled.
+
+## `libs/components/common/UniversityBigCard.tsx`
+
+### 1. Add the `FavoriteBorderIcon` import
+
+Find:
+
+```tsx
+import FavoriteIcon from '@mui/icons-material/Favorite';
+import { University } from '../../types/university/university';
+```
+
+Replace with:
+
+```tsx
+import FavoriteIcon from '@mui/icons-material/Favorite';
+import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
+import { University } from '../../types/university/university';
+```
+
+### 2. Use the canonical liked/not-liked icon pattern in the bottom row
+
+Find:
+
+```tsx
+							<IconButton
+								color={'default'}
+								onClick={(e: any) => {
+									e.stopPropagation();
+									likeUniversityHandler(user, university?._id);
+								}}
+							>
+								{university?.meLiked && university?.meLiked[0]?.myFavorite ? (
+									<FavoriteIcon style={{ color: '#e8856a' }} />
+								) : (
+									<FavoriteIcon />
+								)}
+							</IconButton>
+```
+
+Replace with:
+
+```tsx
+							<IconButton
+								color={'default'}
+								onClick={(e: any) => {
+									e.stopPropagation();
+									likeUniversityHandler(user, university?._id);
+								}}
+							>
+								{university?.meLiked && university?.meLiked[0]?.myFavorite ? (
+									<FavoriteIcon color={'primary'} />
+								) : (
+									<FavoriteBorderIcon />
+								)}
+							</IconButton>
+```
+
+Do not touch the eye `<IconButton>` above it, or the top-photo `.fav-btn` overlay (the plain div with the FavoriteIcon over the photo) — both already render correctly and are out of scope here.
+
+## `scss/pc/general.scss`
+
+Find this exact block (inside `.university-big-card-box .info .bott`):
+
+```scss
+			button {
+				margin-left: 8px;
+				padding: 0;
+				box-sizing: border-box;
+				color: #8e8c83;
+				&:hover {
+					color: #e8856a;
+				}
+				svg {
+					width: 16px;
+					height: 16px;
+				}
+			}
+```
+
+Replace with:
+
+```scss
+			.MuiIconButton-root {
+				margin-left: 8px;
+				padding: 0;
+				box-sizing: border-box;
+				color: #8e8c83;
+				&:hover {
+					background: transparent;
+					color: #e8856a;
+				}
+				.MuiSvgIcon-root {
+					width: 16px;
+					height: 16px;
+				}
+				.MuiSvgIcon-colorPrimary {
+					color: #e8856a;
+				}
+			}
+```
+
+Do not change anything else in this file — `.buttons-box` gap/layout, the tag pills, `.options`, etc. all stay exactly as they are.
+
+---
+
+Verify after implementing:
+1. Both the eye icon and the heart icon in the bottom row of every university card now render visibly (clean 16px icons, gray by default).
+2. Hovering either icon shows the coral hover color (`#e8856a`).
+3. Clicking the heart toggles between `FavoriteBorderIcon` (not liked, gray outline) and `FavoriteIcon` filled in coral (`#e8856a`, via the `.MuiSvgIcon-colorPrimary` override) when liked — exactly matching how liking works on `/university`'s card grid and on the Agents page cards.
+4. No GraphQL/Apollo data or `likeUniversityHandler` logic changed — only which icon component is shown and how it's styled.

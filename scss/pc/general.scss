@@ -25,8 +25,22 @@
 		height: 264px;
 		background-size: cover;
 		cursor: pointer;
+		&::before {
+			content: '';
+			position: absolute;
+			inset: 0;
+			z-index: 1;
+			pointer-events: none;
+			background: linear-gradient(
+				135deg,
+				rgba(21, 20, 15, 0.55) 0%,
+				rgba(28, 38, 32, 0.45) 50%,
+				rgba(26, 34, 48, 0.5) 100%
+			);
+		}
 		div.status {
 			position: absolute;
+			z-index: 2;
 			padding: 6px 12px;
 			left: 12px;
 			top: 12px;
@@ -52,9 +66,10 @@
 		}
 		div.price {
 			position: absolute;
+			z-index: 2;
 			padding: 8px 14px;
 			left: 12px;
-			bottom: 12px;
+			top: 12px;
 			border-radius: 999px;
 			background: rgba(255, 255, 255, 0.92);
 			color: #1c1b18;
@@ -64,6 +79,24 @@
 			font-weight: 700;
 			line-height: normal;
 			box-shadow: 0 1px 2px rgba(28, 27, 24, 0.03);
+		}
+		div.status + div.price {
+			top: 54px;
+		}
+		.fav-btn {
+			position: absolute;
+			z-index: 2;
+			right: 12px;
+			top: 12px;
+			width: 34px;
+			height: 34px;
+			border-radius: 50%;
+			background: rgba(255, 255, 255, 0.92);
+			box-shadow: 0 1px 2px rgba(28, 27, 24, 0.03);
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			cursor: pointer;
 		}
 	}
 	.info {
@@ -130,49 +163,27 @@
 			flex-direction: row;
 			justify-content: space-between;
 			align-items: center;
-			div {
+			div:not(.buttons) {
 				width: auto;
 				display: flex;
 				flex-direction: row;
 				align-items: center;
 				gap: 8px;
-			}
-			p {
-				background: #fbede7;
-				color: #d2674c;
-				font-family: $font;
-				font-size: 11px;
-				font-style: normal;
-				font-weight: 700;
-				line-height: normal;
-				text-transform: uppercase;
-				letter-spacing: 0.02em;
-				padding: 3px 9px;
-				border-radius: 6px;
-			}
-			span {
-				margin-left: 0;
-				color: #8e8c83;
-				font-family: $font;
-				font-size: 11px;
-				font-style: normal;
-				font-weight: 600;
-				line-height: normal;
-				text-transform: uppercase;
-				letter-spacing: 0.02em;
-				padding: 3px 9px;
-			}
-			button {
-				margin-left: 8px;
-				width: 16px;
-				height: 16px;
-				box-sizing: border-box;
-				color: #8e8c83;
-				&:hover {
-					color: #e8856a;
+				p {
+					background: #f5f3ef;
+					color: #1c1b18;
+					font-family: $font;
+					font-size: 11px;
+					font-style: normal;
+					font-weight: 700;
+					line-height: normal;
+					text-transform: uppercase;
+					letter-spacing: 0.02em;
+					padding: 3px 9px;
+					border-radius: 6px;
 				}
 			}
-			.buttons-box {
+			.buttons {
 				width: auto;
 				height: auto;
 				display: flex;
@@ -180,6 +191,15 @@
 				align-items: center;
 				gap: 7px;
 				color: #8e8c83;
+				svg {
+					width: 18px;
+					height: 18px;
+					cursor: pointer;
+					color: #8e8c83;
+				}
+				.MuiSvgIcon-colorPrimary {
+					color: #e8856a;
+				}
 				.view-cnt {
 					color: #8e8c83;
 					font-family: $font;
