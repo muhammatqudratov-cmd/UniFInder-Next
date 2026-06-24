@@ -1,0 +1,32 @@
+Context: bug in the previous prompt (`claude-prompt-homepage-advertisement-split-layout.txt`). The `.advertisement` rule in `scss/pc/homepage/homepage.scss` was written as `display: flex; align-items: stretch; gap: 40px; ...` without an explicit `flex-direction`. The root element is a MUI `<Stack>`, which defaults to `flex-direction: column` via its own built-in styles. Because the new `.advertisement` rule never declared `flex-direction` at all, there was nothing to override MUI's default column — so the text panel and video card stacked vertically instead of sitting side by side. Pure CSS fix, one property, no JSX/logic change.
+
+## `scss/pc/homepage/homepage.scss`
+
+Find the `.advertisement` rule (the one added by the previous prompt):
+
+```scss
+		.advertisement {
+			width: 100%;
+			height: 480px;
+			display: flex;
+			align-items: stretch;
+			gap: 40px;
+			padding: 0 48px;
+```
+
+Add `flex-direction: row;` right after `display: flex;`, so it reads:
+
+```scss
+		.advertisement {
+			width: 100%;
+			height: 480px;
+			display: flex;
+			flex-direction: row;
+			align-items: stretch;
+			gap: 40px;
+			padding: 0 48px;
+```
+
+Leave everything else in `.advertisement`, `.ad-text`, `.ad-video-card`, and the mobile version in `scss/mobile/main.scss` (which is already a column stack, intentionally) exactly as-is.
+
+Verify after implementing: on desktop, the homepage Advertisement section now shows the text panel ("A world of universities, one platform" + subtext + "Explore Universities" button) on the left and the rounded video card on the right, side by side, at 480px total height — not stacked. Mobile view is unaffected (it was already correct, stacked).

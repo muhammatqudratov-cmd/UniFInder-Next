@@ -1,0 +1,39 @@
+Context: pure CSS change, no logic. The homepage `.home-page` wrapper (`#pc-wrap .home-page` in `scss/pc/homepage/homepage.scss`, rendered by `pages/index.tsx`) currently has no `background` declared, so it falls back to plain white — making the white university cards blend into the page with no depth. You picked background `#f3efe7` — the exact same warm beige already used for `#my-page` in `scss/pc/mypage/mypage.scss`, so this keeps one consistent background color across the whole site instead of introducing a new one.
+
+## 1. `scss/pc/homepage/homepage.scss` — desktop
+
+Find:
+
+```scss
+#pc-wrap {
+	.home-page {
+		position: relative;
+		width: 100%;
+		height: auto;
+```
+
+Replace with:
+
+```scss
+#pc-wrap {
+	.home-page {
+		position: relative;
+		width: 100%;
+		height: auto;
+		background: #f3efe7;
+```
+
+## 2. `scss/mobile/main.scss` — mobile
+
+The mobile stylesheet has no `.home-page` rule yet (the mobile JSX in `pages/index.tsx` already renders `<Stack className={'home-page'}>`, just unstyled there). Add a new rule inside the existing `#mobile-wrap` block — right after the opening `#mobile-wrap {` line (before `.top { ... }`):
+
+```scss
+#mobile-wrap {
+  .home-page {
+    background: #f3efe7;
+  }
+
+  .top {
+```
+
+Verify after implementing: the homepage (both desktop and mobile) now has a warm beige (`#f3efe7`) page background instead of plain white — the same tone already used on the My Page / My Profile sections — and the white university cards (Trend Universities, Popular Universities, etc.) now show clear contrast/depth against it. No card, layout, or data-fetching logic changed — only the page background color.

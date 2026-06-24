@@ -1,0 +1,203 @@
+Context: the homepage "Advertisement" block (`libs/components/homepage/Advertisement.tsx`, rendered between `PopularUniversities` and `TopUniversities` in `pages/index.tsx`) is currently just a full-width, full-bleed `<video>` (looping `/video/koreauni.mp4`) inside a plain black `.video-frame` box (678px tall on desktop, 300px on mobile, hard-edged corners, heavy `box-shadow: -3px 0px 20px 14px #34343480`) with no text or call-to-action on top of it. You picked "Variant 2 — split layout: text + video card" from the visual mockup, with the copy "A world of universities, one platform" / "Search, compare, and apply to universities across South Korea with confidence."
+
+Two structural notes found while reading the file, both pure cleanup, zero behavior change:
+1. `Advertisement.tsx`'s `if (device == 'mobile') {...} else {...}` branches are byte-for-byte identical today — dead duplication. The actual mobile/desktop visual split is already handled one level up, by `LayoutHome.tsx` wrapping everything in `#mobile-wrap` / `#pc-wrap`, with separate SCSS partials (`scss/mobile/main.scss` vs `scss/pc/homepage/homepage.scss`) styling each. So this rewrite removes the redundant branch and lets the two SCSS files (already separate) handle the responsive layout — exactly how every other homepage component in this app already works.
+2. The CTA button reuses the project's existing coral accent (`#e8856a`, `#d2674c` hover) and `router.push('/university')` navigation — the exact same pattern already used by the (currently unused) `HeroSection.tsx`'s "Explore Universities" button — so this isn't new navigation logic, it's the same established pattern, just wired into this component for the first time.
+
+---
+
+## 1. `libs/components/homepage/Advertisement.tsx` — full rewrite
+
+Replace the entire file content with:
+
+```tsx
+import React from 'react';
+import { useRouter } from 'next/router';
+import { Stack, Typography } from '@mui/material';
+
+const Advertisement = () => {
+	const router = useRouter();
+
+	return (
+		<Stack className={'advertisement'}>
+			<Stack className={'ad-text'}>
+				<Typography className={'ad-title'}>A world of universities, one platform</Typography>
+				<Typography className={'ad-subtitle'}>
+					Search, compare, and apply to universities across South Korea with confidence.
+				</Typography>
+				<button className={'ad-button'} onClick={() => router.push('/university')}>
+					Explore Universities
+				</button>
+			</Stack>
+			<Stack className={'ad-video-card'}>
+				<video autoPlay muted loop playsInline preload="auto" style={{ width: '100%', height: '100%', objectFit: 'cover' }}>
+					<source src="/video/koreauni.mp4" type="video/mp4" />
+				</video>
+			</Stack>
+		</Stack>
+	);
+};
+
+export default Advertisement;
+```
+
+(The `<video>` tag itself — `autoPlay`/`muted`/`loop`/`playsInline`/`preload`/`source src`/`objectFit: cover` — is copied over completely unchanged from the current file, just re-wrapped.)
+
+## 2. `scss/pc/homepage/homepage.scss` — desktop layout
+
+Find:
+
+```scss
+		.video-frame {
+			width: 100%;
+			height: 678px;
+			background: black;
+			transform: perspective(0px);
+			box-shadow: -3px 0px 20px 14px #34343480;
+		}
+```
+
+Replace with:
+
+```scss
+		.advertisement {
+			width: 100%;
+			height: 480px;
+			display: flex;
+			align-items: stretch;
+			gap: 40px;
+			padding: 0 48px;
+			.ad-text {
+				flex: 1;
+				display: flex;
+				flex-direction: column;
+				justify-content: center;
+				gap: 16px;
+				.ad-title {
+					font-family: $font;
+					font-size: 32px;
+					font-weight: 700;
+					color: #1c1b18;
+					line-height: 1.25;
+					margin: 0;
+				}
+				.ad-subtitle {
+					font-family: $font;
+					font-size: 15px;
+					font-weight: 400;
+					color: #57564f;
+					line-height: 1.6;
+					margin: 0;
+					max-width: 420px;
+				}
+				.ad-button {
+					align-self: flex-start;
+					margin-top: 8px;
+					background: #e8856a;
+					color: #ffffff;
+					border: none;
+					border-radius: 8px;
+					padding: 14px 28px;
+					font-family: $font;
+					font-size: 15px;
+					font-weight: 600;
+					cursor: pointer;
+					transition: background 0.15s ease;
+					&:hover {
+						background: #d2674c;
+					}
+				}
+			}
+			.ad-video-card {
+				flex: 1.3;
+				border-radius: 16px;
+				overflow: hidden;
+				box-shadow: 0 8px 24px rgba(28, 27, 24, 0.12);
+				video {
+					width: 100%;
+					height: 100%;
+					object-fit: cover;
+				}
+			}
+		}
+```
+
+## 3. `scss/mobile/main.scss` — mobile layout (stacked)
+
+Find:
+
+```scss
+  .video-frame {
+    margin: 20px 0;
+    width: 100%;
+    height: 300px;
+    background: black;
+    transform: perspective(0px);
+    box-shadow: -3px 0px 20px 14px #34343480;
+  }
+```
+
+Replace with:
+
+```scss
+  .advertisement {
+    margin: 20px 0;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 0 20px;
+    .ad-text {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      .ad-title {
+        font-size: 22px;
+        font-weight: 700;
+        color: #1c1b18;
+        line-height: 1.3;
+        margin: 0;
+      }
+      .ad-subtitle {
+        font-size: 13px;
+        font-weight: 400;
+        color: #57564f;
+        line-height: 1.5;
+        margin: 0;
+      }
+      .ad-button {
+        align-self: flex-start;
+        margin-top: 4px;
+        background: #e8856a;
+        color: #ffffff;
+        border: none;
+        border-radius: 8px;
+        padding: 12px 22px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+      }
+    }
+    .ad-video-card {
+      width: 100%;
+      height: 220px;
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 6px 18px rgba(28, 27, 24, 0.12);
+      video {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+    }
+  }
+```
+
+---
+
+Verify after implementing:
+1. Homepage now shows, in place of the old plain full-width video: on desktop, a left text panel ("A world of universities, one platform" + subtext + a coral "Explore Universities" button) beside a right-side rounded video card with the same looping `koreauni.mp4`; on mobile, the same text stacked above a shorter rounded video card.
+2. The video still autoplays, loops, is muted, and has no visible controls — identical playback behavior to before, only the container shape/position changed.
+3. Clicking "Explore Universities" navigates to `/university` (same destination the existing `HeroSection.tsx` CTA already uses) — confirm the university listing page loads normally.
+4. No other homepage section (`PopularUniversities`, `TopUniversities`, etc.) shifted or broke — `Advertisement` still sits in the same position in `pages/index.tsx`, nothing else in that file changed.
+5. No GraphQL query, mutation, or component prop was touched — this is a pure JSX-structure + SCSS + static copy change to one component.
