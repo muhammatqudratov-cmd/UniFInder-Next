@@ -1,9 +1,72 @@
 #pc-wrap {
+  .cs-hero {
+    position: relative;
+    width: 100%;
+    min-height: 420px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding: 70px 80px;
+    background: linear-gradient(135deg, #15140f 0%, #1c2620 50%, #1a2230 100%);
+    .cs-hero-left {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      max-width: 460px;
+    }
+    .cs-hero-eyebrow {
+      color: #e8856a;
+      font-family: $font;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+    }
+    .cs-hero-title {
+      margin: 14px 0 0;
+      color: #fff;
+      font-family: $font;
+      font-size: 96px;
+      font-weight: 800;
+      line-height: 1;
+      letter-spacing: -2px;
+    }
+    .cs-hero-sub {
+      margin: 18px 0 0;
+      color: rgba(255, 255, 255, 0.65);
+      font-family: $font;
+      font-size: 18px;
+      font-weight: 500;
+    }
+    .cs-hero-caption {
+      margin-top: 22px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: rgba(255, 255, 255, 0.5);
+      font-family: $font;
+      font-size: 13px;
+    }
+    .cs-hero-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #e8856a;
+      display: inline-block;
+    }
+    .cs-hero-right {
+      width: 680px;
+      height: 580px;
+      flex-shrink: 0;
+    }
+  }
   .cs-page {
     position: relative;
     padding: 60px 0px 60px;
     width: 100%;
     height: auto;
+    background: #f5f3ef;
     .container {
       display: flex;
       flex-direction: column;
@@ -37,31 +100,39 @@
           display: flex;
           flex-direction: row;
           justify-content: center;
+          width: fit-content;
+          margin-left: auto;
+          margin-right: auto;
+          padding: 4px;
+          border-radius: 999px;
+          background: #ffffff;
+          border: 1px solid #e9e7e0;
           :first-child {
-            border-radius: 4px 0 0 4px;
+            border-radius: 999px;
           }
           :last-child {
-            border-radius: 0 4px 4px 0;
+            border-radius: 999px;
           }
           div {
-            width: 204px;
-            height: 46px;
+            width: 160px;
+            height: 42px;
             display: flex;
             justify-content: center;
             align-items: center;
-            border: 1px solid #EEE;
+            border: none;
             cursor: pointer;
-            color: #BDBDBD;
+            color: #8e8c83;
             font-family: $font;
             font-size: 14px;
             font-style: normal;
             font-weight: 700;
             line-height: normal;
             letter-spacing: 0.42px;
+            transition: all 0.2s ease;
             &.active {
-              border: 1px solid #725CE8;
-              background: #EB6753;
-              color: #FFF;
+              border: none;
+              background: #1c1b18;
+              color: #fff;
             }
           }
         }
@@ -88,20 +159,25 @@
         }
         .notice-content {
           .main {
-            border: 1px solid #EEE;
+            border: 1px solid #e9e7e0;
+            border-radius: 14px;
+            overflow: hidden;
+            background: #fff;
             .top {
-              padding: 25px 33px;
+              padding: 18px 33px;
               display: flex;
               flex-direction: row;
               justify-content: space-between;
+              background: #efece4;
               span {
-                color: #000;
+                color: #8e8c83;
                 font-family: $font;
-                font-size: 14px;
+                font-size: 12px;
                 font-style: normal;
-                font-weight: 400;
+                font-weight: 700;
                 line-height: normal;
-                text-transform: capitalize;
+                letter-spacing: 0.6px;
+                text-transform: uppercase;
               }
             }
             .bottom {
@@ -112,24 +188,30 @@
                 display: flex;
                 flex-direction: row;
                 justify-content: space-between;
-                border: 1px solid #EEE;
+                border: none;
+                border-bottom: 1px solid #f0eee8;
+                background: #fff;
                 &.event {
-                  background: #F6D79A;
+                  background: rgba(232, 133, 106, 0.08);
+                }
+                &:last-child {
+                  border-bottom: none;
                 }
                 div {
-                  padding: 6px 9px;
-                  border-radius: 12px;
-                  border: 1px solid #EB6753;
-                  color: #EB6753;
+                  padding: 6px 12px;
+                  border-radius: 999px;
+                  border: 1px solid rgba(232, 133, 106, 0.35);
+                  background: rgba(232, 133, 106, 0.12);
+                  color: #e8856a;
                   font-family: $font;
                   font-size: 12px;
                   font-style: normal;
-                  font-weight: 400;
+                  font-weight: 600;
                 }
                 .notice-number {
                   margin-left: 18px;
                   width: 39px;
-                  color: #BDBDBD;
+                  color: #b7b5ac;
                   font-family: $font;
                   font-size: 14px;
                   font-style: normal;
@@ -138,15 +220,15 @@
                 }
                 .notice-title {
                   width: 1060px;
-                  color: #000;
+                  color: #1c1b18;
                   font-family: $font;
                   font-size: 16px;
                   font-style: normal;
-                  font-weight: 400;
+                  font-weight: 500;
                   line-height: normal;
                 }
                 .notice-date {
-                  color: #BDBDBD;
+                  color: #b7b5ac;
                   font-family: $font;
                   font-size: 14px;
                   font-style: normal;

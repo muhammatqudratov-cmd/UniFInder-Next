@@ -1,0 +1,88 @@
+Context: two unrelated, pure-visual tweaks. No logic touched.
+
+## 1. University listing page background color
+
+`scss/pc/university/university.scss` — `#university-list-page`'s background changes from `#fafaf8` to `#f5f3ef` (the project's existing warm-gray/beige token, already used elsewhere on the homepage).
+
+Find:
+
+```scss
+#pc-wrap {
+	#university-list-page {
+		padding-bottom: 40px;
+		background: #fafaf8;
+```
+
+Replace with:
+
+```scss
+#pc-wrap {
+	#university-list-page {
+		padding-bottom: 40px;
+		background: #f5f3ef;
+```
+
+## 2. CS hero knot shape — bigger again
+
+Following up on `claude-prompt-cs-hero-tweaks.txt` (which already bumped the knot from `[1.1, 0.38, 200, 32]` to `[1.6, 0.52, 200, 32]` and pulled the camera back to `5.4`) — make it bigger again.
+
+### `libs/components/cs/CsHero.tsx`
+
+Find:
+
+```tsx
+		<mesh ref={meshRef}>
+			<torusKnotGeometry args={[1.6, 0.52, 200, 32]} />
+			<meshStandardMaterial color={'#e8856a'} roughness={0.25} metalness={0.4} />
+		</mesh>
+```
+
+Replace with:
+
+```tsx
+		<mesh ref={meshRef}>
+			<torusKnotGeometry args={[2.2, 0.7, 200, 32]} />
+			<meshStandardMaterial color={'#e8856a'} roughness={0.25} metalness={0.4} />
+		</mesh>
+```
+
+Find:
+
+```tsx
+				<Canvas camera={{ position: [0, 0, 5.4] }}>
+```
+
+Replace with:
+
+```tsx
+				<Canvas camera={{ position: [0, 0, 7.2] }}>
+```
+
+### `scss/pc/cs/cs.scss` — give the bigger shape more room
+
+Find:
+
+```scss
+    .cs-hero-right {
+      width: 560px;
+      height: 480px;
+      flex-shrink: 0;
+    }
+```
+
+Replace with:
+
+```scss
+    .cs-hero-right {
+      width: 680px;
+      height: 580px;
+      flex-shrink: 0;
+    }
+```
+
+---
+
+Verify after implementing:
+1. The University listing page (`/university`) background is now `#f5f3ef` instead of `#fafaf8` — a very close, slightly warmer off-white; filters panel and university cards keep their own existing backgrounds unaffected.
+2. On `/cs`, the coral knot shape is now noticeably larger again, still fully visible inside its canvas (not clipped), still rotates and tilts toward the cursor exactly as before.
+3. No GraphQL/Apollo/state/handler logic touched in either change — only background color and 3D shape size/camera values.

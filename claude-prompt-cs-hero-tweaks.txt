@@ -1,0 +1,136 @@
+Context: pure visual tweaks to the CS hero added in `claude-prompt-cs-landing-hero.txt` (and assuming `claude-prompt-cs-remove-old-header.txt` is also applied). No logic touched. Three changes: (1) eyebrow text color switches from violet to coral `#e8856a`, (2) the 3D knot shape is rendered larger, (3) it rotates faster.
+
+## 1. `scss/pc/cs/cs.scss` — eyebrow color
+
+Find:
+
+```scss
+    .cs-hero-eyebrow {
+      color: #7c6df0;
+```
+
+Replace with:
+
+```scss
+    .cs-hero-eyebrow {
+      color: #e8856a;
+```
+
+## 2. `scss/pc/cs/cs.scss` — also retint the small caption dot to match (optional consistency, same token)
+
+Find:
+
+```scss
+    .cs-hero-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #7c6df0;
+      display: inline-block;
+    }
+```
+
+Replace with:
+
+```scss
+    .cs-hero-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #e8856a;
+      display: inline-block;
+    }
+```
+
+## 3. `scss/pc/cs/cs.scss` — make the shape's canvas area bigger
+
+Find:
+
+```scss
+    .cs-hero-right {
+      width: 420px;
+      height: 360px;
+      flex-shrink: 0;
+    }
+```
+
+Replace with:
+
+```scss
+    .cs-hero-right {
+      width: 560px;
+      height: 480px;
+      flex-shrink: 0;
+    }
+```
+
+## 4. `libs/components/cs/CsHero.tsx` — bigger knot geometry
+
+Find:
+
+```tsx
+		<mesh ref={meshRef}>
+			<torusKnotGeometry args={[1.1, 0.38, 200, 32]} />
+			<meshStandardMaterial color={'#e8856a'} roughness={0.25} metalness={0.4} />
+		</mesh>
+```
+
+Replace with:
+
+```tsx
+		<mesh ref={meshRef}>
+			<torusKnotGeometry args={[1.6, 0.52, 200, 32]} />
+			<meshStandardMaterial color={'#e8856a'} roughness={0.25} metalness={0.4} />
+		</mesh>
+```
+
+## 5. `libs/components/cs/CsHero.tsx` — pull the camera back so the bigger shape still fits in frame
+
+Find:
+
+```tsx
+				<Canvas camera={{ position: [0, 0, 4.2] }}>
+```
+
+Replace with:
+
+```tsx
+				<Canvas camera={{ position: [0, 0, 5.4] }}>
+```
+
+## 6. `libs/components/cs/CsHero.tsx` — faster rotation
+
+Find:
+
+```tsx
+	useFrame((_, delta) => {
+		if (!meshRef.current) return;
+		meshRef.current.rotation.x += delta * 0.25;
+		meshRef.current.rotation.y += delta * 0.35;
+		// Tilt gently toward the cursor position, on top of the constant auto-rotation.
+		meshRef.current.rotation.x += (pointer.y * 0.4 - meshRef.current.rotation.x * 0.02) * delta;
+		meshRef.current.rotation.y += (pointer.x * 0.4 - meshRef.current.rotation.y * 0.02) * delta;
+	});
+```
+
+Replace with:
+
+```tsx
+	useFrame((_, delta) => {
+		if (!meshRef.current) return;
+		meshRef.current.rotation.x += delta * 0.7;
+		meshRef.current.rotation.y += delta * 0.95;
+		// Tilt gently toward the cursor position, on top of the constant auto-rotation.
+		meshRef.current.rotation.x += (pointer.y * 0.6 - meshRef.current.rotation.x * 0.02) * delta;
+		meshRef.current.rotation.y += (pointer.x * 0.6 - meshRef.current.rotation.y * 0.02) * delta;
+	});
+```
+
+---
+
+Verify after implementing:
+1. "SUPPORT · HELP CENTER" eyebrow text and the small dot in the caption row are now coral (`#e8856a`), not violet.
+2. The knot shape is visibly larger and still fully fits inside its canvas area without being clipped.
+3. The shape spins noticeably faster on its own, and still tilts further when the cursor moves over it.
+4. "CS" heading, subtitle, and caption text are unchanged.
+5. No GraphQL/Apollo/state/handler logic touched — only color values, one geometry size, one camera distance, and rotation-speed multipliers.

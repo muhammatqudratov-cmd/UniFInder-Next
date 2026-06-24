@@ -1,0 +1,40 @@
+Context: pure CSS, no logic. Same background-token swap as the University listing page — `.agent-list-page` background changes from `#fafaf8` to `#f5f3ef`.
+
+## `scss/pc/agent/agent.scss`
+
+Find:
+
+```scss
+#pc-wrap {
+	.agent-list-page {
+		position: relative;
+		padding: 147px 0 75px;
+		width: 100%;
+		height: auto;
+		display: flex;
+		flex-direction: row;
+		justify-content: center;
+		background: #fafaf8;
+```
+
+Replace with:
+
+```scss
+#pc-wrap {
+	.agent-list-page {
+		position: relative;
+		padding: 147px 0 75px;
+		width: 100%;
+		height: auto;
+		display: flex;
+		flex-direction: row;
+		justify-content: center;
+		background: #f5f3ef;
+```
+
+---
+
+Verify after implementing:
+1. The Agents listing page (`/agent`) background is now `#f5f3ef` instead of `#fafaf8`.
+2. The search input, agent cards, and "Sort by" dropdown keep their own existing white/light backgrounds, unaffected.
+3. No JSX/GraphQL/Apollo/handler logic touched — one `background` value in `scss/pc/agent/agent.scss`.

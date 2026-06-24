@@ -89,7 +89,7 @@ const withLayoutBasic = (Component: any) => {
 					title = 'University Search';
 					desc =
 						'Explore 240+ institutions, compare programs, dormitories and scholarships — all in one place. We are glad to see you again!';
-					bgImage = '/img/banner/universities.png';
+					bgImage = '';
 					eyebrow = 'FIND YOUR FUTURE CAMPUS';
 					stats = [
 						{ numericValue: 240, suffix: '+', decimals: 0, label: 'Universities' },
@@ -232,6 +232,7 @@ const withLayoutBasic = (Component: any) => {
 							<Top />
 						</Stack>
 
+						{router.pathname !== '/cs' && (
 						<Stack
 							className={`header-basic ${authHeader && 'auth'} ${memoizedValues.marqueeItems ? 'agent-hero' : ''} ${
 								router.pathname === '/university' ? 'university-hero' : ''
@@ -361,6 +362,7 @@ const withLayoutBasic = (Component: any) => {
 								</Stack>
 							)}
 						</Stack>
+						)}
 
 						<Stack id={'main'}>
 							<Component {...props} />

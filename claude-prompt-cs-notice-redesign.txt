@@ -1,0 +1,304 @@
+Context: pure CSS redesign of the Notice/FAQ tabs and the Notice table on `/cs` (the `.cs-page` section below the new `CsHero`), to match the approved reference screenshot's clean look (rounded pill tabs with a dark active state, soft rounded table with a light "event" badge) — but using the project's own tokens: page background `#f5f3ef`, and the "event" badge/word in coral `#e8856a` instead of the reference's purple. No JSX, GraphQL, Apollo state, or click-handler logic is touched — `Notice.tsx`'s `changeTabHandler`/`tab` query logic stays exactly as-is, this is SCSS only.
+
+## `scss/pc/cs/cs.scss`
+
+### 1. Page background
+
+Find:
+
+```scss
+  .cs-page {
+    position: relative;
+    padding: 60px 0px 60px;
+    width: 100%;
+    height: auto;
+```
+
+Replace with:
+
+```scss
+  .cs-page {
+    position: relative;
+    padding: 60px 0px 60px;
+    width: 100%;
+    height: auto;
+    background: #f5f3ef;
+```
+
+### 2. Tabs (`.btns`) — rounded pill, dark active state
+
+Find:
+
+```scss
+        .btns {
+          margin-top: 50px;
+          display: flex;
+          flex-direction: row;
+          justify-content: center;
+          :first-child {
+            border-radius: 4px 0 0 4px;
+          }
+          :last-child {
+            border-radius: 0 4px 4px 0;
+          }
+          div {
+            width: 204px;
+            height: 46px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 1px solid #EEE;
+            cursor: pointer;
+            color: #BDBDBD;
+            font-family: $font;
+            font-size: 14px;
+            font-style: normal;
+            font-weight: 700;
+            line-height: normal;
+            letter-spacing: 0.42px;
+            &.active {
+              border: 1px solid #725CE8;
+              background: #EB6753;
+              color: #FFF;
+            }
+          }
+        }
+```
+
+Replace with:
+
+```scss
+        .btns {
+          margin-top: 50px;
+          display: flex;
+          flex-direction: row;
+          justify-content: center;
+          width: fit-content;
+          margin-left: auto;
+          margin-right: auto;
+          padding: 4px;
+          border-radius: 999px;
+          background: #ffffff;
+          border: 1px solid #e9e7e0;
+          :first-child {
+            border-radius: 999px;
+          }
+          :last-child {
+            border-radius: 999px;
+          }
+          div {
+            width: 160px;
+            height: 42px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: none;
+            cursor: pointer;
+            color: #8e8c83;
+            font-family: $font;
+            font-size: 14px;
+            font-style: normal;
+            font-weight: 700;
+            line-height: normal;
+            letter-spacing: 0.42px;
+            transition: all 0.2s ease;
+            &.active {
+              border: none;
+              background: #1c1b18;
+              color: #fff;
+            }
+          }
+        }
+```
+
+### 3. Notice table container — rounded card
+
+Find:
+
+```scss
+        .notice-content {
+          .main {
+            border: 1px solid #EEE;
+            .top {
+              padding: 25px 33px;
+              display: flex;
+              flex-direction: row;
+              justify-content: space-between;
+              span {
+                color: #000;
+                font-family: $font;
+                font-size: 14px;
+                font-style: normal;
+                font-weight: 400;
+                line-height: normal;
+                text-transform: capitalize;
+              }
+            }
+```
+
+Replace with:
+
+```scss
+        .notice-content {
+          .main {
+            border: 1px solid #e9e7e0;
+            border-radius: 14px;
+            overflow: hidden;
+            background: #fff;
+            .top {
+              padding: 18px 33px;
+              display: flex;
+              flex-direction: row;
+              justify-content: space-between;
+              background: #efece4;
+              span {
+                color: #8e8c83;
+                font-family: $font;
+                font-size: 12px;
+                font-style: normal;
+                font-weight: 700;
+                line-height: normal;
+                letter-spacing: 0.6px;
+                text-transform: uppercase;
+              }
+            }
+```
+
+### 4. Notice rows + event badge — soft coral tint instead of orange/purple
+
+Find:
+
+```scss
+            .bottom {
+              display: flex;
+              flex-direction: column;
+              .notice-card {
+                padding: 20px 14px 20px 30px;
+                display: flex;
+                flex-direction: row;
+                justify-content: space-between;
+                border: 1px solid #EEE;
+                &.event {
+                  background: #F6D79A;
+                }
+                div {
+                  padding: 6px 9px;
+                  border-radius: 12px;
+                  border: 1px solid #EB6753;
+                  color: #EB6753;
+                  font-family: $font;
+                  font-size: 12px;
+                  font-style: normal;
+                  font-weight: 400;
+                }
+```
+
+Replace with:
+
+```scss
+            .bottom {
+              display: flex;
+              flex-direction: column;
+              .notice-card {
+                padding: 20px 14px 20px 30px;
+                display: flex;
+                flex-direction: row;
+                justify-content: space-between;
+                border: none;
+                border-bottom: 1px solid #f0eee8;
+                background: #fff;
+                &.event {
+                  background: rgba(232, 133, 106, 0.08);
+                }
+                &:last-child {
+                  border-bottom: none;
+                }
+                div {
+                  padding: 6px 12px;
+                  border-radius: 999px;
+                  border: 1px solid rgba(232, 133, 106, 0.35);
+                  background: rgba(232, 133, 106, 0.12);
+                  color: #e8856a;
+                  font-family: $font;
+                  font-size: 12px;
+                  font-style: normal;
+                  font-weight: 600;
+                }
+```
+
+### 5. Notice text colors — match the cleaner look
+
+Find:
+
+```scss
+                .notice-number {
+                  margin-left: 18px;
+                  width: 39px;
+                  color: #BDBDBD;
+                  font-family: $font;
+                  font-size: 14px;
+                  font-style: normal;
+                  font-weight: 400;
+                  line-height: normal;
+                }
+                .notice-title {
+                  width: 1060px;
+                  color: #000;
+                  font-family: $font;
+                  font-size: 16px;
+                  font-style: normal;
+                  font-weight: 400;
+                  line-height: normal;
+                }
+                .notice-date {
+                  color: #BDBDBD;
+                  font-family: $font;
+                  font-size: 14px;
+                  font-style: normal;
+                  font-weight: 400;
+                  line-height: normal;
+                }
+```
+
+Replace with:
+
+```scss
+                .notice-number {
+                  margin-left: 18px;
+                  width: 39px;
+                  color: #b7b5ac;
+                  font-family: $font;
+                  font-size: 14px;
+                  font-style: normal;
+                  font-weight: 400;
+                  line-height: normal;
+                }
+                .notice-title {
+                  width: 1060px;
+                  color: #1c1b18;
+                  font-family: $font;
+                  font-size: 16px;
+                  font-style: normal;
+                  font-weight: 500;
+                  line-height: normal;
+                }
+                .notice-date {
+                  color: #b7b5ac;
+                  font-family: $font;
+                  font-size: 14px;
+                  font-style: normal;
+                  font-weight: 400;
+                  line-height: normal;
+                }
+```
+
+---
+
+Verify after implementing:
+1. The page background behind the tabs/table is now `#f5f3ef`.
+2. "Notice" / "FAQ" tabs render as a single rounded pill group with a white pill background; the active tab has a dark (`#1c1b18`) rounded background with white text, the inactive tab is plain gray text — clicking still switches tabs exactly as before (no handler change).
+3. The Notice table is a single rounded white card with a soft beige header row ("NUMBER" / "TITLE" / "DATE" in uppercase gray).
+4. The "event" row has a faint coral tint background, and its badge is a coral (`#e8856a`) rounded pill — not orange/purple.
+5. Row dividers are thin and light; the last row has no bottom divider.
+6. FAQ tab content and its own categories/accordion styling are untouched by this prompt.
+7. No JSX, GraphQL, Apollo, or handler logic touched — SCSS-only, in `scss/pc/cs/cs.scss`.

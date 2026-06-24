@@ -1,0 +1,35 @@
+Context: pure CSS fix, no logic. The previous fix (retinting `.overlay`'s dark gradient to gradient B's own RGB values) was not enough — the overlay's gradient stops are still near-opaque (0.88–0.95 alpha) near-black tones, so the hero still reads as plain black instead of visibly showing the black → forest green → navy gradient B underneath. This removes the overlay's own dark gradient entirely (it's redundant now that `.header-basic` itself is gradient B) and keeps only the soft coral radial glow, so gradient B is fully visible. Text (`.container strong/span`, `.eyebrow`, `.lead`) is already white / translucent white and stays perfectly readable directly on gradient B — no extra dark wash is needed.
+
+## `scss/pc/main.scss`
+
+Find:
+
+```scss
+		.overlay {
+			position: absolute;
+			inset: 0;
+			z-index: 0;
+			background: linear-gradient(180deg, rgba(21, 20, 15, 0.92) 0%, rgba(28, 38, 32, 0.88) 55%, rgba(26, 34, 48, 0.95) 100%),
+				radial-gradient(circle at 80% 60%, rgba(232, 133, 106, 0.18), transparent 55%);
+		}
+```
+
+Replace with:
+
+```scss
+		.overlay {
+			position: absolute;
+			inset: 0;
+			z-index: 0;
+			background: radial-gradient(circle at 80% 60%, rgba(232, 133, 106, 0.18), transparent 55%);
+		}
+```
+
+---
+
+Verify after implementing:
+1. The University hero (and any other page using plain `.header-basic`, e.g. the auth header) now clearly shows the black → forest green → navy gradient B across its width — not a flat near-black look.
+2. The soft coral glow in the corner is still there.
+3. Heading, eyebrow, and lead text are still white/coral/translucent-white and fully readable.
+4. Agent, Community, and My Page heroes are unaffected (they don't render `.overlay`).
+5. SCSS-only, one `background` line in `scss/pc/main.scss` — no JSX/logic touched.

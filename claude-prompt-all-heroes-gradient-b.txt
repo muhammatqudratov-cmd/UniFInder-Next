@@ -1,0 +1,337 @@
+Context: pure CSS change, no logic. Apply the approved gradient B — `linear-gradient(135deg, #15140f 0%, #1c2620 50%, #1a2230 100%)` (black → forest green → navy) — to all five hero sections shown in the screenshots: Home ("Find your campus in South Korea"), Universities ("University Search", already dark — gets the same gradient instead of its current custom dark gradient), Agents ("Meet The Agents"), Community ("Voices On Campus"), and My Page ("Welcome To Your Profile").
+
+These five share one component, `.header-basic` in `scss/pc/main.scss` (rendered by `libs/components/layout/LayoutBasic.tsx`), with light-theme overrides for `&.agent-hero`, `&.community-hero`, `&.mypage-hero` (University has no override, so it already inherits the base dark gradient). The Home hero is a separate component, `.hero-section` in `scss/pc/homepage/homepage.scss` (rendered by `libs/components/layout/LayoutHome.tsx`).
+
+Animation note: the moving colored dots on the Home hero and the floating circle "blobs" on the My Page hero are both driven by JavaScript (a `<canvas>` particle loop in `LayoutHome.tsx`, and CSS `animation: mypageBlobFloat` in `main.scss`) — neither is touched by this change, so they keep running exactly as before. The agent marquee scroll and the glow-circle blur are likewise untouched.
+
+Only background colors and the handful of text colors that sit directly on the hero background (with no own light pill/card behind them) change, so they stay readable on the new dark background. Any text that already has its own light chip/card background (the `.eyebrow.light` pill, the `.accent-chip`, the `marquee-pill`, the `browsing-card`, the `hero-search-card`, the white secondary buttons) is left exactly as-is — those already have correct contrast against their own light background regardless of the page background.
+
+## `scss/pc/main.scss`
+
+### 1. Base `.header-basic` background (affects Universities, and any other page using this component without a light-theme modifier)
+
+Find:
+
+```scss
+		background: radial-gradient(circle at 80% 60%, rgba(232, 133, 106, 0.18), transparent 55%),
+			linear-gradient(135deg, #1c1b18 0%, #100f0d 70%);
+```
+
+Replace with:
+
+```scss
+		background: linear-gradient(135deg, #15140f 0%, #1c2620 50%, #1a2230 100%);
+```
+
+### 2. `.agent-hero` background
+
+Find:
+
+```scss
+		&.agent-hero {
+			height: 557px;
+			background: #fafaf8;
+```
+
+Replace with:
+
+```scss
+		&.agent-hero {
+			height: 557px;
+			background: linear-gradient(135deg, #15140f 0%, #1c2620 50%, #1a2230 100%);
+```
+
+### 3. `.agent-heading` color
+
+Find:
+
+```scss
+				.agent-heading {
+					color: #1c1b18;
+```
+
+Replace with:
+
+```scss
+				.agent-heading {
+					color: #ffffff;
+```
+
+### 4. `.muted-word` color
+
+Find:
+
+```scss
+					.muted-word {
+						color: #8e8c83;
+```
+
+Replace with:
+
+```scss
+					.muted-word {
+						color: rgba(255, 255, 255, 0.5);
+```
+
+### 5. `.stats-row.dark` text + divider
+
+Find:
+
+```scss
+				.stats-row.dark {
+					margin-top: 34px;
+					.stat.dark {
+						strong {
+							color: #1c1b18;
+						}
+						span {
+							color: #8e8c83;
+						}
+					}
+					.stat-divider.dark {
+						background: #e9e7e0;
+					}
+				}
+```
+
+Replace with:
+
+```scss
+				.stats-row.dark {
+					margin-top: 34px;
+					.stat.dark {
+						strong {
+							color: #ffffff;
+						}
+						span {
+							color: rgba(255, 255, 255, 0.5);
+						}
+					}
+					.stat-divider.dark {
+						background: rgba(255, 255, 255, 0.18);
+					}
+				}
+```
+
+### 6. `.community-hero` background
+
+Find:
+
+```scss
+		&.community-hero {
+			background: #f4f3ef;
+```
+
+Replace with:
+
+```scss
+		&.community-hero {
+			background: linear-gradient(135deg, #15140f 0%, #1c2620 50%, #1a2230 100%);
+```
+
+### 7. `.community-heading` color (leave `.accent-chip` inside it unchanged — it has its own light pill background)
+
+Find:
+
+```scss
+				.community-heading {
+					color: #1c1b18;
+					font-family: $font;
+					font-size: 64px;
+					font-weight: 800;
+					line-height: 1.15;
+					letter-spacing: -1px;
+					white-space: normal;
+```
+
+Replace with:
+
+```scss
+				.community-heading {
+					color: #ffffff;
+					font-family: $font;
+					font-size: 64px;
+					font-weight: 800;
+					line-height: 1.15;
+					letter-spacing: -1px;
+					white-space: normal;
+```
+
+### 8. `.mypage-hero` background
+
+Find:
+
+```scss
+		&.mypage-hero {
+			background: #f4f3ef;
+```
+
+Replace with:
+
+```scss
+		&.mypage-hero {
+			background: linear-gradient(135deg, #15140f 0%, #1c2620 50%, #1a2230 100%);
+```
+
+### 9. `.mypage-blob-1` border (so the decorative ring stays visible on dark)
+
+Find:
+
+```scss
+			.mypage-blob-1 {
+				position: absolute;
+				top: -60px;
+				left: 4%;
+				width: 320px;
+				height: 320px;
+				border-radius: 50%;
+				border: 1px solid rgba(28, 27, 24, 0.06);
+```
+
+Replace with:
+
+```scss
+			.mypage-blob-1 {
+				position: absolute;
+				top: -60px;
+				left: 4%;
+				width: 320px;
+				height: 320px;
+				border-radius: 50%;
+				border: 1px solid rgba(255, 255, 255, 0.1);
+```
+
+### 10. `.mypage-heading` color
+
+Find:
+
+```scss
+				.mypage-heading {
+					color: #1c1b18;
+```
+
+Replace with:
+
+```scss
+				.mypage-heading {
+					color: #ffffff;
+```
+
+### 11. `.mypage-lead` color
+
+Find:
+
+```scss
+				.mypage-lead {
+					margin-top: 20px;
+					color: #57564f;
+```
+
+Replace with:
+
+```scss
+				.mypage-lead {
+					margin-top: 20px;
+					color: rgba(255, 255, 255, 0.65);
+```
+
+## `scss/pc/homepage/homepage.scss`
+
+### 12. `.hero-section` background
+
+Find:
+
+```scss
+	.hero-section {
+		position: relative;
+		min-height: 580px;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		padding: 80px 24px 100px;
+		overflow: hidden;
+		text-align: center;
+		background: linear-gradient(160deg, #fafaf8 0%, #f0ede8 60%, #fafaf8 100%);
+	}
+```
+
+Replace with:
+
+```scss
+	.hero-section {
+		position: relative;
+		min-height: 580px;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		padding: 80px 24px 100px;
+		overflow: hidden;
+		text-align: center;
+		background: linear-gradient(135deg, #15140f 0%, #1c2620 50%, #1a2230 100%);
+	}
+```
+
+### 13. `.hero-title` color
+
+Find:
+
+```scss
+	.hero-title {
+		font-size: clamp(44px, 6vw, 70px);
+		font-weight: 800;
+		line-height: 1.08;
+		letter-spacing: -2px;
+		color: #1c1b18;
+		margin-bottom: 20px;
+```
+
+Replace with:
+
+```scss
+	.hero-title {
+		font-size: clamp(44px, 6vw, 70px);
+		font-weight: 800;
+		line-height: 1.08;
+		letter-spacing: -2px;
+		color: #ffffff;
+		margin-bottom: 20px;
+```
+
+### 14. `.hero-sub` color
+
+Find:
+
+```scss
+	.hero-sub {
+		font-size: 17px;
+		color: #57564f;
+		line-height: 1.65;
+		max-width: 500px;
+		margin: 0 auto 36px;
+	}
+```
+
+Replace with:
+
+```scss
+	.hero-sub {
+		font-size: 17px;
+		color: rgba(255, 255, 255, 0.65);
+		line-height: 1.65;
+		max-width: 500px;
+		margin: 0 auto 36px;
+	}
+```
+
+---
+
+Verify after implementing:
+1. Home, Universities, Agents, Community, and My Page hero sections all now show the same black → forest green → navy gradient (`#15140f` → `#1c2620` → `#1a2230`).
+2. The Home hero's moving colored dots (canvas particle animation) still animate normally — unchanged JS, just a new background behind it.
+3. The My Page hero's two floating circle "blobs" still float (CSS `mypageBlobFloat` animation untouched); the outer ring blob is now visible against the dark background.
+4. The Agent hero's marquee scroll, glow-circle blur, white pill chips, and the "eyebrow" coral chip are unchanged and still legible.
+5. The Community hero's coral "accent-chip" pill and the white "browsing card" stack on the right are unchanged and still legible; only the main heading text turned white.
+6. All headline/subtitle text that sits directly on the hero background (no own light card behind it) is now white or soft translucent white, and clearly readable. Buttons, search cards, and white pill/card UI elements are untouched.
+7. No JSX/component file, GraphQL query, mutation, or event handler was touched — SCSS-only, across `scss/pc/main.scss` and `scss/pc/homepage/homepage.scss`.

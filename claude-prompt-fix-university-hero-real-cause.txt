@@ -1,0 +1,51 @@
+Context: this fixes the REAL cause of the University hero still looking black no matter what gradient colors were tried. It is not a CSS color or overlay problem — it's a real background photo.
+
+In `libs/components/layout/LayoutBasic.tsx`, inside the `memoizedValues` useMemo (the `switch (router.pathname)` block), the `/university` case sets `bgImage = '/img/banner/universities.png'`. This value is then applied directly as an inline style on the `.header-basic` element:
+
+```tsx
+style={
+	memoizedValues.bgImage
+		? { backgroundImage: `url(${memoizedValues.bgImage})`, backgroundSize: 'cover' }
+		: undefined
+}
+```
+
+An inline `style` always overrides the `background` set in the SCSS class (`.header-basic { background: linear-gradient(...) }`), regardless of how that gradient's colors are changed. That's why every previous attempt to fix the University hero's color (changing `.header-basic`'s background, retinting `.overlay`, removing `.overlay`'s dark wash) had zero visible effect — a real photo (`universities.png`) was always rendering on top, covering the gradient completely.
+
+Other routes that already correctly show the gradient (`/agent`, `/mypage`, `/community`) have `bgImage = ''` for their top-level pages, so no inline style is applied and the SCSS gradient shows through normally. The fix makes `/university` behave the same way.
+
+This is a presentational-only change: it only removes which static image file is used as a decorative hero background for one route. No GraphQL query/mutation, Apollo state, React state, or event handler is touched.
+
+## `libs/components/layout/LayoutBasic.tsx`
+
+Find:
+
+```tsx
+				case '/university':
+					title = 'University Search';
+					desc =
+						'Explore 240+ institutions, compare programs, dormitories and scholarships — all in one place. We are glad to see you again!';
+					bgImage = '/img/banner/universities.png';
+					eyebrow = 'FIND YOUR FUTURE CAMPUS';
+```
+
+Replace with:
+
+```tsx
+				case '/university':
+					title = 'University Search';
+					desc =
+						'Explore 240+ institutions, compare programs, dormitories and scholarships — all in one place. We are glad to see you again!';
+					bgImage = '';
+					eyebrow = 'FIND YOUR FUTURE CAMPUS';
+```
+
+---
+
+Verify after implementing:
+1. Open `/university` — the hero now shows the black → forest green → navy gradient B (`#15140f` → `#1c2620` → `#1a2230`), not the old photo, not flat black.
+2. The soft coral radial glow (`.overlay`) is still visible in the corner.
+3. Title "University Search", eyebrow "FIND YOUR FUTURE CAMPUS", description text, and the 3 stat numbers (240+, 18k, 9.4★) all still render and are readable in white/translucent-white.
+4. `/agent`, `/mypage`, `/community` are unaffected (their `bgImage` was already `''`).
+5. `/agent/detail`, `/community/detail`, `/cs`, `/account/join`, `/member` are unaffected — their `bgImage` values (`korea2.jpg`, `incheon.jpg`) were not touched, only the `/university` case changed.
+6. No GraphQL, Apollo, React state, or event handler logic was touched — only one string value (`bgImage`) for one route case.

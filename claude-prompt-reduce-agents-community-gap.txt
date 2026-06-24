@@ -1,0 +1,68 @@
+Context: pure CSS spacing fix, no logic. The visible gap between the "Top Agents" section and the "Community Board" section on the homepage is too large. There are two `.top-agents` / `.community-board` rule blocks in `scss/pc/homepage/homepage.scss` — an older nested one under `#pc-wrap` (lines ~564, ~655) and a newer flat one with `!important` (lines ~1752, ~1901) that wins due to `!important` and is the one actually controlling the live padding. This change only touches the live (`!important`) block's vertical padding.
+
+`.top-agents`'s bottom padding (72px) plus `.community-board`'s top padding (60px) currently add up to a 132px gap. This halves both, to a 32px / 28px split (60px total gap) — still a clear section break, just not oversized.
+
+## `scss/pc/homepage/homepage.scss`
+
+### 1. `.top-agents` — reduce bottom padding
+
+Find:
+
+```scss
+.top-agents {
+  padding: 72px 48px !important;
+  background: #f5f3ef !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+```
+
+Replace with:
+
+```scss
+.top-agents {
+  padding: 72px 48px 32px !important;
+  background: #f5f3ef !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+```
+
+### 2. `.community-board` — reduce top padding
+
+Find:
+
+```scss
+.community-board {
+  padding: 60px 48px !important;
+  background: #f5f3ef !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  display: block !important;
+}
+```
+
+Replace with:
+
+```scss
+.community-board {
+  padding: 28px 48px 60px !important;
+  background: #f5f3ef !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  display: block !important;
+}
+```
+
+---
+
+Verify after implementing:
+1. On the homepage, the vertical gap between the last "Top Agents" card row and the "Community Board" heading is noticeably smaller than before, but the two sections are still clearly separated.
+2. `.top-agents`'s top padding (72px) and left/right padding (48px) are unchanged — only its bottom padding shrank to 32px.
+3. `.community-board`'s bottom padding (60px) and left/right padding (48px) are unchanged — only its top padding shrank to 28px.
+4. No other homepage section shifted unexpectedly.
+5. No JSX/GraphQL/Apollo/handler logic touched — two padding values only.

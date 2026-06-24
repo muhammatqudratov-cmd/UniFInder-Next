@@ -1,0 +1,72 @@
+Context: pure CSS fix, no logic. The previous padding reduction (`claude-prompt-reduce-agents-community-gap.txt`) was applied correctly, but the gap is still huge — because the REAL cause wasn't the padding amount, it's a leftover fixed `height: 722px` on `.top-agents` from an older, separate nested rule block (`#pc-wrap .top-agents` around line 564 in `scss/pc/homepage/homepage.scss`), which doesn't use `!important`. The newer flat `.top-agents` block (the one actually controlling padding/background via `!important`) never declared its own `height`, so the old block's `height: 722px` silently still applies. Since the actual content (header + agent cards row) is shorter than 722px, there's a large block of empty dead space sitting inside `.top-agents`, below the cards and above its own bottom padding — this is what's creating the oversized gap before "Community Board", on top of the padding.
+
+The same bug exists on `.community-board` (old nested block has `height: 860px`, not overridden by the new flat block), which would create the same kind of dead space below the Community Board section. Fixing both now.
+
+The fix: explicitly set `height: auto !important;` on both flat blocks, so each section's height is driven by its actual content instead of the old fixed pixel values.
+
+## `scss/pc/homepage/homepage.scss`
+
+### 1. `.top-agents`
+
+Find:
+
+```scss
+.top-agents {
+  padding: 72px 48px 32px !important;
+  background: #f5f3ef !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+```
+
+Replace with:
+
+```scss
+.top-agents {
+  padding: 72px 48px 32px !important;
+  background: #f5f3ef !important;
+  width: 100% !important;
+  height: auto !important;
+  box-sizing: border-box !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+```
+
+### 2. `.community-board`
+
+Find:
+
+```scss
+.community-board {
+  padding: 28px 48px 60px !important;
+  background: #f5f3ef !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  display: block !important;
+}
+```
+
+Replace with:
+
+```scss
+.community-board {
+  padding: 28px 48px 60px !important;
+  background: #f5f3ef !important;
+  width: 100% !important;
+  height: auto !important;
+  box-sizing: border-box !important;
+  display: block !important;
+}
+```
+
+---
+
+Verify after implementing:
+1. On the homepage, the gap between the last row of agent cards and the "Community Board" heading is now small and consistent with the ~60px padding sum from the previous fix — no large empty dead space remains.
+2. The "Top Agents" section's height now matches its actual content (header + swiper cards row), not a fixed 722px box.
+3. The "Community Board" section's height now matches its actual content, not a fixed 860px box — check that nothing below it (next homepage section) also had unexpected empty space; if so, that's this same fix working correctly.
+4. The agent card swiper, switch buttons, and community board content/layout all still look and behave the same — only the outer section heights changed from fixed to auto.
+5. No JSX/GraphQL/Apollo/handler logic touched — `height` values only.

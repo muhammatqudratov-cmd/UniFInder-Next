@@ -1,0 +1,259 @@
+Context: new presentational hero section for the `/cs` (Customer Support) page. This does not exist anywhere in the codebase yet — it replaces only the top header block of the current `/cs` page (the plain "Cs center / I will answer your questions" block in `pages/cs/index.tsx`). The Notice/FAQ tabs and their content below stay completely untouched — no GraphQL query, Apollo state, or existing handler logic is touched anywhere in this change. `@react-three/fiber`, `@react-three/drei`, and `three` are already installed dependencies (see `package.json`), so no new packages are needed.
+
+Design spec (grounded in the approved reference screenshot):
+- Full-width hero, background = gradient B: `linear-gradient(135deg, #15140f 0%, #1c2620 50%, #1a2230 100%)`.
+- Left column: small caps eyebrow "SUPPORT · HELP CENTER" in violet (`#7c6df0`), big bold heading "CS" in white, subtitle text "We're here to help, anytime." in `rgba(255, 255, 255, 0.65)`, and a small caption row below with a violet dot + "Move your cursor over the shape to interact" in `rgba(255, 255, 255, 0.5)`.
+- Right column: an interactive 3D shape (torus knot) rendered with `@react-three/fiber`, colored coral `#e8856a` (matching the project's existing coral accent token), that slowly auto-rotates and also tilts to follow the cursor position when the mouse moves over the hero.
+
+## 1. New file: `libs/components/cs/CsHero.tsx`
+
+```tsx
+import React, { useRef } from 'react';
+import { Canvas, useFrame, useThree } from '@react-three/fiber';
+import { Stack } from '@mui/material';
+
+function InteractiveKnot() {
+	const meshRef = useRef<any>(null);
+	const { pointer } = useThree();
+
+	useFrame((_, delta) => {
+		if (!meshRef.current) return;
+		meshRef.current.rotation.x += delta * 0.25;
+		meshRef.current.rotation.y += delta * 0.35;
+		// Tilt gently toward the cursor position, on top of the constant auto-rotation.
+		meshRef.current.rotation.x += (pointer.y * 0.4 - meshRef.current.rotation.x * 0.02) * delta;
+		meshRef.current.rotation.y += (pointer.x * 0.4 - meshRef.current.rotation.y * 0.02) * delta;
+	});
+
+	return (
+		<mesh ref={meshRef}>
+			<torusKnotGeometry args={[1.1, 0.38, 200, 32]} />
+			<meshStandardMaterial color={'#e8856a'} roughness={0.25} metalness={0.4} />
+		</mesh>
+	);
+}
+
+export default function CsHero() {
+	return (
+		<Stack className={'cs-hero'}>
+			<Stack className={'cs-hero-left'}>
+				<span className={'cs-hero-eyebrow'}>SUPPORT · HELP CENTER</span>
+				<h1 className={'cs-hero-title'}>CS</h1>
+				<p className={'cs-hero-sub'}>We're here to help, anytime.</p>
+				<div className={'cs-hero-caption'}>
+					<span className={'cs-hero-dot'} />
+					Move your cursor over the shape to interact
+				</div>
+			</Stack>
+			<Stack className={'cs-hero-right'}>
+				<Canvas camera={{ position: [0, 0, 4.2] }}>
+					<ambientLight intensity={0.6} />
+					<directionalLight position={[3, 3, 3]} intensity={1.1} />
+					<InteractiveKnot />
+				</Canvas>
+			</Stack>
+		</Stack>
+	);
+}
+```
+
+## 2. `scss/pc/cs/cs.scss` — add the hero styles
+
+Find:
+
+```scss
+#pc-wrap {
+  .cs-page {
+    position: relative;
+    padding: 60px 0px 60px;
+    width: 100%;
+    height: auto;
+    .container {
+      display: flex;
+      flex-direction: column;
+      .cs-main-info {
+```
+
+Replace with:
+
+```scss
+#pc-wrap {
+  .cs-hero {
+    position: relative;
+    width: 100%;
+    min-height: 420px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding: 70px 80px;
+    background: linear-gradient(135deg, #15140f 0%, #1c2620 50%, #1a2230 100%);
+    .cs-hero-left {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      max-width: 460px;
+    }
+    .cs-hero-eyebrow {
+      color: #7c6df0;
+      font-family: $font;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+    }
+    .cs-hero-title {
+      margin: 14px 0 0;
+      color: #fff;
+      font-family: $font;
+      font-size: 96px;
+      font-weight: 800;
+      line-height: 1;
+      letter-spacing: -2px;
+    }
+    .cs-hero-sub {
+      margin: 18px 0 0;
+      color: rgba(255, 255, 255, 0.65);
+      font-family: $font;
+      font-size: 18px;
+      font-weight: 500;
+    }
+    .cs-hero-caption {
+      margin-top: 22px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: rgba(255, 255, 255, 0.5);
+      font-family: $font;
+      font-size: 13px;
+    }
+    .cs-hero-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #7c6df0;
+      display: inline-block;
+    }
+    .cs-hero-right {
+      width: 420px;
+      height: 360px;
+      flex-shrink: 0;
+    }
+  }
+  .cs-page {
+    position: relative;
+    padding: 60px 0px 60px;
+    width: 100%;
+    height: auto;
+    .container {
+      display: flex;
+      flex-direction: column;
+      .cs-main-info {
+```
+
+## 3. `pages/cs/index.tsx` — render the new hero, remove the old plain header block
+
+Find:
+
+```tsx
+import useDeviceDetect from '../../libs/hooks/useDeviceDetect';
+import withLayoutBasic from '../../libs/components/layout/LayoutBasic';
+import Notice from '../../libs/components/cs/Notice';
+import Faq from '../../libs/components/cs/Faq';
+```
+
+Replace with:
+
+```tsx
+import useDeviceDetect from '../../libs/hooks/useDeviceDetect';
+import withLayoutBasic from '../../libs/components/layout/LayoutBasic';
+import CsHero from '../../libs/components/cs/CsHero';
+import Notice from '../../libs/components/cs/Notice';
+import Faq from '../../libs/components/cs/Faq';
+```
+
+Find:
+
+```tsx
+		return (
+			<Stack className={'cs-page'}>
+				<Stack className={'container'}>
+					<Box component={'div'} className={'cs-main-info'}>
+						<Box component={'div'} className={'info'}>
+							<span>Cs center</span>
+							<p>I will answer your questions</p>
+						</Box>
+						<Box component={'div'} className={'btns'}>
+```
+
+Replace with:
+
+```tsx
+		return (
+			<>
+				<CsHero />
+				<Stack className={'cs-page'}>
+					<Stack className={'container'}>
+						<Box component={'div'} className={'cs-main-info'}>
+							<Box component={'div'} className={'btns'}>
+```
+
+Find (this closes the old `.info` block's parent `Box`, now needs to match the new indentation/structure above — keep the rest of the file exactly as-is below this point, this find/replace only removes the `.info` block and adjusts the closing tags for the `cs-main-info`/`container`/`cs-page` wrapper to stay balanced):
+
+```tsx
+							<div
+								className={tab == 'faq' ? 'active' : ''}
+								onClick={() => {
+									changeTabHandler('faq');
+								}}
+							>
+								FAQ
+							</div>
+						</Box>
+					</Box>
+
+					<Box component={'div'} className={'cs-content'}>
+						{tab === 'notice' && <Notice />}
+
+						{tab === 'faq' && <Faq />}
+					</Box>
+				</Stack>
+			</Stack>
+		);
+```
+
+Replace with:
+
+```tsx
+							<div
+								className={tab == 'faq' ? 'active' : ''}
+								onClick={() => {
+									changeTabHandler('faq');
+								}}
+							>
+								FAQ
+							</div>
+							</Box>
+						</Box>
+
+						<Box component={'div'} className={'cs-content'}>
+							{tab === 'notice' && <Notice />}
+
+							{tab === 'faq' && <Faq />}
+						</Box>
+					</Stack>
+				</Stack>
+			</>
+		);
+```
+
+Note for whoever applies this: after these edits, re-indent `pages/cs/index.tsx` with your formatter (e.g. Prettier) since the wrapping fragment (`<>...</>`) shifts indentation by one level — this is whitespace only, not a logic change.
+
+---
+
+Verify after implementing:
+1. `/cs` now shows the new dark hero at the top: gradient B background, "SUPPORT · HELP CENTER" eyebrow in violet, big white "CS" heading, "We're here to help, anytime." subtitle, and the caption row with the violet dot.
+2. The coral torus-knot shape on the right auto-rotates continuously and visibly tilts further when the mouse moves over the hero area, then settles back to its base auto-rotation when the mouse leaves.
+3. Below the hero, the "Notice" / "FAQ" tab buttons still work exactly as before — clicking switches the URL query (`?tab=notice` / `?tab=faq`) and swaps the `<Notice />` / `<Faq />` content, with no change to that logic.
+4. No console errors from the `@react-three/fiber` Canvas (check browser dev tools).
+5. No GraphQL query/mutation, Apollo state, or `changeTabHandler` logic was modified — only a new component file, new SCSS block, and JSX structure around the existing tab content.

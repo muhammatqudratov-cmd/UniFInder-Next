@@ -1,0 +1,65 @@
+Context: two small, unrelated tweaks to the top navbar. No GraphQL/Apollo/state logic touched.
+
+## 1. Make the navbar shorter vertically
+
+`scss/pc/main.scss` — `.navbar-main .container` height changes from `70px` to `56px`.
+
+Find:
+
+```scss
+			.container {
+				display: flex;
+				flex-direction: row;
+				align-items: center;
+				justify-content: space-between;
+				height: 70px;
+```
+
+Replace with:
+
+```scss
+			.container {
+				display: flex;
+				flex-direction: row;
+				align-items: center;
+				justify-content: space-between;
+				height: 56px;
+```
+
+## 2. Remove the notification bell icon next to the flag
+
+`libs/components/Top.tsx` — remove the `NotificationsOutlinedIcon` rendered just before the language/flag dropdown. This is presentational only: it stops rendering one icon; it does not touch the user/auth check elsewhere or any other notification logic in the app.
+
+Find:
+
+```tsx
+							<div className={'lan-box'}>
+								{user?._id && <NotificationsOutlinedIcon className={'notification-icon'} />}
+								<Button
+```
+
+Replace with:
+
+```tsx
+							<div className={'lan-box'}>
+								<Button
+```
+
+Then, since `NotificationsOutlinedIcon` is no longer used anywhere else in this file, also remove its now-unused import:
+
+Find:
+
+```tsx
+import NotificationsOutlinedIcon from '@mui/icons-material/NotificationsOutlined';
+```
+
+Replace with: (delete this line — confirm first that `NotificationsOutlinedIcon` isn't referenced elsewhere in this file before deleting; if it is, leave the import)
+
+---
+
+Verify after implementing:
+1. The top navbar is visibly shorter (56px instead of 70px) on every page; the logo, nav links, and user/flag area are still vertically centered and not clipped.
+2. The bell/notification icon next to the language flag dropdown is gone, for both logged-in and logged-out users.
+3. The flag dropdown (language selector) itself still works exactly as before — only the bell icon next to it was removed.
+4. No TypeScript "unused import" error remains after removing the import (only remove it if confirmed unused elsewhere in the file).
+5. No GraphQL query/mutation, Apollo state, or other handler logic touched.

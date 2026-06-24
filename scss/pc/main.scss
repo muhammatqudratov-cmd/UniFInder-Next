@@ -74,7 +74,7 @@ body::-webkit-scrollbar {
 				flex-direction: row;
 				align-items: center;
 				justify-content: space-between;
-				height: 70px;
+				height: 56px;
 				.logo-box {
 					img {
 						width: 150px;
@@ -489,8 +489,7 @@ body::-webkit-scrollbar {
 		display: flex;
 		flex-direction: row;
 		justify-content: center;
-		background: radial-gradient(circle at 80% 60%, rgba(232, 133, 106, 0.18), transparent 55%),
-			linear-gradient(135deg, #1c1b18 0%, #100f0d 70%);
+		background: linear-gradient(135deg, #15140f 0%, #1c2620 50%, #1a2230 100%);
 		&.auth {
 			height: 300px;
 		}
@@ -498,8 +497,7 @@ body::-webkit-scrollbar {
 			position: absolute;
 			inset: 0;
 			z-index: 0;
-			background: linear-gradient(180deg, rgba(16, 15, 13, 0.92) 0%, rgba(16, 15, 13, 0.88) 55%, rgba(16, 15, 13, 0.95) 100%),
-				radial-gradient(circle at 80% 60%, rgba(232, 133, 106, 0.18), transparent 55%);
+			background: radial-gradient(circle at 80% 60%, rgba(232, 133, 106, 0.18), transparent 55%);
 		}
 		.container {
 			position: relative;
@@ -603,7 +601,7 @@ body::-webkit-scrollbar {
 		}
 		&.agent-hero {
 			height: 557px;
-			background: #fafaf8;
+			background: linear-gradient(135deg, #15140f 0%, #1c2620 50%, #1a2230 100%);
 			justify-content: flex-start;
 			align-items: flex-start;
 			.glow-circle {
@@ -646,7 +644,7 @@ body::-webkit-scrollbar {
 					}
 				}
 				.agent-heading {
-					color: #1c1b18;
+					color: #ffffff;
 					font-family: $font;
 					font-size: 52px;
 					font-weight: 800;
@@ -659,7 +657,7 @@ body::-webkit-scrollbar {
 					gap: 12px;
 					margin-top: 4px;
 					.muted-word {
-						color: #8e8c83;
+						color: rgba(255, 255, 255, 0.5);
 						font-family: $font;
 						font-size: 44px;
 						font-weight: 800;
@@ -697,14 +695,14 @@ body::-webkit-scrollbar {
 					margin-top: 34px;
 					.stat.dark {
 						strong {
-							color: #1c1b18;
+							color: #ffffff;
 						}
 						span {
-							color: #8e8c83;
+							color: rgba(255, 255, 255, 0.5);
 						}
 					}
 					.stat-divider.dark {
-						background: #e9e7e0;
+						background: rgba(255, 255, 255, 0.18);
 					}
 				}
 			}
@@ -738,7 +736,7 @@ body::-webkit-scrollbar {
 			}
 		}
 		&.community-hero {
-			background: #f4f3ef;
+			background: linear-gradient(135deg, #15140f 0%, #1c2620 50%, #1a2230 100%);
 			justify-content: flex-start;
 			align-items: center;
 			.community-hero-container {
@@ -766,7 +764,7 @@ body::-webkit-scrollbar {
 					margin-bottom: 14px;
 				}
 				.community-heading {
-					color: #1c1b18;
+					color: #ffffff;
 					font-family: $font;
 					font-size: 64px;
 					font-weight: 800;
@@ -840,7 +838,7 @@ body::-webkit-scrollbar {
 			}
 		}
 		&.mypage-hero {
-			background: #f4f3ef;
+			background: linear-gradient(135deg, #15140f 0%, #1c2620 50%, #1a2230 100%);
 			justify-content: flex-start;
 			align-items: center;
 			overflow: hidden;
@@ -852,7 +850,7 @@ body::-webkit-scrollbar {
 				width: 320px;
 				height: 320px;
 				border-radius: 50%;
-				border: 1px solid rgba(28, 27, 24, 0.06);
+				border: 1px solid rgba(255, 255, 255, 0.1);
 				z-index: 0;
 				animation: mypageBlobFloat 8s ease-in-out infinite;
 			}
@@ -896,7 +894,7 @@ body::-webkit-scrollbar {
 					margin-bottom: 14px;
 				}
 				.mypage-heading {
-					color: #1c1b18;
+					color: #ffffff;
 					font-family: $font;
 					font-size: 54px;
 					font-weight: 800;
@@ -912,7 +910,7 @@ body::-webkit-scrollbar {
 				}
 				.mypage-lead {
 					margin-top: 20px;
-					color: #57564f;
+					color: rgba(255, 255, 255, 0.65);
 					font-family: $font;
 					font-size: 17px;
 					font-weight: 400;

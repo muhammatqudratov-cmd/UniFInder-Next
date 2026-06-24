@@ -1,0 +1,78 @@
+Context: pure presentational fix, no logic touched. After adding the new `<CsHero />` component to `/cs` (see `claude-prompt-cs-landing-hero.txt`), the page now shows TWO headers stacked: the old generic `.header-basic` block from `LayoutBasic.tsx` (light blue sky photo, "CS" / "We are glad to see you again!") still renders above it, because `LayoutBasic.tsx` renders `.header-basic` for every route, then renders the page's own content (which now includes `CsHero`) below it.
+
+The fix: skip rendering the old `.header-basic` block entirely when the route is `/cs`, since `CsHero` (rendered inside the page content) now fully replaces that role. No other route is affected.
+
+## `libs/components/layout/LayoutBasic.tsx`
+
+Find:
+
+```tsx
+						<Stack
+							className={`header-basic ${authHeader && 'auth'} ${memoizedValues.marqueeItems ? 'agent-hero' : ''} ${
+								router.pathname === '/university' ? 'university-hero' : ''
+							} ${router.pathname === '/community' ? 'community-hero' : ''} ${
+								router.pathname === '/mypage' ? 'mypage-hero' : ''
+							}`}
+							style={
+								memoizedValues.bgImage
+									? { backgroundImage: `url(${memoizedValues.bgImage})`, backgroundSize: 'cover' }
+									: undefined
+							}
+						>
+```
+
+Replace with:
+
+```tsx
+						{router.pathname !== '/cs' && (
+						<Stack
+							className={`header-basic ${authHeader && 'auth'} ${memoizedValues.marqueeItems ? 'agent-hero' : ''} ${
+								router.pathname === '/university' ? 'university-hero' : ''
+							} ${router.pathname === '/community' ? 'community-hero' : ''} ${
+								router.pathname === '/mypage' ? 'mypage-hero' : ''
+							}`}
+							style={
+								memoizedValues.bgImage
+									? { backgroundImage: `url(${memoizedValues.bgImage})`, backgroundSize: 'cover' }
+									: undefined
+							}
+						>
+```
+
+Then find the matching closing tag of that same `Stack` (it is the one immediately followed by the `<Stack id={'main'}>` block):
+
+```tsx
+							</Stack>
+						)}
+					</Stack>
+				)}
+			</Stack>
+		</Stack>
+
+						<Stack id={'main'}>
+							<Component {...props} />
+						</Stack>
+```
+
+(If the exact surrounding whitespace above doesn't match exactly due to nested ternary indentation, just locate the closing `</Stack>` that ends the `header-basic` `Stack` opened above — it is the line directly before the blank line and `<Stack id={'main'}>` — and replace it with:)
+
+```tsx
+							</Stack>
+						)}
+
+						<Stack id={'main'}>
+							<Component {...props} />
+						</Stack>
+```
+
+i.e. wrap the entire `.header-basic` `Stack` (open tag through its matching closing `</Stack>`, including all of its internal ternary branches for agent/community/mypage/default — none of that internal content changes) in `{router.pathname !== '/cs' && ( ... )}`, adding one opening `(` right after the `Stack`'s opening `>` is not needed — only wrap from the `<Stack className={...header-basic...}>` tag itself through its own closing `</Stack>`, leaving everything in between exactly as-is.
+
+Re-indent this block with your formatter (e.g. Prettier) after applying — this is whitespace only.
+
+---
+
+Verify after implementing:
+1. On `/cs`, the old light-blue-sky "CS / We are glad to see you again!" header no longer renders at all. Only the new dark `CsHero` (gradient B, eyebrow, "CS" heading, "We're here to help, anytime.", coral interactive knot) appears at the top.
+2. Every other route (`/university`, `/agent`, `/agent/detail`, `/community`, `/community/detail`, `/mypage`, `/account/join`, `/member`) still renders its `.header-basic` exactly as before — unaffected by this change.
+3. The `Top` navbar and `Footer` still render normally on `/cs`.
+4. No GraphQL query/mutation, Apollo state, or event handler logic was touched — only a conditional wrapper around one JSX block based on `router.pathname`.

@@ -12,7 +12,6 @@ import AccountCircleOutlinedIcon from '@mui/icons-material/AccountCircleOutlined
 import { CaretDown } from 'phosphor-react';
 import useDeviceDetect from '../hooks/useDeviceDetect';
 import Link from 'next/link';
-import NotificationsOutlinedIcon from '@mui/icons-material/NotificationsOutlined';
 import { useReactiveVar } from '@apollo/client';
 import { userVar } from '../../apollo/store';
 import { Logout } from '@mui/icons-material';
@@ -163,7 +162,7 @@ const Top = () => {
 		return (
 			<Stack className={`navbar ${colorChange || bgColor ? 'scrolled-nav' : ''}`}>
 				<Stack className={`navbar-main ${colorChange ? 'transparent' : ''} ${bgColor ? 'transparent' : ''}`}>
-					<Stack className={'container'} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', height: '70px' }}>
+					<Stack className={'container'} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', height: '56px' }}>
 						<div className="uni-logo" onClick={() => router.push('/')} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
 							<div style={{
 								width: '28px',
@@ -265,7 +264,6 @@ const Top = () => {
 							)}
 
 							<div className={'lan-box'}>
-								{user?._id && <NotificationsOutlinedIcon className={'notification-icon'} />}
 								<Button
 									disableRipple
 									className="btn-lang"

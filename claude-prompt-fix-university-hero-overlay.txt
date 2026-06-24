@@ -1,0 +1,37 @@
+Context: pure CSS fix, no logic. The University hero (and any other page using the base `.header-basic` without a light-theme modifier, e.g. the auth header) was already switched to gradient B (`linear-gradient(135deg, #15140f 0%, #1c2620 50%, #1a2230 100%)`), but it still visually looks like the old near-black background. The reason: `.overlay` in `scss/pc/main.scss` is an absolutely-positioned layer that sits directly on top of `.header-basic` (it's only rendered when there's no `agent-hero`/`community-hero`/`mypage-hero` modifier — see `libs/components/layout/LayoutBasic.tsx`), and its own background is a near-opaque near-black gradient (`rgba(16, 15, 13, ...)`) left over from the original hero design. That overlay is painting over the new gradient B almost completely, hiding it.
+
+The fix: retint the overlay's gradient stops to use gradient B's own colors (`#15140f`, `#1c2620`, `#1a2230` as RGB) instead of the old plain near-black (`16, 15, 13`), keeping the exact same opacity/alpha values and the same coral radial glow — so the vignette effect is preserved but it now darkens/frames gradient B instead of masking it.
+
+## `scss/pc/main.scss`
+
+Find:
+
+```scss
+		.overlay {
+			position: absolute;
+			inset: 0;
+			z-index: 0;
+			background: linear-gradient(180deg, rgba(16, 15, 13, 0.92) 0%, rgba(16, 15, 13, 0.88) 55%, rgba(16, 15, 13, 0.95) 100%),
+				radial-gradient(circle at 80% 60%, rgba(232, 133, 106, 0.18), transparent 55%);
+		}
+```
+
+Replace with:
+
+```scss
+		.overlay {
+			position: absolute;
+			inset: 0;
+			z-index: 0;
+			background: linear-gradient(180deg, rgba(21, 20, 15, 0.92) 0%, rgba(28, 38, 32, 0.88) 55%, rgba(26, 34, 48, 0.95) 100%),
+				radial-gradient(circle at 80% 60%, rgba(232, 133, 106, 0.18), transparent 55%);
+		}
+```
+
+---
+
+Verify after implementing:
+1. The University hero (and any other page using the plain `.header-basic` with no `agent-hero`/`community-hero`/`mypage-hero` modifier) now visibly shows the black → forest green → navy gradient B, not the old plain near-black look.
+2. The Agent, Community, and My Page heroes are unaffected — they don't render `.overlay` at all (confirmed in `LayoutBasic.tsx`), so this change is invisible to them.
+3. The subtle coral radial glow in the corner of the hero is still present, unchanged.
+4. No JSX/component file, GraphQL query, mutation, or event handler touched — SCSS-only, one `background` property in `scss/pc/main.scss`.

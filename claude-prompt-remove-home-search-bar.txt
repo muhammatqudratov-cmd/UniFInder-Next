@@ -1,0 +1,58 @@
+Context: pure presentational removal, no business logic deleted. Remove the search bar (`Location` / `University Type` / `Faculties` / `Search` button, rendered by the `<HeaderFilter />` component) from the Home page hero entirely. This only stops rendering that component on the Home hero — the `HeaderFilter` component itself, its GraphQL/state logic, and its usage anywhere else (if any) stay completely untouched. The two primary buttons ("🎓 Explore Universities" / "👤 Talk to an agent") already let users navigate to `/university` and `/agent`, so removing the search bar does not remove any way to reach those pages.
+
+## `libs/components/layout/LayoutHome.tsx`
+
+### 1. Remove the `<HeaderFilter />` wrapper from the hero JSX
+
+Find:
+
+```tsx
+								<div className="hero-buttons">
+									<button className="hero-btn-primary" onClick={() => router.push('/university')}>
+										🎓 Explore Universities
+									</button>
+									<button className="hero-btn-secondary" onClick={() => router.push('/agent')}>
+										👤 Talk to an agent
+									</button>
+								</div>
+								<div
+									style={{ display: 'flex', justifyContent: 'center', width: '100%', position: 'relative', zIndex: 50 }}
+								>
+									<HeaderFilter />
+								</div>
+							</div>
+```
+
+Replace with:
+
+```tsx
+								<div className="hero-buttons">
+									<button className="hero-btn-primary" onClick={() => router.push('/university')}>
+										🎓 Explore Universities
+									</button>
+									<button className="hero-btn-secondary" onClick={() => router.push('/agent')}>
+										👤 Talk to an agent
+									</button>
+								</div>
+							</div>
+```
+
+### 2. Remove the now-unused import
+
+Find:
+
+```tsx
+import HeaderFilter from './HeaderFilter';
+```
+
+Replace with: (delete this line entirely — confirm first that `HeaderFilter` is not referenced anywhere else in this file before deleting; if it is, leave the import and skip this step)
+
+---
+
+Verify after implementing:
+1. On the Home page, the search bar (Location / University Type / Faculties / Search) is no longer visible in the hero section.
+2. The hero tag, title "Find your campus in South Korea", subtitle, and the two buttons ("🎓 Explore Universities", "👤 Talk to an agent") still render and still navigate correctly to `/university` and `/agent`.
+3. The canvas particle animation and the three decorative orbs still animate exactly as before.
+4. No TypeScript "unused import" or "unused variable" error appears after removing the `HeaderFilter` import (only remove it if confirmed unused elsewhere in the file).
+5. The `HeaderFilter` component file itself is untouched — if it's used anywhere else in the app (e.g. on the University listing page), that usage still works exactly as before.
+6. No GraphQL query/mutation, Apollo state, or event handler logic was changed — only one JSX block and one import line removed.

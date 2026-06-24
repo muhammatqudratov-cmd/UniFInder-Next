@@ -1,0 +1,475 @@
+Context: pure CSS (+ one inline-style) change, no logic. The site footer's visible background lives in `.newsletter-section` in `scss/pc/homepage/homepage.scss` (confirmed via `libs/components/Footer.tsx` line 72 — `#footer` itself is `background: transparent !important` per an existing code comment, so `.newsletter-section` is the real, global footer background used on every page). Switching it from the current light beige (`#F4F3EF`) to gradient B (`linear-gradient(135deg, #15140f 0%, #1c2620 50%, #1a2230 100%)`) — the same black → forest green → navy gradient already used on the hero sections.
+
+Because the background is going from light to dark, every footer text/icon color that was designed for a light background needs to flip to a light/translucent-white equivalent so it stays legible. The white "Subscribe" input/button and any element with its own light pill/card background are left untouched.
+
+## `scss/pc/homepage/homepage.scss`
+
+### 1. `.newsletter-section` — the background itself
+
+Find:
+
+```scss
+.newsletter-section {
+  background: #F4F3EF;
+  padding: 64px 48px 48px;
+  width: 100%;
+  box-sizing: border-box;
+}
+```
+
+Replace with:
+
+```scss
+.newsletter-section {
+  background: linear-gradient(135deg, #15140f 0%, #1c2620 50%, #1a2230 100%);
+  padding: 64px 48px 48px;
+  width: 100%;
+  box-sizing: border-box;
+}
+```
+
+### 2. `.newsletter-inner` — divider border
+
+Find:
+
+```scss
+.newsletter-inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 48px;
+  border-bottom: 1px solid #E2E0D8;
+}
+```
+
+Replace with:
+
+```scss
+.newsletter-inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 48px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+}
+```
+
+### 3. `.newsletter-text h3` / `.newsletter-text p`
+
+Find:
+
+```scss
+.newsletter-text h3 {
+  font-size: 30px;
+  font-weight: 800;
+  color: #1C1B18;
+  margin: 0 0 8px;
+}
+
+.newsletter-text p {
+  font-size: 14px;
+  color: #8E8C83;
+  max-width: 380px;
+  line-height: 1.6;
+  margin: 0;
+}
+```
+
+Replace with:
+
+```scss
+.newsletter-text h3 {
+  font-size: 30px;
+  font-weight: 800;
+  color: #fff;
+  margin: 0 0 8px;
+}
+
+.newsletter-text p {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.65);
+  max-width: 380px;
+  line-height: 1.6;
+  margin: 0;
+}
+```
+
+### 4. `.newsletter-btn` — make it stand out against the dark background
+
+Find:
+
+```scss
+.newsletter-btn {
+  padding: 13px 28px;
+  border-radius: 999px;
+  background: #1C1B18;
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.2s;
+}
+
+.newsletter-btn:hover { background: #E8856A; }
+```
+
+Replace with:
+
+```scss
+.newsletter-btn {
+  padding: 13px 28px;
+  border-radius: 999px;
+  background: #E8856A;
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.2s;
+}
+
+.newsletter-btn:hover { background: #d2674c; }
+```
+
+(`.newsletter-input` keeps its white background and dark text as-is — it's a self-contained light element, leave it untouched.)
+
+### 5. `.footer-logo-text`
+
+Find:
+
+```scss
+.footer-logo-text {
+  font-size: 18px;
+  font-weight: 800;
+  color: #1C1B18;
+}
+```
+
+Replace with:
+
+```scss
+.footer-logo-text {
+  font-size: 18px;
+  font-weight: 800;
+  color: #fff;
+}
+```
+
+### 6. `.footer-contact-label`
+
+Find:
+
+```scss
+.footer-contact-label {
+  font-size: 11px;
+  color: #A8A69E;
+  margin-bottom: 3px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+```
+
+Replace with:
+
+```scss
+.footer-contact-label {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.5);
+  margin-bottom: 3px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+```
+
+### 7. `.footer-contact-phone`
+
+Find:
+
+```scss
+.footer-contact-phone {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1C1B18;
+  margin-bottom: 20px;
+}
+```
+
+Replace with:
+
+```scss
+.footer-contact-phone {
+  font-size: 18px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 20px;
+}
+```
+
+### 8. `.footer-follow-label`
+
+Find:
+
+```scss
+.footer-follow-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #A8A69E;
+  margin-bottom: 14px;
+}
+```
+
+Replace with:
+
+```scss
+.footer-follow-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.5);
+  margin-bottom: 14px;
+}
+```
+
+### 9. `.footer-social-btn`
+
+Find:
+
+```scss
+.footer-social-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1.5px solid #DDDBD5;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #6E6C66;
+  font-size: 15px;
+  transition: all 0.2s;
+}
+```
+
+Replace with:
+
+```scss
+.footer-social-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 255, 255, 0.25);
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 15px;
+  transition: all 0.2s;
+}
+```
+
+(`.footer-social-btn:hover` already uses the coral accent — leave it unchanged.)
+
+### 10. `.footer-col-title`
+
+Find:
+
+```scss
+.footer-col-title {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #A8A69E;
+  margin-bottom: 20px;
+}
+```
+
+Replace with:
+
+```scss
+.footer-col-title {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.5);
+  margin-bottom: 20px;
+}
+```
+
+### 11. `.footer-col-link`
+
+Find:
+
+```scss
+.footer-col-link {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #5C5A54;
+  margin-bottom: 14px;
+  text-decoration: none;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+```
+
+Replace with:
+
+```scss
+.footer-col-link {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.75);
+  margin-bottom: 14px;
+  text-decoration: none;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+```
+
+(`.footer-col-link:hover` already uses the coral accent — leave it unchanged.)
+
+### 12. `.footer-pin`
+
+Find:
+
+```scss
+.footer-pin {
+  font-size: 12px;
+  color: #A8A69E;
+}
+```
+
+Replace with:
+
+```scss
+.footer-pin {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.5);
+}
+```
+
+### 13. `.footer-bottom`
+
+Find:
+
+```scss
+.footer-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 40px;
+  padding-top: 24px;
+  border-top: 1px solid #E2E0D8;
+  font-size: 12px;
+  color: #A8A69E;
+}
+```
+
+Replace with:
+
+```scss
+.footer-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 40px;
+  padding-top: 24px;
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.5);
+}
+```
+
+### 14. `.footer-bottom-link`
+
+Find:
+
+```scss
+.footer-bottom-link {
+  font-size: 12px;
+  color: #A8A69E;
+  text-decoration: none;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.footer-bottom-link:hover { color: #1C1B18; }
+```
+
+Replace with:
+
+```scss
+.footer-bottom-link {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.5);
+  text-decoration: none;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.footer-bottom-link:hover { color: #fff; }
+```
+
+## `libs/components/Footer.tsx`
+
+The small round logo badge next to "UniFinder" uses an inline style with a dark border that was designed for the light background. Update it to a light border so it's visible against the new dark gradient.
+
+Find:
+
+```tsx
+							<div
+								style={{
+									width: '28px',
+									height: '28px',
+									borderRadius: '50%',
+									border: '2px solid #1C1B18',
+									display: 'flex',
+									alignItems: 'center',
+									justifyContent: 'center',
+									flexShrink: 0,
+								}}
+							>
+```
+
+Replace with:
+
+```tsx
+							<div
+								style={{
+									width: '28px',
+									height: '28px',
+									borderRadius: '50%',
+									border: '2px solid #fff',
+									display: 'flex',
+									alignItems: 'center',
+									justifyContent: 'center',
+									flexShrink: 0,
+								}}
+							>
+```
+
+(The small coral dot inside it stays `#E8856A`, unchanged.)
+
+---
+
+Verify after implementing:
+1. The footer (visible at the bottom of every page) now shows the black → forest green → navy gradient (gradient B) instead of the light beige background.
+2. "Keep yourself up to date" heading, the description text, and the email input/Subscribe button are all clearly legible against the dark background; the Subscribe button is now coral (`#E8856A`) instead of black-on-dark.
+3. The "UniFinder" logo text, phone numbers, "Follow Us" label, social icons, all four footer columns' titles and links, and the bottom copyright/Privacy/Terms/Sitemap row are all clearly legible (white or translucent white) against the dark background.
+4. Hover states (social icons, column links, bottom links) still switch to the coral accent / white as before — no hover behavior removed.
+5. The small circular logo badge border next to "UniFinder" is now white instead of dark, so it doesn't disappear against the dark background.
+6. No JSX structure, GraphQL/Apollo state, or event handlers touched — only background/color values and one inline border-color value.

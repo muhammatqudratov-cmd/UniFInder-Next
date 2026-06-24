@@ -90,7 +90,7 @@ const Footer = () => {
 									width: '28px',
 									height: '28px',
 									borderRadius: '50%',
-									border: '2px solid #1C1B18',
+									border: '2px solid #fff',
 									display: 'flex',
 									alignItems: 'center',
 									justifyContent: 'center',

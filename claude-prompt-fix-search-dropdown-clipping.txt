@@ -1,0 +1,48 @@
+Context: pure CSS bug fix, no logic. On the Home page hero, clicking "Location", "University type", or "Faculties" in the search bar opens a dropdown panel (`.filter-location` / `.filter-type` / `.filter-rooms` in `scss/pc/homepage/homepage.scss`, rendered by `libs/components/homepage/HeaderFilter.tsx`). These dropdowns are already given a high `z-index: 200` and render correctly on top of the hero's own content — but they get visually cut off / hidden behind the section below, because their direct ancestor, `.hero-section`, has `overflow: hidden`. Since the dropdown is positioned absolutely and extends below the hero's fixed height, `overflow: hidden` on the hero clips it at the hero's bottom edge regardless of z-index — that's the actual bug, not a stacking-order problem.
+
+The fix: only clip horizontally (which is what `overflow: hidden` was originally there for — containing the large blurred decorative `.hero-orb` circles that sit slightly outside the hero's left/right edges), and allow vertical overflow so the dropdowns can extend past the hero's bottom edge and render fully on top of the page content below.
+
+## `scss/pc/homepage/homepage.scss`
+
+Find:
+
+```scss
+	.hero-section {
+		position: relative;
+		min-height: 580px;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		padding: 80px 24px 100px;
+		overflow: hidden;
+		text-align: center;
+		background: linear-gradient(135deg, #15140f 0%, #1c2620 50%, #1a2230 100%);
+	}
+```
+
+Replace with:
+
+```scss
+	.hero-section {
+		position: relative;
+		min-height: 580px;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		padding: 80px 24px 100px;
+		overflow-x: hidden;
+		overflow-y: visible;
+		text-align: center;
+		background: linear-gradient(135deg, #15140f 0%, #1c2620 50%, #1a2230 100%);
+	}
+```
+
+---
+
+Verify after implementing:
+1. On the Home page, click "Location", "University type", and "Faculties" in the search bar — each dropdown panel now renders fully visible on top of the "Trend Universities" section below, instead of being cut off at the hero's bottom edge.
+2. The blurred decorative circles (`.orb-coral`, `.orb-sage`, `.orb-lav`) still look the same — no new horizontal scrollbar appears on the page.
+3. Selecting an option in any of the three dropdowns still works exactly as before (no handler, state, or GraphQL logic touched — this is a single CSS property change only).
+4. No other section of the homepage shifted position or size.

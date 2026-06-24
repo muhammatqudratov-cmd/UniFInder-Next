@@ -5,7 +5,6 @@ import Top from '../Top';
 import Footer from '../Footer';
 import { Stack } from '@mui/material';
 import { useRouter } from 'next/router';
-import HeaderFilter from './HeaderFilter';
 import { userVar } from '../../../apollo/store';
 import { useReactiveVar } from '@apollo/client';
 import { getJwtToken, updateUserInfo } from '../../auth';
@@ -167,11 +166,6 @@ const withLayoutMain = (Component: any) => {
 									<button className="hero-btn-secondary" onClick={() => router.push('/agent')}>
 										👤 Talk to an agent
 									</button>
-								</div>
-								<div
-									style={{ display: 'flex', justifyContent: 'center', width: '100%', position: 'relative', zIndex: 50 }}
-								>
-									<HeaderFilter />
 								</div>
 							</div>
 						</section>

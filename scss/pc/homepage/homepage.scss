@@ -812,9 +812,10 @@
 		align-items: center;
 		justify-content: center;
 		padding: 80px 24px 100px;
-		overflow: hidden;
+		overflow-x: hidden;
+		overflow-y: visible;
 		text-align: center;
-		background: linear-gradient(160deg, #fafaf8 0%, #f0ede8 60%, #fafaf8 100%);
+		background: linear-gradient(135deg, #15140f 0%, #1c2620 50%, #1a2230 100%);
 	}
 
 	.hero-orbs {
@@ -888,7 +889,7 @@
 		font-weight: 800;
 		line-height: 1.08;
 		letter-spacing: -2px;
-		color: #1c1b18;
+		color: #ffffff;
 		margin-bottom: 20px;
 
 		.hero-accent {
@@ -898,7 +899,7 @@
 
 	.hero-sub {
 		font-size: 17px;
-		color: #57564f;
+		color: rgba(255, 255, 255, 0.65);
 		line-height: 1.65;
 		max-width: 500px;
 		margin: 0 auto 36px;
@@ -1749,9 +1750,10 @@
 
 /* ── Top Agents ── */
 .top-agents {
-  padding: 72px 48px !important;
+  padding: 72px 48px 32px !important;
   background: #f5f3ef !important;
   width: 100% !important;
+  height: auto !important;
   box-sizing: border-box !important;
   display: flex !important;
   flex-direction: column !important;
@@ -1898,9 +1900,10 @@
 }
 
 .community-board {
-  padding: 60px 48px !important;
+  padding: 28px 48px 60px !important;
   background: #f5f3ef !important;
   width: 100% !important;
+  height: auto !important;
   box-sizing: border-box !important;
   display: block !important;
 }
@@ -2035,7 +2038,7 @@
 /* ── Newsletter + Footer ── */
 
 .newsletter-section {
-  background: #F4F3EF;
+  background: linear-gradient(135deg, #15140f 0%, #1c2620 50%, #1a2230 100%);
   padding: 64px 48px 48px;
   width: 100%;
   box-sizing: border-box;
@@ -2046,19 +2049,19 @@
   justify-content: space-between;
   align-items: center;
   padding-bottom: 48px;
-  border-bottom: 1px solid #E2E0D8;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
 }
 
 .newsletter-text h3 {
   font-size: 30px;
   font-weight: 800;
-  color: #1C1B18;
+  color: #fff;
   margin: 0 0 8px;
 }
 
 .newsletter-text p {
   font-size: 14px;
-  color: #8E8C83;
+  color: rgba(255, 255, 255, 0.65);
   max-width: 380px;
   line-height: 1.6;
   margin: 0;
@@ -2088,7 +2091,7 @@
 .newsletter-btn {
   padding: 13px 28px;
   border-radius: 999px;
-  background: #1C1B18;
+  background: #E8856A;
   color: white;
   font-size: 14px;
   font-weight: 600;
@@ -2098,7 +2101,7 @@
   transition: background 0.2s;
 }
 
-.newsletter-btn:hover { background: #E8856A; }
+.newsletter-btn:hover { background: #d2674c; }
 
 .footer-grid {
   display: grid;
@@ -2117,12 +2120,12 @@
 .footer-logo-text {
   font-size: 18px;
   font-weight: 800;
-  color: #1C1B18;
+  color: #fff;
 }
 
 .footer-contact-label {
   font-size: 11px;
-  color: #A8A69E;
+  color: rgba(255, 255, 255, 0.5);
   margin-bottom: 3px;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -2131,7 +2134,7 @@
 .footer-contact-phone {
   font-size: 18px;
   font-weight: 700;
-  color: #1C1B18;
+  color: #fff;
   margin-bottom: 20px;
 }
 
@@ -2140,7 +2143,7 @@
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: #A8A69E;
+  color: rgba(255, 255, 255, 0.5);
   margin-bottom: 14px;
 }
 
@@ -2153,13 +2156,13 @@
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  border: 1.5px solid #DDDBD5;
+  border: 1.5px solid rgba(255, 255, 255, 0.25);
   background: transparent;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  color: #6E6C66;
+  color: rgba(255, 255, 255, 0.7);
   font-size: 15px;
   transition: all 0.2s;
 }
@@ -2174,7 +2177,7 @@
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: #A8A69E;
+  color: rgba(255, 255, 255, 0.5);
   margin-bottom: 20px;
 }
 
@@ -2183,7 +2186,7 @@
   align-items: center;
   gap: 6px;
   font-size: 13px;
-  color: #5C5A54;
+  color: rgba(255, 255, 255, 0.75);
   margin-bottom: 14px;
   text-decoration: none;
   cursor: pointer;
@@ -2194,7 +2197,7 @@
 
 .footer-pin {
   font-size: 12px;
-  color: #A8A69E;
+  color: rgba(255, 255, 255, 0.5);
 }
 
 .footer-bottom {
@@ -2203,9 +2206,9 @@
   align-items: center;
   margin-top: 40px;
   padding-top: 24px;
-  border-top: 1px solid #E2E0D8;
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
   font-size: 12px;
-  color: #A8A69E;
+  color: rgba(255, 255, 255, 0.5);
 }
 
 .footer-bottom-links {
@@ -2215,10 +2218,10 @@
 
 .footer-bottom-link {
   font-size: 12px;
-  color: #A8A69E;
+  color: rgba(255, 255, 255, 0.5);
   text-decoration: none;
   cursor: pointer;
   transition: color 0.2s;
 }
 
-.footer-bottom-link:hover { color: #1C1B18; }
+.footer-bottom-link:hover { color: #fff; }
