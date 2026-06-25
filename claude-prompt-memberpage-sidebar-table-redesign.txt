@@ -1,0 +1,826 @@
+Context: redesign the Member Page's left profile sidebar card and the right-side "Universities" listing table to match a cleaner, more minimalistic reference layout, using the site's existing brand palette (coral #e8856a, dark #1c1b18, green #5a8a52/#3b6d11/#eaf3de, cream #e8e0d5/#f5f3ef, muted gray #8e8c83) — not generic blue/gray Material colors. The page structure/layout sizing (widths, heights, margins of the big containers) stays untouched to avoid breaking the page; only colors, typography, badge/pill shapes, spacing inside elements, and a couple of small presentational additions change.
+
+Four files are touched:
+1. `scss/pc/member/memberPage.scss` — sidebar card visual restyle (CSS only).
+2. `scss/pc/member/memberUniversities.scss` — listing table visual restyle (CSS only).
+3. `libs/components/mypage/UniversityCard.tsx` — replaces the row's two hardcoded inline `sx` color overrides (which always rendered the same blue regardless of actual status) with a conditional className based on the existing `university.universityStatus` value, so CSS can finally color ACTIVE green / INACTIVE gray / DELETE red — this only changes which className is applied, not any data, query, or business logic. Also adds a fallback image path when `universityImages[0]` is empty, mirroring the exact same fallback pattern already used in the sibling component `libs/components/university/UniversityCard.tsx`.
+4. `libs/components/member/MemberUniversities.tsx` — adds a small "{total} listings" label next to the "Universities" title, reusing the `total` value that is already fetched and already displayed elsewhere on the same page (`.total-result`) — no new query, no new state, just rendering an existing variable in one more place.
+
+No GraphQL/Apollo queries, mutations, or event handlers are added, removed, or changed in any file.
+
+---
+
+## 1. `scss/pc/member/memberPage.scss`
+
+Find:
+
+```scss
+#pc-wrap {
+	#member-page {
+		background: #f6f6f6;
+```
+
+Replace:
+
+```scss
+#pc-wrap {
+	#member-page {
+		background: #e8e0d5;
+```
+
+Find:
+
+```scss
+					.back-frame {
+						width: 1260px;
+						height: auto;
+						display: flex;
+						flex-direction: row;
+						margin: 100px 0 200px 0;
+						border-radius: 12px;
+						border: 1px solid #c4c4c4;
+						background: #fff;
+						box-shadow: 0px 1px 4px 0px rgba(24, 26, 32, 0.07);
+						.left-config {
+							position: relative;
+							padding: 0 0 0 0;
+							width: 266px;
+							height: 700px;
+							border-radius: 12px;
+							background: #fff;
+							border: 1px solid rgba(196, 196, 196, 0.79);
+							box-shadow: 0px 1px 4px 0px rgba(24, 26, 32, 0.07);
+							margin: 180px 20px 40px 20px;
+```
+
+Replace:
+
+```scss
+					.back-frame {
+						width: 1260px;
+						height: auto;
+						display: flex;
+						flex-direction: row;
+						margin: 100px 0 200px 0;
+						border-radius: 16px;
+						border: 1px solid #e8e0d5;
+						background: #fff;
+						box-shadow: 0px 1px 4px 0px rgba(24, 26, 32, 0.07);
+						.left-config {
+							position: relative;
+							padding: 0 0 0 0;
+							width: 266px;
+							height: 700px;
+							border-radius: 16px;
+							background: #faf8f5;
+							border: 1px solid #e8e0d5;
+							box-shadow: 0px 1px 4px 0px rgba(24, 26, 32, 0.07);
+							margin: 180px 20px 40px 20px;
+```
+
+Find:
+
+```scss
+							.profile {
+								margin-top: 5px;
+								position: relative;
+								display: flex;
+								flex-direction: row;
+								.profile-img {
+									img {
+										width: 79px;
+										height: 79px;
+										border-radius: 50%;
+										right: 30px;
+										bottom: 12px;
+										object-fit: cover;
+									}
+								}
+								.user-info {
+									margin-left: 20px;
+									display: flex;
+									flex-direction: column;
+									.user-name {
+										color: #181a20;
+										font-family: $font;
+										font-size: 15px;
+										font-style: normal;
+										font-weight: 600;
+										line-height: normal;
+									}
+									.user-phone {
+										display: flex;
+										flex-direction: row;
+										margin-top: 5px;
+										img {
+											margin-top: 3px;
+											margin-right: 4px;
+											width: 16px;
+											height: 16px;
+										}
+									}
+									.view-list {
+										margin-top: 5px;
+										font-weight: 300;
+										color: rgb(187, 187, 187);
+									}
+								}
+							}
+```
+
+Replace:
+
+```scss
+							.profile {
+								margin-top: 5px;
+								position: relative;
+								display: flex;
+								flex-direction: row;
+								.profile-img {
+									img {
+										width: 79px;
+										height: 79px;
+										border-radius: 50%;
+										right: 30px;
+										bottom: 12px;
+										object-fit: cover;
+										border: 2px solid #e8856a;
+										padding: 2px;
+									}
+								}
+								.user-info {
+									margin-left: 20px;
+									display: flex;
+									flex-direction: column;
+									.user-name {
+										color: #1c1b18;
+										font-family: $font;
+										font-size: 16px;
+										font-style: normal;
+										font-weight: 700;
+										line-height: normal;
+									}
+									.user-phone {
+										display: flex;
+										flex-direction: row;
+										margin-top: 6px;
+										img {
+											margin-top: 3px;
+											margin-right: 4px;
+											width: 16px;
+											height: 16px;
+											opacity: 0.6;
+										}
+										.p-number {
+											color: #8e8c83;
+											font-size: 13px;
+										}
+									}
+									.view-list {
+										margin-top: 8px;
+										display: inline-flex;
+										align-self: flex-start;
+										padding: 3px 10px;
+										border-radius: 20px;
+										background: #e8856a;
+										color: #fff;
+										font-family: $font;
+										font-size: 10px;
+										font-weight: 700;
+										letter-spacing: 0.6px;
+										text-transform: uppercase;
+									}
+								}
+							}
+```
+
+Find:
+
+```scss
+							.follow-button-box {
+								height: 35px;
+								flex-direction: row;
+								gap: 10px;
+								align-items: center;
+								margin-top: 15px;
+								button {
+									border: 1px solid #b9b9b9;
+									color: #181a20;
+									font-family: $font;
+									font-size: 14px;
+									font-style: normal;
+									font-weight: 400;
+									line-height: normal;
+								}
+								p {
+									color: #b9b9b9;
+									font-family: $font;
+									font-size: 14px;
+									font-style: italic;
+									font-weight: 400;
+									line-height: normal;
+								}
+							}
+```
+
+Replace:
+
+```scss
+							.follow-button-box {
+								height: 38px;
+								flex-direction: row;
+								gap: 10px;
+								align-items: center;
+								margin-top: 18px;
+								button {
+									border-radius: 30px;
+									font-family: $font;
+									font-size: 14px;
+									font-style: normal;
+									font-weight: 600;
+									line-height: normal;
+									text-transform: none;
+									box-shadow: none;
+								}
+								.MuiButton-contained {
+									flex: 1;
+									color: #fff;
+								}
+								.MuiButton-outlined {
+									flex: 1;
+									border: 1px solid #d8d3c8;
+									color: #1c1b18;
+									background: #faf8f5;
+								}
+								p {
+									color: #8e8c83;
+									font-family: $font;
+									font-size: 13px;
+									font-style: normal;
+									font-weight: 500;
+									line-height: normal;
+								}
+							}
+```
+
+Find:
+
+```scss
+							.sections {
+								height: auto;
+								margin-top: 30px;
+								.section {
+									height: auto;
+									.title {
+										font-family: $font;
+										font-size: 15px;
+										font-style: normal;
+										font-weight: 400;
+										line-height: 28px;
+									}
+```
+
+Replace:
+
+```scss
+							.sections {
+								height: auto;
+								margin-top: 30px;
+								.section {
+									height: auto;
+									.title {
+										font-family: $font;
+										font-size: 11px;
+										font-style: normal;
+										font-weight: 700;
+										letter-spacing: 1px;
+										text-transform: uppercase;
+										color: #8e8c83;
+										line-height: 28px;
+									}
+```
+
+Find:
+
+```scss
+										.focus {
+											height: 50px;
+											background: #000000;
+											border-radius: 10px;
+											p {
+												font-size: 14px;
+												color: #ffffff;
+											}
+										}
+```
+
+Replace:
+
+```scss
+										.focus {
+											height: 50px;
+											background: #e8856a;
+											border-radius: 10px;
+											p {
+												font-size: 14px;
+												color: #ffffff;
+											}
+											.count-title {
+												background: rgba(255, 255, 255, 0.25);
+												color: #fff;
+											}
+										}
+```
+
+Find:
+
+```scss
+									.sub-title {
+										margin-left: 12px;
+										color: #181a20;
+										font-family: $font;
+										font-size: 14px;
+										font-style: normal;
+										font-weight: 600;
+										line-height: 55px;
+									}
+									.count-title {
+										display: flex;
+										justify-content: flex-end;
+										padding-right: 10px;
+										color: #181a20;
+										font-family: $font;
+										font-size: 14px;
+										font-style: normal;
+										font-weight: 600;
+										line-height: 55px;
+									}
+```
+
+Replace:
+
+```scss
+									.sub-title {
+										margin-left: 12px;
+										color: #1c1b18;
+										font-family: $font;
+										font-size: 14px;
+										font-style: normal;
+										font-weight: 600;
+										line-height: 55px;
+									}
+									.count-title {
+										display: flex;
+										align-items: center;
+										justify-content: center;
+										margin-left: auto;
+										margin-right: 12px;
+										min-width: 26px;
+										height: 26px;
+										padding: 0 6px;
+										border-radius: 13px;
+										background: #f5f3ef;
+										color: #1c1b18;
+										font-family: $font;
+										font-size: 12px;
+										font-style: normal;
+										font-weight: 700;
+										line-height: normal;
+									}
+```
+
+---
+
+## 2. `scss/pc/member/memberUniversities.scss`
+
+Find:
+
+```scss
+					.listing-title-box {
+						width: 100%;
+						height: auto;
+						flex-direction: row;
+						gap: 110px;
+						padding: 18px 15px 18px 33px;
+						border-radius: 12px;
+						background: #f6f6f6;
+						.title-text {
+							color: #181a20;
+							font-family: $font;
+							font-size: 15px;
+							font-style: normal;
+							font-weight: 600;
+							line-height: normal;
+						}
+						:first-child {
+							margin-right: 138px;
+						}
+					}
+```
+
+Replace:
+
+```scss
+					.listing-title-box {
+						width: 100%;
+						height: auto;
+						flex-direction: row;
+						gap: 110px;
+						padding: 16px 15px 16px 33px;
+						border-radius: 10px;
+						background: #f5f3ef;
+						.title-text {
+							color: #8e8c83;
+							font-family: $font;
+							font-size: 11px;
+							font-style: normal;
+							font-weight: 700;
+							letter-spacing: 0.6px;
+							text-transform: uppercase;
+							line-height: normal;
+						}
+						:first-child {
+							margin-right: 138px;
+						}
+					}
+```
+
+Find:
+
+```scss
+					.university-card-box {
+						width: 100%;
+						height: auto;
+						flex-direction: row;
+						align-items: center;
+						margin-top: 30px;
+						padding-bottom: 30px;
+						border-bottom: 1px solid #ddd;
+						.image-box {
+							width: 115px;
+							height: 90px;
+							overflow: hidden;
+							margin-right: 25px;
+							padding-top: 1px;
+							cursor: pointer;
+							img {
+								width: 100%;
+								height: 100%;
+								object-fit: contain;
+								border-radius: 12px;
+							}
+						}
+						.information-box {
+							width: 210px;
+							height: auto;
+							padding: 5px 0px;
+							cursor: pointer;
+							.name {
+								margin-bottom: 8px;
+								color: #181a20;
+								font-family: $font;
+								font-size: 13px;
+								font-style: normal;
+								font-weight: 600;
+								line-height: normal;
+							}
+							.address {
+								margin-bottom: 13px;
+								color: #717171;
+								font-family: $font;
+								font-size: 11px;
+								font-style: normal;
+								font-weight: 400;
+								line-height: normal;
+							}
+							.price {
+								color: #181a20;
+								font-family: $font;
+								font-size: 15px;
+								font-style: normal;
+								font-weight: 400;
+								line-height: normal;
+							}
+						}
+```
+
+Replace:
+
+```scss
+					.university-card-box {
+						width: 100%;
+						height: auto;
+						flex-direction: row;
+						align-items: center;
+						margin-top: 22px;
+						padding-bottom: 22px;
+						border-bottom: 1px solid #f0ece4;
+						transition: background 0.2s;
+						border-radius: 10px;
+						&:hover {
+							background: #faf8f5;
+						}
+						.image-box {
+							width: 115px;
+							height: 90px;
+							overflow: hidden;
+							margin-right: 25px;
+							padding-top: 1px;
+							cursor: pointer;
+							border-radius: 12px;
+							background: #f5f3ef;
+							img {
+								width: 100%;
+								height: 100%;
+								object-fit: cover;
+								border-radius: 12px;
+							}
+						}
+						.information-box {
+							width: 210px;
+							height: auto;
+							padding: 5px 0px;
+							cursor: pointer;
+							.name {
+								margin-bottom: 8px;
+								color: #1c1b18;
+								font-family: $font;
+								font-size: 14px;
+								font-style: normal;
+								font-weight: 700;
+								line-height: normal;
+							}
+							.address {
+								margin-bottom: 13px;
+								color: #8e8c83;
+								font-family: $font;
+								font-size: 11px;
+								font-style: normal;
+								font-weight: 400;
+								line-height: normal;
+							}
+							.price {
+								color: #e8856a;
+								font-family: $font;
+								font-size: 15px;
+								font-style: normal;
+								font-weight: 600;
+								line-height: normal;
+							}
+						}
+```
+
+Find:
+
+```scss
+						.status-box {
+							width: 100px;
+							height: 100%;
+							align-items: center;
+							justify-content: center;
+							margin-right: 70px;
+							.coloured-box {
+								width: 93px;
+								height: 36px;
+								align-items: center;
+								justify-content: center;
+								border-radius: 60px;
+								.status {
+									font-family: $font;
+									font-size: 12px;
+									font-style: normal;
+									font-weight: 400;
+									line-height: 26px;
+								}
+							}
+						}
+```
+
+Replace:
+
+```scss
+						.status-box {
+							width: 100px;
+							height: 100%;
+							align-items: center;
+							justify-content: center;
+							margin-right: 70px;
+							.coloured-box {
+								width: 93px;
+								height: 32px;
+								align-items: center;
+								justify-content: center;
+								border-radius: 60px;
+								.status {
+									font-family: $font;
+									font-size: 11px;
+									font-style: normal;
+									font-weight: 700;
+									letter-spacing: 0.4px;
+									text-transform: uppercase;
+									line-height: normal;
+								}
+								&.status-active {
+									background: #eaf3de !important;
+									.status {
+										color: #3b6d11 !important;
+									}
+								}
+								&.status-inactive {
+									background: #f5f3ef !important;
+									.status {
+										color: #8e8c83 !important;
+									}
+								}
+								&.status-delete {
+									background: #fbe7e3 !important;
+									.status {
+										color: #c0392b !important;
+									}
+								}
+							}
+						}
+```
+
+Find:
+
+```scss
+					.pagination-config {
+						width: 100%;
+						height: auto;
+						justify-content: center;
+						align-items: center;
+						margin-top: 30px;
+						.total-result {
+```
+
+Replace:
+
+```scss
+					.pagination-config {
+						width: 100%;
+						height: auto;
+						justify-content: center;
+						align-items: center;
+						margin-top: 30px;
+						.pagination-box {
+							.Mui-selected {
+								background-color: #e8856a !important;
+								color: #fff !important;
+							}
+						}
+						.total-result {
+```
+
+Also, find (inside `.main-title-box`):
+
+```scss
+				.main-title-box {
+					width: auto;
+					height: auto;
+					flex-direction: row;
+					justify-content: space-between;
+					.right-box {
+						width: 315px;
+						.main-title {
+							color: #181a20;
+							font-family: $font;
+							font-size: 30px;
+							font-style: normal;
+							font-weight: 600;
+							line-height: normal;
+							letter-spacing: 0.6px;
+							text-transform: capitalize;
+						}
+					}
+				}
+```
+
+Replace:
+
+```scss
+				.main-title-box {
+					width: auto;
+					height: auto;
+					flex-direction: row;
+					justify-content: space-between;
+					align-items: center;
+					.right-box {
+						width: 315px;
+						.main-title {
+							color: #1c1b18;
+							font-family: $font;
+							font-size: 28px;
+							font-style: normal;
+							font-weight: 700;
+							line-height: normal;
+							letter-spacing: 0.6px;
+							text-transform: capitalize;
+						}
+					}
+					.listing-count {
+						color: #8e8c83;
+						font-family: $font;
+						font-size: 13px;
+						font-weight: 500;
+					}
+				}
+```
+
+---
+
+## 3. `libs/components/mypage/UniversityCard.tsx`
+
+Find:
+
+```tsx
+			<Stack className="university-card-box">
+				<Stack className="image-box" onClick={() => pushUniversityDetail(university?._id)}>
+					<img src={`${process.env.REACT_APP_API_URL}/${university.universityImages[0]}`} alt="" />
+				</Stack>
+```
+
+Replace:
+
+```tsx
+			<Stack className="university-card-box">
+				<Stack className="image-box" onClick={() => pushUniversityDetail(university?._id)}>
+					<img
+						src={
+							university.universityImages && university.universityImages[0]
+								? `${process.env.REACT_APP_API_URL}/${university.universityImages[0]}`
+								: '/img/banner/incheon.jpg'
+						}
+						alt=""
+					/>
+				</Stack>
+```
+
+(This mirrors the exact same fallback pattern already used in `libs/components/university/UniversityCard.tsx` for the same `universityImages[0]` field — only adds a default image path, no data/query change.)
+
+Find:
+
+```tsx
+				<Stack className="status-box">
+					<Stack className="coloured-box" sx={{ background: '#E5F0FD' }} onClick={handleClick}>
+						<Typography className="status" sx={{ color: '#3554d1' }}>
+							{university.universityStatus}
+						</Typography>
+					</Stack>
+				</Stack>
+```
+
+Replace:
+
+```tsx
+				<Stack className="status-box">
+					<Stack
+						className={`coloured-box status-${university.universityStatus?.toLowerCase()}`}
+						onClick={handleClick}
+					>
+						<Typography className="status">{university.universityStatus}</Typography>
+					</Stack>
+				</Stack>
+```
+
+(Removes the hardcoded inline `sx` colors, which always rendered blue regardless of the actual status value, and replaces them with a className built from the existing `university.universityStatus` field — e.g. `status-active`, `status-inactive`, `status-delete` — so the SCSS added above can color each status correctly. No data, query, or click-handler logic changes; `handleClick` and the status enum value itself are untouched.)
+
+---
+
+## 4. `libs/components/member/MemberUniversities.tsx`
+
+Find:
+
+```tsx
+				<Stack className="main-title-box">
+					<Stack className="right-box">
+						<Typography className="main-title">Universities</Typography>
+					</Stack>
+				</Stack>
+```
+
+Replace:
+
+```tsx
+				<Stack className="main-title-box">
+					<Stack className="right-box">
+						<Typography className="main-title">Universities</Typography>
+					</Stack>
+					{total > 0 && <Typography className="listing-count">{total} listings</Typography>}
+				</Stack>
+```
+
+(Reuses the existing `total` state value — already fetched by the existing query and already displayed at the bottom of the page via `.total-result` — to additionally show it next to the title, matching the reference layout. No new query, no new state, no handler changes.)
+
+---
+
+Do not change anything else in any of these four files — no GraphQL queries/mutations, no Apollo hooks, no other event handlers, no other component's markup, and no other SCSS rules beyond what's shown above.
+
+---
+
+Verify after implementing:
+1. Member Page background matches the cream tone used site-wide.
+2. Left sidebar: avatar has a thin coral ring border, name is bold, "AGENT" (or other memberType) now renders as a small coral uppercase pill badge instead of plain gray text, Follow button is a full-width rounded coral pill with white text, Unfollow is an outlined cream pill, the active "Details"/"Community" row (Universities/Followers/Followings/Articles) highlights in coral instead of black, and each count now renders inside a small rounded badge.
+3. Right panel: "Universities" title shows "{total} listings" beside it; table header row text is small/uppercase/gray; each row's thumbnail image fills its box (or shows the fallback photo if no image data exists) with rounded corners; title is bold, price is coral; status badge is green for ACTIVE, gray for INACTIVE, red for DELETE (instead of always blue); pagination's current page is a solid coral circle.
+4. Click a status badge — the existing edit menu (inactive option) still opens exactly as before; click a row/image — still navigates to the university detail page exactly as before.
+5. No GraphQL/Apollo/React state or handler logic touched — confirm by diffing that only classNames/inline-sx-removal and CSS values changed, and the two added lines (image fallback ternary, total-based listing-count) are purely presentational.

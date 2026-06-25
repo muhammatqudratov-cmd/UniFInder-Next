@@ -7,18 +7,25 @@
 				height: auto;
 				flex-direction: row;
 				justify-content: space-between;
+				align-items: center;
 				.right-box {
 					width: 315px;
 					.main-title {
-						color: #181a20;
+						color: #1c1b18;
 						font-family: $font;
-						font-size: 30px;
+						font-size: 28px;
 						font-style: normal;
-						font-weight: 600;
+						font-weight: 700;
 						line-height: normal;
 						letter-spacing: 0.6px;
 						text-transform: capitalize;
 					}
+				}
+				.listing-count {
+					color: #8e8c83;
+					font-family: $font;
+					font-size: 13px;
+					font-weight: 500;
 				}
 			}
 			.universities-list-box {
@@ -29,15 +36,17 @@
 						height: auto;
 						flex-direction: row;
 						gap: 110px;
-						padding: 18px 15px 18px 33px;
-						border-radius: 12px;
-						background: #f6f6f6;
+						padding: 16px 15px 16px 33px;
+						border-radius: 10px;
+						background: #f5f3ef;
 						.title-text {
-							color: #181a20;
+							color: #8e8c83;
 							font-family: $font;
-							font-size: 15px;
+							font-size: 11px;
 							font-style: normal;
-							font-weight: 600;
+							font-weight: 700;
+							letter-spacing: 0.6px;
+							text-transform: uppercase;
 							line-height: normal;
 						}
 						:first-child {
@@ -49,9 +58,14 @@
 						height: auto;
 						flex-direction: row;
 						align-items: center;
-						margin-top: 30px;
-						padding-bottom: 30px;
-						border-bottom: 1px solid #ddd;
+						margin-top: 22px;
+						padding-bottom: 22px;
+						border-bottom: 1px solid #f0ece4;
+						transition: background 0.2s;
+						border-radius: 10px;
+						&:hover {
+							background: #faf8f5;
+						}
 						.image-box {
 							width: 115px;
 							height: 90px;
@@ -59,10 +73,12 @@
 							margin-right: 25px;
 							padding-top: 1px;
 							cursor: pointer;
+							border-radius: 12px;
+							background: #f5f3ef;
 							img {
 								width: 100%;
 								height: 100%;
-								object-fit: contain;
+								object-fit: cover;
 								border-radius: 12px;
 							}
 						}
@@ -73,16 +89,16 @@
 							cursor: pointer;
 							.name {
 								margin-bottom: 8px;
-								color: #181a20;
+								color: #1c1b18;
 								font-family: $font;
-								font-size: 13px;
+								font-size: 14px;
 								font-style: normal;
-								font-weight: 600;
+								font-weight: 700;
 								line-height: normal;
 							}
 							.address {
 								margin-bottom: 13px;
-								color: #717171;
+								color: #8e8c83;
 								font-family: $font;
 								font-size: 11px;
 								font-style: normal;
@@ -90,11 +106,11 @@
 								line-height: normal;
 							}
 							.price {
-								color: #181a20;
+								color: #e8856a;
 								font-family: $font;
 								font-size: 15px;
 								font-style: normal;
-								font-weight: 400;
+								font-weight: 600;
 								line-height: normal;
 							}
 						}
@@ -121,16 +137,36 @@
 							margin-right: 70px;
 							.coloured-box {
 								width: 93px;
-								height: 36px;
+								height: 32px;
 								align-items: center;
 								justify-content: center;
 								border-radius: 60px;
 								.status {
 									font-family: $font;
-									font-size: 12px;
+									font-size: 11px;
 									font-style: normal;
-									font-weight: 400;
-									line-height: 26px;
+									font-weight: 700;
+									letter-spacing: 0.4px;
+									text-transform: uppercase;
+									line-height: normal;
+								}
+								&.status-active {
+									background: #eaf3de !important;
+									.status {
+										color: #3b6d11 !important;
+									}
+								}
+								&.status-inactive {
+									background: #f5f3ef !important;
+									.status {
+										color: #8e8c83 !important;
+									}
+								}
+								&.status-delete {
+									background: #fbe7e3 !important;
+									.status {
+										color: #c0392b !important;
+									}
 								}
 							}
 						}
@@ -156,6 +192,12 @@
 						justify-content: center;
 						align-items: center;
 						margin-top: 30px;
+						.pagination-box {
+							.Mui-selected {
+								background-color: #e8856a !important;
+								color: #fff !important;
+							}
+						}
 						.total-result {
 							p {
 								color: #181a20;

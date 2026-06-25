@@ -56,7 +56,14 @@ export const UniversityCard = (props: UniversityCardProps) => {
 		return (
 			<Stack className="university-card-box">
 				<Stack className="image-box" onClick={() => pushUniversityDetail(university?._id)}>
-					<img src={`${process.env.REACT_APP_API_URL}/${university.universityImages[0]}`} alt="" />
+					<img
+						src={
+							university.universityImages && university.universityImages[0]
+								? `${process.env.REACT_APP_API_URL}/${university.universityImages[0]}`
+								: '/img/banner/incheon.jpg'
+						}
+						alt=""
+					/>
 				</Stack>
 				<Stack className="information-box" onClick={() => pushUniversityDetail(university?._id)}>
 					<Typography className="name">{university.universityName}</Typography>
@@ -71,10 +78,11 @@ export const UniversityCard = (props: UniversityCardProps) => {
 					</Typography>
 				</Stack>
 				<Stack className="status-box">
-					<Stack className="coloured-box" sx={{ background: '#E5F0FD' }} onClick={handleClick}>
-						<Typography className="status" sx={{ color: '#3554d1' }}>
-							{university.universityStatus}
-						</Typography>
+					<Stack
+						className={`coloured-box status-${university.universityStatus?.toLowerCase()}`}
+						onClick={handleClick}
+					>
+						<Typography className="status">{university.universityStatus}</Typography>
 					</Stack>
 				</Stack>
 				{!memberPage && university.universityStatus !== 'INACTIVE' && (

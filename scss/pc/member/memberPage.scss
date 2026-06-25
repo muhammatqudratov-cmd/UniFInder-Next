@@ -1,6 +1,6 @@
 #pc-wrap {
 	#member-page {
-		background: #f6f6f6;
+		background: #e8e0d5;
 		.container {
 			.member-page {
 				position: relative;
@@ -14,8 +14,8 @@
 					display: flex;
 					flex-direction: row;
 					margin: 100px 0 200px 0;
-					border-radius: 12px;
-					border: 1px solid #c4c4c4;
+					border-radius: 16px;
+					border: 1px solid #e8e0d5;
 					background: #fff;
 					box-shadow: 0px 1px 4px 0px rgba(24, 26, 32, 0.07);
 					.left-config {
@@ -23,9 +23,9 @@
 						padding: 0 0 0 0;
 						width: 266px;
 						height: 700px;
-						border-radius: 12px;
-						background: #fff;
-						border: 1px solid rgba(196, 196, 196, 0.79);
+						border-radius: 16px;
+						background: #faf8f5;
+						border: 1px solid #e8e0d5;
 						box-shadow: 0px 1px 4px 0px rgba(24, 26, 32, 0.07);
 						margin: 180px 20px 40px 20px;
 						.profile {
@@ -41,6 +41,8 @@
 									right: 30px;
 									bottom: 12px;
 									object-fit: cover;
+									border: 2px solid #e8856a;
+									padding: 2px;
 								}
 							}
 							.user-info {
@@ -48,52 +50,77 @@
 								display: flex;
 								flex-direction: column;
 								.user-name {
-									color: #181a20;
+									color: #1c1b18;
 									font-family: $font;
-									font-size: 15px;
+									font-size: 16px;
 									font-style: normal;
-									font-weight: 600;
+									font-weight: 700;
 									line-height: normal;
 								}
 								.user-phone {
 									display: flex;
 									flex-direction: row;
-									margin-top: 5px;
+									margin-top: 6px;
 									img {
 										margin-top: 3px;
 										margin-right: 4px;
 										width: 16px;
 										height: 16px;
+										opacity: 0.6;
+									}
+									.p-number {
+										color: #8e8c83;
+										font-size: 13px;
 									}
 								}
 								.view-list {
-									margin-top: 5px;
-									font-weight: 300;
-									color: rgb(187, 187, 187);
+									margin-top: 8px;
+									display: inline-flex;
+									align-self: flex-start;
+									padding: 3px 10px;
+									border-radius: 20px;
+									background: #e8856a;
+									color: #fff;
+									font-family: $font;
+									font-size: 10px;
+									font-weight: 700;
+									letter-spacing: 0.6px;
+									text-transform: uppercase;
 								}
 							}
 						}
 						.follow-button-box {
-							height: 35px;
+							height: 38px;
 							flex-direction: row;
 							gap: 10px;
 							align-items: center;
-							margin-top: 15px;
+							margin-top: 18px;
 							button {
-								border: 1px solid #b9b9b9;
-								color: #181a20;
+								border-radius: 30px;
 								font-family: $font;
 								font-size: 14px;
 								font-style: normal;
-								font-weight: 400;
+								font-weight: 600;
 								line-height: normal;
+								text-transform: none;
+								box-shadow: none;
+							}
+							.MuiButton-contained {
+								flex: 1;
+								color: #fff;
+							}
+							.MuiButton-outlined {
+								flex: 1;
+								border: 1px solid #d8d3c8;
+								color: #1c1b18;
+								background: #faf8f5;
 							}
 							p {
-								color: #b9b9b9;
+								color: #8e8c83;
 								font-family: $font;
-								font-size: 14px;
-								font-style: italic;
-								font-weight: 400;
+								font-size: 13px;
+								font-style: normal;
+								font-weight: 500;
 								line-height: normal;
 							}
 						}
@@ -104,9 +131,12 @@
 								height: auto;
 								.title {
 									font-family: $font;
-									font-size: 15px;
+									font-size: 11px;
 									font-style: normal;
-									font-weight: 400;
+									font-weight: 700;
+									letter-spacing: 1px;
+									text-transform: uppercase;
+									color: #8e8c83;
 									line-height: 28px;
 								}
 								.sub-section {
@@ -124,11 +154,15 @@
 									}
 									.focus {
 										height: 50px;
-										background: #000000;
+										background: #e8856a;
 										border-radius: 10px;
 										p {
 											font-size: 14px;
 											color: #ffffff;
+										}
+										.count-title {
+											background: rgba(255, 255, 255, 0.25);
+											color: #fff;
 										}
 									}
 									.flex-box {
@@ -158,7 +192,7 @@
 								}
 								.sub-title {
 									margin-left: 12px;
-									color: #181a20;
+									color: #1c1b18;
 									font-family: $font;
 									font-size: 14px;
 									font-style: normal;
@@ -167,14 +201,21 @@
 								}
 								.count-title {
 									display: flex;
-									justify-content: flex-end;
-									padding-right: 10px;
-									color: #181a20;
+									align-items: center;
+									justify-content: center;
+									margin-left: auto;
+									margin-right: 12px;
+									min-width: 26px;
+									height: 26px;
+									padding: 0 6px;
+									border-radius: 13px;
+									background: #f5f3ef;
+									color: #1c1b18;
 									font-family: $font;
-									font-size: 14px;
+									font-size: 12px;
 									font-style: normal;
-									font-weight: 600;
-									line-height: 55px;
+									font-weight: 700;
+									line-height: normal;
 								}
 							}
 						}

@@ -60,6 +60,7 @@ const MyUniversities: NextPage = ({ initialInput, ...props }: any) => {
 					<Stack className="right-box">
 						<Typography className="main-title">Universities</Typography>
 					</Stack>
+					{total > 0 && <Typography className="listing-count">{total} listings</Typography>}
 				</Stack>
 				<Stack className="universities-list-box">
 					<Stack className="list-box">
