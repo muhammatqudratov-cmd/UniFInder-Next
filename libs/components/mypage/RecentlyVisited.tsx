@@ -25,8 +25,8 @@ const RecentlyVisited: NextPage = () => {
 		variables: { input: searchVisited },
 		notifyOnNetworkStatusChange: true,
 		onCompleted: (data: T) => {
-			setRecentlyVisited(data?.getVisited?.list);
-			setTotal(data?.getVisited?.metaCounter[0]?.total || 0);
+			setRecentlyVisited(data?.myVisited?.list);
+			setTotal(data?.myVisited?.metaCounter[0]?.total || 0);
 		},
 	});
 

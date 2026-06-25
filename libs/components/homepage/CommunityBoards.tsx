@@ -7,6 +7,8 @@ import { BoardArticleCategory } from '../../enums/board-article.enum';
 import { T } from '../../types/common';
 import { useRouter } from 'next/router';
 import { REACT_APP_API_URL } from '../../config';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutline';
 
 const CommunityBoards = () => {
 	const device = useDeviceDetect();
@@ -104,8 +106,8 @@ const CommunityBoards = () => {
 									<span className="community-card-arrow">›</span>
 								</div>
 								<div className="community-card-meta">
-									<span>👁 {article.articleViews}</span>
-									<span>💬 {article.articleComments}</span>
+									<span><VisibilityIcon style={{ fontSize: 14 }} /> {article.articleViews}</span>
+									<span><ChatBubbleOutlineIcon style={{ fontSize: 14 }} /> {article.articleComments}</span>
 								</div>
 							</div>
 						</div>

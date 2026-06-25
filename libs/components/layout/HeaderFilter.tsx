@@ -1,6 +1,10 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Stack, Box } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import LocationOnIcon from '@mui/icons-material/LocationOn';
+import SchoolIcon from '@mui/icons-material/School';
+import MenuBookIcon from '@mui/icons-material/MenuBook';
+import SearchIcon from '@mui/icons-material/Search';
 import { useRouter } from 'next/router';
 import { useTranslation } from 'next-i18next';
 import { UniversityLocation, UniversityType } from '../../enums/university.enum';
@@ -128,7 +132,7 @@ const HeaderFilter = () => {
 				style={{ flex: 1, padding: '8px 14px', borderRight: '1px solid #E9E7E0', cursor: 'pointer', position: 'relative' }}
 			>
 				<div style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#8E8C83', marginBottom: '2px' }}>
-					📍 {t('Location')}
+					<LocationOnIcon style={{ fontSize: 11 }} /> {t('Location')}
 				</div>
 				<div style={{ fontSize: '13px', fontWeight: 500, color: '#1C1B18', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
 					{searchFilter.search.locationList?.[0] ?? t('All of Korea')}
@@ -163,7 +167,7 @@ const HeaderFilter = () => {
 				style={{ flex: 1, padding: '8px 14px', borderRight: '1px solid #E9E7E0', cursor: 'pointer', position: 'relative' }}
 			>
 				<div style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#8E8C83', marginBottom: '2px' }}>
-					🎓 {t('University Type')}
+					<SchoolIcon style={{ fontSize: 11 }} /> {t('University Type')}
 				</div>
 				<div style={{ fontSize: '13px', fontWeight: 500, color: '#1C1B18', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
 					{searchFilter.search.typeList?.[0] ?? t('Any type')}
@@ -193,7 +197,7 @@ const HeaderFilter = () => {
 				style={{ flex: 1, padding: '8px 14px', cursor: 'pointer', position: 'relative' }}
 			>
 				<div style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#8E8C83', marginBottom: '2px' }}>
-					📚 {t('Faculties')}
+					<MenuBookIcon style={{ fontSize: 11 }} /> {t('Faculties')}
 				</div>
 				<div style={{ fontSize: '13px', fontWeight: 500, color: '#1C1B18', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
 					{searchFilter.search.facultiesList?.[0] != null
@@ -235,7 +239,7 @@ const HeaderFilter = () => {
 					flexShrink: 0,
 				}}
 			>
-				🔍 {t('Search')}
+				<SearchIcon style={{ fontSize: 15 }} /> {t('Search')}
 			</button>
 		</Stack>
 	);

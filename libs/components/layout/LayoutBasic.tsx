@@ -104,7 +104,7 @@ const withLayoutBasic = (Component: any) => {
 					stats = [
 						{ numericValue: 240, suffix: '+', decimals: 0, label: 'Universities' },
 						{ numericValue: 18, suffix: 'k', decimals: 0, label: 'Programs' },
-						{ numericValue: 9.4, suffix: '★', decimals: 1, label: 'Avg. rating' },
+						{ numericValue: 9.4, suffix: '', decimals: 1, label: 'Avg. rating' },
 					];
 					break;
 				case '/agent':

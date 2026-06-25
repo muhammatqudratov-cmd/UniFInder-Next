@@ -5,6 +5,8 @@ import WestIcon from '@mui/icons-material/West';
 import EastIcon from '@mui/icons-material/East';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import FavoriteIcon from '@mui/icons-material/Favorite';
+import LocationOnIcon from '@mui/icons-material/LocationOn';
+import VisibilityIcon from '@mui/icons-material/Visibility';
 import { useRouter } from 'next/router';
 import { LayoutGrid } from '../ui/LayoutGrid';
 import { REACT_APP_API_URL } from '../../config';
@@ -150,13 +152,13 @@ const TrendUniversities = (props: TrendUniversitiesProps) => {
 									</div>
 									<div className="trend-card-body">
 										<h3>{university.universityName}</h3>
-										<div className="trend-card-location">📍 {university.universityLocation}</div>
+										<div className="trend-card-location"><LocationOnIcon style={{ fontSize: 14 }} /> {university.universityLocation}</div>
 										<div className="trend-card-footer">
 											<div className="trend-card-rating">
-												<span className="star">👁</span>
+												<span className="star"><VisibilityIcon style={{ fontSize: 14 }} /></span>
 												<span className="count">{university.universityViews || '—'}</span>
 											</div>
-											<div className="trend-card-likes">♡ {university.universityLikes || '—'}</div>
+											<div className="trend-card-likes"><FavoriteBorderIcon style={{ fontSize: 13 }} /> {university.universityLikes || '—'}</div>
 										</div>
 									</div>
 								</div>

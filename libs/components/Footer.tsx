@@ -1,4 +1,5 @@
 import FacebookOutlinedIcon from '@mui/icons-material/FacebookOutlined';
+import LocationOnIcon from '@mui/icons-material/LocationOn';
 import InstagramIcon from '@mui/icons-material/Instagram';
 import TelegramIcon from '@mui/icons-material/Telegram';
 import TwitterIcon from '@mui/icons-material/Twitter';
@@ -146,19 +147,19 @@ const Footer = () => {
 					<div>
 						<div className="footer-col-title">Discover</div>
 						<span className="footer-col-link">
-							<span className="footer-pin">📍</span> Seoul
+							<span className="footer-pin"><LocationOnIcon style={{ fontSize: 13 }} /></span> Seoul
 						</span>
 						<span className="footer-col-link">
-							<span className="footer-pin">📍</span> Gyeonggi-do
+							<span className="footer-pin"><LocationOnIcon style={{ fontSize: 13 }} /></span> Gyeonggi-do
 						</span>
 						<span className="footer-col-link">
-							<span className="footer-pin">📍</span> Busan
+							<span className="footer-pin"><LocationOnIcon style={{ fontSize: 13 }} /></span> Busan
 						</span>
 						<span className="footer-col-link">
-							<span className="footer-pin">📍</span> Daegu
+							<span className="footer-pin"><LocationOnIcon style={{ fontSize: 13 }} /></span> Daegu
 						</span>
 						<span className="footer-col-link">
-							<span className="footer-pin">📍</span> Jejudo
+							<span className="footer-pin"><LocationOnIcon style={{ fontSize: 13 }} /></span> Jejudo
 						</span>
 					</div>
 				</div>

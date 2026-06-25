@@ -4,6 +4,8 @@ import Head from 'next/head';
 import Top from '../Top';
 import Footer from '../Footer';
 import { Stack } from '@mui/material';
+import SchoolIcon from '@mui/icons-material/School';
+import SupportAgentIcon from '@mui/icons-material/SupportAgent';
 import { useRouter } from 'next/router';
 import { userVar } from '../../../apollo/store';
 import { useReactiveVar } from '@apollo/client';
@@ -161,10 +163,12 @@ const withLayoutMain = (Component: any) => {
 								</p>
 								<div className="hero-buttons">
 									<button className="hero-btn-primary" onClick={() => router.push('/university')}>
-										🎓 Explore Universities
+										<SchoolIcon className="hero-btn-icon" />
+										Explore Universities
 									</button>
 									<button className="hero-btn-secondary" onClick={() => router.push('/agent')}>
-										👤 Talk to an agent
+										<SupportAgentIcon className="hero-btn-icon" />
+										Talk to an agent
 									</button>
 								</div>
 							</div>

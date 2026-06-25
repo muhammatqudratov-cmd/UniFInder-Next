@@ -29,8 +29,8 @@ const MyFavorites: NextPage = () => {
 		variables: { input: searchFavorites },
 		notifyOnNetworkStatusChange: true,
 		onCompleted: (data: T) => {
-			setMyFavorites(data?.getFavorites?.list);
-			setTotal(data?.getFavorites?.metaCounter[0]?.total || 0);
+			setMyFavorites(data?.myFavorites?.list);
+			setTotal(data?.myFavorites?.metaCounter[0]?.total || 0);
 		},
 	});
 

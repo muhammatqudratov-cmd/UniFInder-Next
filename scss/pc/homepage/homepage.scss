@@ -913,6 +913,9 @@
 	}
 
 	.hero-btn-primary {
+		display: inline-flex;
+		align-items: center;
+		gap: 8px;
 		padding: 14px 28px;
 		background: #e8856a;
 		color: white;
@@ -929,7 +932,14 @@
 		}
 	}
 
+	.hero-btn-icon {
+		font-size: 18px !important;
+	}
+
 	.hero-btn-secondary {
+		display: inline-flex;
+		align-items: center;
+		gap: 8px;
 		padding: 14px 28px;
 		background: white;
 		color: #1c1b18;

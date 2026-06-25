@@ -1,0 +1,189 @@
+Context: visual bug, not a design change. On the My Favorites page, the eye-icon/view-count and like-icon/like-count row (`.buttons`, inside `.type-buttons`) visually spills outside the card's right edge on cards where both "Dormitory" and "Scholarship" render as active (filled) pill labels. This only became visible after a separate data-binding fix made real favorited universities render on this page for the first time — the underlying CSS issue was always there but invisible while the list was always empty.
+
+Root cause, confirmed in `scss/pc/mypage/myFavorites.scss`:
+
+```scss
+.card-config {
+	width: 296px;
+	height: 413px;
+	margin-bottom: 7px;
+	border-radius: 12px;
+	background: #fff;
+	box-shadow: 0px 1px 4px 0px rgba(24, 26, 32, 0.07);
+	...
+}
+```
+
+`.card-config` never sets `overflow: hidden`, so any child content wider than the card's fixed 296px is free to render past its edges instead of being clipped.
+
+```scss
+.type-buttons {
+	flex-direction: row;
+	width: 100%;
+	justify-content: space-between;
+	align-items: center;
+	.type {
+		flex-direction: row;
+		align-items: center;
+		gap: 7px;
+		p {
+			color: #181a20;
+			font-family: $font;
+			font-style: normal;
+			line-height: normal;
+		}
+		.disabled-type {
+			color: rgba(143, 143, 143, 0.54);
+			font-family: $font;
+			font-style: normal;
+			line-height: normal;
+		}
+	}
+	.buttons {
+		flex-direction: row;
+		width: auto;
+		gap: 12px;
+		justify-content: center;
+		align-items: center;
+		padding-right: 10px;
+		svg {
+			cursor: pointer;
+		}
+	}
+}
+```
+
+`UniversityCard.tsx` renders both "Dormitory" and "Scholarship" as `Typography` labels inside `.type`, styled as filled pills (`padding: 3px 8px`, rounded background) whenever `universityDormitory`/`universityScholarship` is true, and renders `.buttons` as two MUI `IconButton`s (each with MUI's default ~12px internal padding around a 24px icon) plus two view/like count labels. Neither `.type` nor `.buttons` has any `flex-shrink`/`min-width` constraint, and `.type-buttons` uses `justify-content: space-between` with no wrapping. When both pills are active, the combined natural width of `.type` + `.buttons` exceeds the ~264px of usable space inside the card (296px card minus 16px+16px horizontal padding from `.bottom`), so the icon/count row gets pushed straight past the card's right boundary with nothing to clip it.
+
+Fix, CSS-only, in the same file — no JSX, no component logic, no other selectors touched:
+
+## `scss/pc/mypage/myFavorites.scss`
+
+1. Find:
+
+```scss
+				.card-config {
+					width: 296px;
+					height: 413px;
+					margin-bottom: 7px;
+					border-radius: 12px;
+					background: #fff;
+					box-shadow: 0px 1px 4px 0px rgba(24, 26, 32, 0.07);
+```
+
+Replace with:
+
+```scss
+				.card-config {
+					width: 296px;
+					height: 413px;
+					margin-bottom: 7px;
+					border-radius: 12px;
+					background: #fff;
+					box-shadow: 0px 1px 4px 0px rgba(24, 26, 32, 0.07);
+					overflow: hidden;
+```
+
+2. Find:
+
+```scss
+						.type-buttons {
+							flex-direction: row;
+							width: 100%;
+							justify-content: space-between;
+							align-items: center;
+							.type {
+								flex-direction: row;
+								align-items: center;
+								gap: 7px;
+								p {
+									color: #181a20;
+									font-family: $font;
+									font-style: normal;
+									line-height: normal;
+								}
+								.disabled-type {
+									color: rgba(143, 143, 143, 0.54);
+									font-family: $font;
+									font-style: normal;
+									line-height: normal;
+								}
+							}
+							.buttons {
+								flex-direction: row;
+								width: auto;
+								gap: 12px;
+								justify-content: center;
+								align-items: center;
+								padding-right: 10px;
+								svg {
+									cursor: pointer;
+								}
+							}
+						}
+```
+
+Replace with:
+
+```scss
+						.type-buttons {
+							flex-direction: row;
+							width: 100%;
+							justify-content: space-between;
+							align-items: center;
+							.type {
+								flex-direction: row;
+								align-items: center;
+								gap: 5px;
+								min-width: 0;
+								flex-shrink: 1;
+								overflow: hidden;
+								p {
+									color: #181a20;
+									font-family: $font;
+									font-style: normal;
+									line-height: normal;
+									white-space: nowrap;
+									overflow: hidden;
+									text-overflow: ellipsis;
+								}
+								.disabled-type {
+									color: rgba(143, 143, 143, 0.54);
+									font-family: $font;
+									font-style: normal;
+									line-height: normal;
+								}
+							}
+							.buttons {
+								flex-direction: row;
+								width: auto;
+								flex-shrink: 0;
+								gap: 4px;
+								justify-content: center;
+								align-items: center;
+								padding-right: 4px;
+								.MuiIconButton-root {
+									padding: 4px;
+								}
+								svg {
+									cursor: pointer;
+								}
+							}
+						}
+```
+
+What this does:
+- `.card-config { overflow: hidden; }` is a safety net so no child element can ever visually escape the card's rounded rectangle, no matter how content lengths vary across different favorited universities.
+- `.type` gets `min-width: 0; flex-shrink: 1; overflow: hidden;` plus `white-space: nowrap; overflow: hidden; text-overflow: ellipsis;` on its text, so the Dormitory/Scholarship labels shrink and truncate with an ellipsis instead of forcing the row wider than the card.
+- `.buttons` gets `flex-shrink: 0;` so the eye/like icon row keeps its size and is never the side that gets squeezed, with its `gap` and `padding-right` tightened and `.MuiIconButton-root` padding reduced from MUI's default (~12px) to `4px`, freeing up enough horizontal space that truncation on the `.type` side is rarely even needed in practice.
+
+Do not change anything else — no other file, no query/mutation, no JSX, no other selector.
+
+---
+
+Verify after implementing:
+1. Open My Page → My Favorites with a member who has favorited universities where both Dormitory and Scholarship are active: the eye/view-count and like/like-count icons now stay fully inside the card's right edge on every card, with no visual spillover onto the page background.
+2. Cards where only one or neither badge is active still look correct, with no unnecessary truncation of "Dormitory"/"Scholarship" text.
+3. Liking/unliking a university (clicking the heart icon) still works exactly as before — `likeUniversityHandler` is untouched.
+4. The eye icon, its view count, the heart icon, and its like count are all still clickable/visible, just more tightly spaced.
+5. Card width/height (296px × 413px) and all other sections of the card (image, badges, price box, name/address, options row, divider) are visually unchanged.

@@ -6,6 +6,7 @@ import UniversityBigCard from '../../libs/components/common/UniversityBigCard';
 import ReviewCard from '../../libs/components/agent/ReviewCard';
 import { Box, Button, Pagination, Stack, Typography } from '@mui/material';
 import StarIcon from '@mui/icons-material/Star';
+import CheckIcon from '@mui/icons-material/Check';
 import { useMutation, useQuery, useReactiveVar } from '@apollo/client';
 import { useRouter } from 'next/router';
 import { University } from '../../libs/types/university/university';
@@ -204,7 +205,7 @@ const AgentDetail: NextPage = ({ initialInput, initialComment, ...props }: any) 
 								alt=""
 								onClick={() => redirectToMemberPageHandler(agent?._id as string)}
 							/>
-							<span className={'agent-profile-avatar-check'}>✓</span>
+							<span className={'agent-profile-avatar-check'}><CheckIcon style={{ fontSize: 11 }} /></span>
 						</Stack>
 						<Box
 							component={'div'}
@@ -233,7 +234,7 @@ const AgentDetail: NextPage = ({ initialInput, initialComment, ...props }: any) 
 							<span className={'agent-profile-stat-divider'} />
 							<Stack className={'agent-profile-stat'}>
 								<strong>
-									4.8<span className={'agent-profile-star'}>★</span>
+									4.8<span className={'agent-profile-star'}><StarIcon style={{ fontSize: 14 }} /></span>
 								</strong>
 								<span>Rating</span>
 							</Stack>

@@ -5,6 +5,9 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay, Navigation, Pagination } from 'swiper';
 import WestIcon from '@mui/icons-material/West';
 import EastIcon from '@mui/icons-material/East';
+import LocationOnIcon from '@mui/icons-material/LocationOn';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import { useRouter } from 'next/router';
 import { LayoutGrid } from '../ui/LayoutGrid';
 import { REACT_APP_API_URL } from '../../config';
@@ -104,13 +107,13 @@ const PopularUniversities = (props: PopularUniversitiesProps) => {
 							</div>
 							<div className="popular-card-body">
 								<h3>{university.universityName}</h3>
-								<div className="popular-card-location">📍 {university.universityLocation}</div>
+								<div className="popular-card-location"><LocationOnIcon style={{ fontSize: 14 }} /> {university.universityLocation}</div>
 								<div className="popular-card-footer">
 									<div className="popular-card-rating">
-										<span className="star">★</span>
+										<span className="star"><VisibilityIcon style={{ fontSize: 14 }} /></span>
 										<span className="count">{university.universityViews || '—'}</span>
 									</div>
-									<div className="popular-card-likes">♡ {university.universityLikes || '—'}</div>
+									<div className="popular-card-likes"><FavoriteBorderIcon style={{ fontSize: 13 }} /> {university.universityLikes || '—'}</div>
 								</div>
 							</div>
 						</div>

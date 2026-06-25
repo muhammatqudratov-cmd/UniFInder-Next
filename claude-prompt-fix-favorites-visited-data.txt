@@ -1,0 +1,74 @@
+Context: bug, not a design change. "My Favorites" and "Recently Visited" always show "No Favorites found!" / "No Recently Visited Universities found!" even when the member actually has favorites (the sidebar in `MyMenu.tsx` correctly shows a count of 3 next to "My Favorites", proving the backend does have data for this member).
+
+Root cause, confirmed directly in the GraphQL query definitions (`apollo/user/query.ts`):
+
+```graphql
+query GetFavorites($input: OrdinaryInquiry!) {
+	myFavorites(input: $input) {
+		list { ... }
+		metaCounter { total }
+	}
+}
+```
+
+```graphql
+query GetVisited($input: OrdinaryInquiry!) {
+	myVisited(input: $input) {
+		list { ... }
+		metaCounter { total }
+	}
+}
+```
+
+The actual response keys are `myFavorites` and `myVisited`. `MyMenu.tsx` reads the count correctly: `myFavoritesCountData?.myFavorites?.metaCounter[0]?.total` — that's why the sidebar badge shows the right number. But `libs/components/mypage/MyFavorites.tsx` and `libs/components/mypage/RecentlyVisited.tsx` read the WRONG keys (`getFavorites` / `getVisited`, which don't exist on the response), so `data?.getFavorites` and `data?.getVisited` are always `undefined`, the list state is set to `undefined`, and the page always falls into its empty-state branch — regardless of how much real data the backend returns. This fixes only those two wrong key lookups. No query, no variables, no mutation, no UI/JSX/styling is touched.
+
+## `libs/components/mypage/MyFavorites.tsx`
+
+Find this exact block:
+
+```tsx
+		onCompleted: (data: T) => {
+			setMyFavorites(data?.getFavorites?.list);
+			setTotal(data?.getFavorites?.metaCounter[0]?.total || 0);
+		},
+```
+
+Replace with:
+
+```tsx
+		onCompleted: (data: T) => {
+			setMyFavorites(data?.myFavorites?.list);
+			setTotal(data?.myFavorites?.metaCounter[0]?.total || 0);
+		},
+```
+
+## `libs/components/mypage/RecentlyVisited.tsx`
+
+Find this exact block:
+
+```tsx
+		onCompleted: (data: T) => {
+			setRecentlyVisited(data?.getVisited?.list);
+			setTotal(data?.getVisited?.metaCounter[0]?.total || 0);
+		},
+```
+
+Replace with:
+
+```tsx
+		onCompleted: (data: T) => {
+			setRecentlyVisited(data?.myVisited?.list);
+			setTotal(data?.myVisited?.metaCounter[0]?.total || 0);
+		},
+```
+
+Do not change anything else — no other file, no query definition, no JSX, no styling.
+
+---
+
+Verify after implementing:
+1. Open My Page → My Favorites: the universities the member has actually favorited now render as cards, matching the count shown in the sidebar badge (e.g. "3"), instead of always showing "No Favorites found!".
+2. Open My Page → Recently Visited: previously visited universities now render as cards instead of always showing "No Recently Visited Universities found!" (assuming the member has actually visited at least one university detail page).
+3. Liking/unliking a university from My Favorites still works exactly as before (the like mutation is untouched).
+4. Pagination on both tabs still works and reflects the correct total count.
+5. If a member genuinely has zero favorites or zero visited universities, the same empty-state message still correctly appears — this fix only corrects which data gets read, not the empty-state logic itself.

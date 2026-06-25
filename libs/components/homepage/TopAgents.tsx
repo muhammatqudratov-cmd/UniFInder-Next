@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/router';
 import { Stack } from '@mui/material';
+import StarIcon from '@mui/icons-material/Star';
 import useDeviceDetect from '../../hooks/useDeviceDetect';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay } from 'swiper';
@@ -95,7 +96,7 @@ const TopAgents = (props: TopAgentsProps) => {
 							<div className="agent-name">{agent.memberFullName || agent.memberNick}</div>
 							<div className="agent-company">{agent.memberType}</div>
 							<div className="agent-rating">
-								<span className="star">★</span>
+								<span className="star"><StarIcon style={{ fontSize: 14 }} /></span>
 								<span>{agent.memberRank?.toFixed(1) || '—'}</span>
 								<span className="count">({agent.memberLikes || 0})</span>
 							</div>

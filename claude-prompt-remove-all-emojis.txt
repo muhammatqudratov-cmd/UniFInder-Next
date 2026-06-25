@@ -1,0 +1,317 @@
+Context: visual-only change, no logic change. Across the project, several components use raw text emoji characters (📍 🎓 📚 🔍 👁 💬 ♡ ★ ✓) as icons instead of proper icon components. Replace every one of them with a matching MUI icon (`@mui/icons-material`), keeping all surrounding text, data bindings, click handlers, and CSS class names exactly as they are — only the emoji glyph itself is swapped for an icon element. Do not rename any CSS class, do not touch any SCSS file (the existing classes like `.star`, `.footer-pin`, etc. already provide correct sizing/color and will apply to the new icon automatically since MUI icons default to `currentColor`).
+
+Note: `pages/api/telegram.ts` also contains emoji, but those are inside Telegram bot message text (content sent to users in chat), not a rendered UI icon — leave that file untouched.
+
+## 1. `libs/components/homepage/TopUniversities.tsx`
+
+Add to the imports (alongside the existing `FavoriteBorderIcon`/`FavoriteIcon` imports):
+
+```tsx
+import LocationOnIcon from '@mui/icons-material/LocationOn';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+```
+
+Find:
+
+```tsx
+								<div className="top-card-location">📍 {university.universityLocation}</div>
+								<div className="top-card-footer">
+									<div className="top-card-rating">
+										<span className="star">★</span>
+										<span className="count">{university.universityViews || '—'}</span>
+									</div>
+									<div className="top-card-likes">♡ {university.universityLikes || '—'}</div>
+```
+
+Replace with:
+
+```tsx
+								<div className="top-card-location"><LocationOnIcon style={{ fontSize: 14 }} /> {university.universityLocation}</div>
+								<div className="top-card-footer">
+									<div className="top-card-rating">
+										<span className="star"><VisibilityIcon style={{ fontSize: 14 }} /></span>
+										<span className="count">{university.universityViews || '—'}</span>
+									</div>
+									<div className="top-card-likes"><FavoriteBorderIcon style={{ fontSize: 13 }} /> {university.universityLikes || '—'}</div>
+```
+
+(`★` here was mislabeled — it was always paired with `universityViews`, i.e. a view count, not a rating, so it becomes an eye/visibility icon, consistent with the same view-count pattern in `TrendUniversities.tsx`.)
+
+## 2. `libs/components/homepage/PopularUniversities.tsx`
+
+Add to the imports (alongside the existing `WestIcon`/`EastIcon` imports):
+
+```tsx
+import LocationOnIcon from '@mui/icons-material/LocationOn';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
+```
+
+Find:
+
+```tsx
+								<div className="popular-card-location">📍 {university.universityLocation}</div>
+								<div className="popular-card-footer">
+									<div className="popular-card-rating">
+										<span className="star">★</span>
+										<span className="count">{university.universityViews || '—'}</span>
+									</div>
+									<div className="popular-card-likes">♡ {university.universityLikes || '—'}</div>
+```
+
+Replace with:
+
+```tsx
+								<div className="popular-card-location"><LocationOnIcon style={{ fontSize: 14 }} /> {university.universityLocation}</div>
+								<div className="popular-card-footer">
+									<div className="popular-card-rating">
+										<span className="star"><VisibilityIcon style={{ fontSize: 14 }} /></span>
+										<span className="count">{university.universityViews || '—'}</span>
+									</div>
+									<div className="popular-card-likes"><FavoriteBorderIcon style={{ fontSize: 13 }} /> {university.universityLikes || '—'}</div>
+```
+
+## 3. `libs/components/homepage/TrendUniversities.tsx`
+
+Add to the imports (alongside the existing `FavoriteBorderIcon`/`FavoriteIcon` imports):
+
+```tsx
+import LocationOnIcon from '@mui/icons-material/LocationOn';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+```
+
+Find:
+
+```tsx
+										<div className="trend-card-location">📍 {university.universityLocation}</div>
+										<div className="trend-card-footer">
+											<div className="trend-card-rating">
+												<span className="star">👁</span>
+												<span className="count">{university.universityViews || '—'}</span>
+											</div>
+											<div className="trend-card-likes">♡ {university.universityLikes || '—'}</div>
+```
+
+Replace with:
+
+```tsx
+										<div className="trend-card-location"><LocationOnIcon style={{ fontSize: 14 }} /> {university.universityLocation}</div>
+										<div className="trend-card-footer">
+											<div className="trend-card-rating">
+												<span className="star"><VisibilityIcon style={{ fontSize: 14 }} /></span>
+												<span className="count">{university.universityViews || '—'}</span>
+											</div>
+											<div className="trend-card-likes"><FavoriteBorderIcon style={{ fontSize: 13 }} /> {university.universityLikes || '—'}</div>
+```
+
+## 4. `libs/components/homepage/CommunityBoards.tsx`
+
+Add to the imports:
+
+```tsx
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutline';
+```
+
+Find:
+
+```tsx
+								<div className="community-card-meta">
+									<span>👁 {article.articleViews}</span>
+									<span>💬 {article.articleComments}</span>
+								</div>
+```
+
+Replace with:
+
+```tsx
+								<div className="community-card-meta">
+									<span><VisibilityIcon style={{ fontSize: 14 }} /> {article.articleViews}</span>
+									<span><ChatBubbleOutlineIcon style={{ fontSize: 14 }} /> {article.articleComments}</span>
+								</div>
+```
+
+## 5. `libs/components/layout/HeaderFilter.tsx`
+
+Add to the imports (alongside the existing `ExpandMoreIcon` import):
+
+```tsx
+import LocationOnIcon from '@mui/icons-material/LocationOn';
+import SchoolIcon from '@mui/icons-material/School';
+import MenuBookIcon from '@mui/icons-material/MenuBook';
+import SearchIcon from '@mui/icons-material/Search';
+```
+
+Find each of these four lines (they are not adjacent — each is inside its own filter box):
+
+```tsx
+					📍 {t('Location')}
+```
+```tsx
+					🎓 {t('University Type')}
+```
+```tsx
+					📚 {t('Faculties')}
+```
+```tsx
+				🔍 {t('Search')}
+```
+
+Replace each respectively with:
+
+```tsx
+					<LocationOnIcon style={{ fontSize: 11 }} /> {t('Location')}
+```
+```tsx
+					<SchoolIcon style={{ fontSize: 11 }} /> {t('University Type')}
+```
+```tsx
+					<MenuBookIcon style={{ fontSize: 11 }} /> {t('Faculties')}
+```
+```tsx
+				<SearchIcon style={{ fontSize: 15 }} /> {t('Search')}
+```
+
+## 6. `libs/components/Footer.tsx`
+
+Add to the imports (alongside the existing social icon imports):
+
+```tsx
+import LocationOnIcon from '@mui/icons-material/LocationOn';
+```
+
+Find each of these five occurrences (one per city — they are not adjacent):
+
+```tsx
+							<span className="footer-pin">📍</span> Seoul
+```
+```tsx
+							<span className="footer-pin">📍</span> Gyeonggi-do
+```
+```tsx
+							<span className="footer-pin">📍</span> Busan
+```
+```tsx
+							<span className="footer-pin">📍</span> Daegu
+```
+```tsx
+							<span className="footer-pin">📍</span> Jejudo
+```
+
+Replace each respectively with:
+
+```tsx
+							<span className="footer-pin"><LocationOnIcon style={{ fontSize: 13 }} /></span> Seoul
+```
+```tsx
+							<span className="footer-pin"><LocationOnIcon style={{ fontSize: 13 }} /></span> Gyeonggi-do
+```
+```tsx
+							<span className="footer-pin"><LocationOnIcon style={{ fontSize: 13 }} /></span> Busan
+```
+```tsx
+							<span className="footer-pin"><LocationOnIcon style={{ fontSize: 13 }} /></span> Daegu
+```
+```tsx
+							<span className="footer-pin"><LocationOnIcon style={{ fontSize: 13 }} /></span> Jejudo
+```
+
+## 7. `pages/agent/detail.tsx`
+
+`StarIcon` is already imported in this file (`import StarIcon from '@mui/icons-material/Star';`) — reuse it, no new star import needed. Add one new import for the checkmark badge:
+
+```tsx
+import CheckIcon from '@mui/icons-material/Check';
+```
+
+Find:
+
+```tsx
+								<span className={'agent-profile-avatar-check'}>✓</span>
+```
+
+Replace with:
+
+```tsx
+								<span className={'agent-profile-avatar-check'}><CheckIcon style={{ fontSize: 11 }} /></span>
+```
+
+Find:
+
+```tsx
+								<Stack className={'agent-profile-stat'}>
+									<strong>
+										4.8<span className={'agent-profile-star'}>★</span>
+									</strong>
+									<span>Rating</span>
+								</Stack>
+```
+
+Replace with:
+
+```tsx
+								<Stack className={'agent-profile-stat'}>
+									<strong>
+										4.8<span className={'agent-profile-star'}><StarIcon style={{ fontSize: 14 }} /></span>
+									</strong>
+									<span>Rating</span>
+								</Stack>
+```
+
+## 8. `libs/components/homepage/TopAgents.tsx`
+
+Add to the imports:
+
+```tsx
+import StarIcon from '@mui/icons-material/Star';
+```
+
+Find:
+
+```tsx
+							<div className="agent-rating">
+								<span className="star">★</span>
+								<span>{agent.memberRank?.toFixed(1) || '—'}</span>
+								<span className="count">({agent.memberLikes || 0})</span>
+							</div>
+```
+
+Replace with:
+
+```tsx
+							<div className="agent-rating">
+								<span className="star"><StarIcon style={{ fontSize: 14 }} /></span>
+								<span>{agent.memberRank?.toFixed(1) || '—'}</span>
+								<span className="count">({agent.memberLikes || 0})</span>
+							</div>
+```
+
+## 9. `libs/components/layout/LayoutBasic.tsx`
+
+Find:
+
+```tsx
+						{ numericValue: 9.4, suffix: '★', decimals: 1, label: 'Avg. rating' },
+```
+
+Replace with:
+
+```tsx
+						{ numericValue: 9.4, suffix: '', decimals: 1, label: 'Avg. rating' },
+```
+
+(This `suffix` is rendered as plain text right after the animated number, e.g. "9.4★" — there is no icon slot in that stat-rendering markup to drop a `<StarIcon>` into without changing the stats-rendering JSX/logic itself, which is out of scope for a copy/icon-only fix. Removing the suffix here avoids leaving a bare emoji while not touching any rendering logic. If you'd like a star icon rendered next to this specific stat instead, that needs a small JSX change to the stat-rendering block and should be requested as a separate, explicit follow-up.)
+
+Do not change anything else in any of these files — no other selector, no other component, no query/mutation, no click handler, no SCSS file.
+
+---
+
+Verify after implementing:
+1. Homepage "Top Universities", "Popular Universities", and "Trend Universities" cards: each card's location row shows a location-pin icon, the views row shows an eye icon, and the likes row shows an outline heart icon — no emoji characters remain, and the numbers/text next to them are unchanged.
+2. Homepage "Community Boards" article rows show an eye icon for views and a chat-bubble icon for comments instead of 👁/💬.
+3. The search bar (`HeaderFilter`) shows a pin icon next to "Location", a graduation-cap icon next to "University Type", a book icon next to "Faculties", and a magnifying-glass icon on the "Search" button — all filter dropdowns and the search button still work exactly as before.
+4. The footer's "Discover" column shows a pin icon next to each of the five city names instead of 📍.
+5. On the agent detail page, the avatar's green verified badge shows a check icon instead of "✓", and the rating stat shows "4.8" with a star icon instead of "4.8★" — clicking the avatar/profile still navigates as before.
+6. The homepage "Top Agents" cards show a star icon in the rating row instead of "★", with the same rating number and review count next to it.
+7. The `/university` hero's "Avg. rating" stat now reads "9.4" instead of "9.4★" (no broken markup, animated counter still works).
+8. No file outside this list was modified; `pages/api/telegram.ts`'s bot message emoji are untouched.

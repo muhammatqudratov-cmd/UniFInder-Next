@@ -3,6 +3,8 @@ import { Stack } from '@mui/material';
 import useDeviceDetect from '../../hooks/useDeviceDetect';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import FavoriteIcon from '@mui/icons-material/Favorite';
+import LocationOnIcon from '@mui/icons-material/LocationOn';
+import VisibilityIcon from '@mui/icons-material/Visibility';
 import { useRouter } from 'next/router';
 import { REACT_APP_API_URL } from '../../config';
 import { Swiper, SwiperSlide } from 'swiper/react';
@@ -133,13 +135,13 @@ const TopUniversities = (props: TopUniversitiesProps) => {
 							</div>
 							<div className="top-card-body">
 								<h3>{university.universityName}</h3>
-								<div className="top-card-location">📍 {university.universityLocation}</div>
+								<div className="top-card-location"><LocationOnIcon style={{ fontSize: 14 }} /> {university.universityLocation}</div>
 								<div className="top-card-footer">
 									<div className="top-card-rating">
-										<span className="star">★</span>
+										<span className="star"><VisibilityIcon style={{ fontSize: 14 }} /></span>
 										<span className="count">{university.universityViews || '—'}</span>
 									</div>
-									<div className="top-card-likes">♡ {university.universityLikes || '—'}</div>
+									<div className="top-card-likes"><FavoriteBorderIcon style={{ fontSize: 13 }} /> {university.universityLikes || '—'}</div>
 								</div>
 							</div>
 						</div>
