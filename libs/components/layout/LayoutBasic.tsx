@@ -150,8 +150,9 @@ const withLayoutBasic = (Component: any) => {
 					break;
 				case '/community/detail':
 					title = 'Community Detail';
-					desc = 'Home / For Rent';
-					bgImage = '/img/banner/korea2.jpg';
+					desc = 'Home / Community Post';
+					bgImage = '';
+					eyebrow = 'COMMUNITY POST';
 					break;
 				case '/cs':
 					title = 'CS';
@@ -360,6 +361,15 @@ const withLayoutBasic = (Component: any) => {
 										{t(memoizedValues.eyebrow!)}
 									</Stack>
 									<strong className={'member-heading'}>{t(memoizedValues.title)}</strong>
+									<span>{t(memoizedValues.desc)}</span>
+								</Stack>
+							) : router.pathname === '/community/detail' ? (
+								<Stack className={'container community-detail-hero-container'}>
+									<Stack className={'eyebrow'}>
+										<span className={'dash'} />
+										{t(memoizedValues.eyebrow!)}
+									</Stack>
+									<strong className={'community-detail-heading'}>{t(memoizedValues.title)}</strong>
 									<span>{t(memoizedValues.desc)}</span>
 								</Stack>
 							) : (

@@ -1,0 +1,108 @@
+Context: same treatment already applied to the Member Page hero, now applied to the Community Detail page hero. Two changes: (1) remove the blue-sky stock photo background (`/img/banner/korea2.jpg`) so this hero falls back to the same dark gradient `linear-gradient(135deg, #15140f 0%, #1c2620 50%, #1a2230 100%)` that every other page's hero already uses by default (defined once in `.header-basic`'s base style in `scss/pc/main.scss`); (2) give "Community Detail" its own distinct title treatment (small coral uppercase eyebrow above a larger/bolder title, mirroring the same pattern already used for the Member Page hero) and replace the leftover real-estate-template breadcrumb "Home / For Rent" with the theme-relevant "Home / Community Post". This only affects the `/community/detail` route — the shared `LayoutBasic` hero component is used by several other routes (`/account/join`, `/member`, default), which must keep rendering exactly as before.
+
+Two files: one JSX switch-case + new ternary branch (mirroring the existing `/member` branch already in the file), and one CSS addition. No GraphQL/Apollo/React state, data fetching, or event-handler logic touched anywhere.
+
+## `libs/components/layout/LayoutBasic.tsx`
+
+Find this exact block:
+
+```tsx
+				case '/community/detail':
+					title = 'Community Detail';
+					desc = 'Home / For Rent';
+					bgImage = '/img/banner/korea2.jpg';
+					break;
+```
+
+Replace with:
+
+```tsx
+				case '/community/detail':
+					title = 'Community Detail';
+					desc = 'Home / Community Post';
+					bgImage = '';
+					eyebrow = 'COMMUNITY POST';
+					break;
+```
+
+Then find this exact block (the `/member` branch and the start of the final fallback branch, right after it):
+
+```tsx
+							) : router.pathname === '/member' ? (
+								<Stack className={'container member-hero-container'}>
+									<Stack className={'eyebrow member-eyebrow'}>
+										<span className={'dash'} />
+										{t(memoizedValues.eyebrow!)}
+									</Stack>
+									<strong className={'member-heading'}>{t(memoizedValues.title)}</strong>
+									<span>{t(memoizedValues.desc)}</span>
+								</Stack>
+							) : (
+								<Stack className={`container${memoizedValues.stats ? ' has-stats' : ''}`}>
+```
+
+Replace with:
+
+```tsx
+							) : router.pathname === '/member' ? (
+								<Stack className={'container member-hero-container'}>
+									<Stack className={'eyebrow member-eyebrow'}>
+										<span className={'dash'} />
+										{t(memoizedValues.eyebrow!)}
+									</Stack>
+									<strong className={'member-heading'}>{t(memoizedValues.title)}</strong>
+									<span>{t(memoizedValues.desc)}</span>
+								</Stack>
+							) : router.pathname === '/community/detail' ? (
+								<Stack className={'container community-detail-hero-container'}>
+									<Stack className={'eyebrow'}>
+										<span className={'dash'} />
+										{t(memoizedValues.eyebrow!)}
+									</Stack>
+									<strong className={'community-detail-heading'}>{t(memoizedValues.title)}</strong>
+									<span>{t(memoizedValues.desc)}</span>
+								</Stack>
+							) : (
+								<Stack className={`container${memoizedValues.stats ? ' has-stats' : ''}`}>
+```
+
+(Adds a `/community/detail`-specific branch, mirrored exactly on the existing `/member` branch's pattern, using the plain coral `.eyebrow` color already used elsewhere — so `/account/join` and the `default` case still fall through to the unchanged final `else` branch exactly as before.)
+
+## `scss/pc/main.scss`
+
+Find this exact block:
+
+```scss
+			.member-heading {
+				font-size: 40px !important;
+				font-weight: 800 !important;
+				line-height: 1.1 !important;
+			}
+```
+
+Replace with:
+
+```scss
+			.member-heading {
+				font-size: 40px !important;
+				font-weight: 800 !important;
+				line-height: 1.1 !important;
+			}
+			.community-detail-heading {
+				font-size: 40px !important;
+				font-weight: 800 !important;
+				line-height: 1.1 !important;
+			}
+```
+
+(`.community-detail-heading` reuses the exact same size/weight bump already used for `.member-heading`, scoped to its own class so it only applies to the Community Detail page's title — every other route's `strong` styling stays untouched.)
+
+Do not change anything else — every other route's hero branch and CSS, and the `.header-basic` base styling, stay exactly as they are.
+
+---
+
+Verify after implementing:
+1. Open a Community Detail page (any article) — the hero background is now the same dark gradient used by Universities/Agents/MyPage/CS/Member pages instead of the blue-sky photo.
+2. The hero now shows a small coral uppercase "COMMUNITY POST" eyebrow label above a larger, bolder "Community Detail" title, with the breadcrumb reading "Home / Community Post" instead of "Home / For Rent".
+3. Open `/account/join` (login/signup), the Member Page, and the Community list page (`/community`) — their hero titles/backgrounds are completely unchanged.
+4. No GraphQL/Apollo/React state or handler logic touched — confirm by diffing that only the `/community/detail` switch case, one new JSX ternary branch, and one CSS addition changed.

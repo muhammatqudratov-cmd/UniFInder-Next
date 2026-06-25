@@ -564,6 +564,20 @@ body::-webkit-scrollbar {
 				font-weight: 800 !important;
 				line-height: 1.1 !important;
 			}
+			.community-detail-heading {
+				font-size: 48px !important;
+				font-weight: 800 !important;
+				line-height: 1.1 !important;
+			}
+			.community-detail-hero-container {
+				.eyebrow {
+					font-size: 16px !important;
+				}
+				> span {
+					font-size: 16px !important;
+					color: rgba(255, 255, 255, 0.7);
+				}
+			}
 			.member-hero-container > span {
 				font-size: 16px !important;
 				color: rgba(255, 255, 255, 0.7);
