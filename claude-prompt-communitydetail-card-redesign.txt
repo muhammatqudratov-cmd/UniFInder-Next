@@ -1,0 +1,585 @@
+Context: redesign the Community Detail page's article card area (sidebar, header, like button, comment box) to match a reference design. The reference keeps the same page background color and the same article-image/content rendering logic (`ToastViewerComponent`/`TViewer.tsx` markdown rendering is NOT touched) — only the surrounding card chrome (icons, spacing, colors, shapes) changes. This mirrors a fix already proven on the sibling `/community` list page (`pages/community/index.tsx` + `scss/pc/community/community.scss`), which already replaced an oversized circular `logoText.svg` image with a small coral icon badge — the exact same bug exists here and gets the exact same fix.
+
+Three files: one JSX change (icon import + 2 small swaps, no state/handler/query logic touched), one CSS file with style-only updates. No GraphQL/Apollo/React state, data fetching, or event-handler logic touched anywhere — every `onClick`, mutation, and query stays byte-identical.
+
+## `pages/community/detail.tsx`
+
+Find this exact block (imports):
+
+```tsx
+import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
+```
+
+Replace with:
+
+```tsx
+import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
+import GroupsIcon from '@mui/icons-material/Groups';
+```
+
+(Same icon already imported and used for this exact purpose on the sibling `/community` list page's sidebar badge — `pages/community/index.tsx` line 19.)
+
+Then find this exact block:
+
+```tsx
+						<Stack className="left-config">
+							<Stack className={'image-info'}>
+								<img src={'/img/logo/logoText.svg'} />
+								<Stack className={'community-name'}>
+									<Typography className={'name'}>Community Board Article</Typography>
+								</Stack>
+							</Stack>
+```
+
+Replace with:
+
+```tsx
+						<Stack className="left-config">
+							<Stack className={'image-info'}>
+								<Stack className={'logo-icon-badge'}>
+									<GroupsIcon />
+								</Stack>
+								<Stack className={'community-name'}>
+									<Typography className={'name'}>Community Board Article</Typography>
+								</Stack>
+							</Stack>
+```
+
+(Swaps the raw `<img>` — which was being force-cropped into an 80px circle and looked like a distorted oversized badge — for the same small coral icon-badge pattern already used and proven on the `/community` list page. No text/data changes.)
+
+Then find this exact block:
+
+```tsx
+								<Button
+									onClick={() =>
+										router.push({
+											pathname: '/mypage',
+											query: {
+												category: 'writeArticle',
+											},
+										})
+									}
+									className="right"
+								>
+									Write
+								</Button>
+```
+
+Replace with:
+
+```tsx
+								<Button
+									onClick={() =>
+										router.push({
+											pathname: '/mypage',
+											query: {
+												category: 'writeArticle',
+											},
+										})
+									}
+									className="right"
+								>
+									<EditIcon sx={{ fontSize: 16 }} />
+									Write
+								</Button>
+```
+
+(Adds a small pencil icon next to the existing "Write" label, using `EditIcon` which is already imported in this file at line 21 for the comment-edit button — purely visual, same `onClick`/navigation as before.)
+
+Do not change anything else in this file — every state variable, Apollo hook, and handler (`tabChangeHandler`, `likeBoArticleHandler`, `creteCommentHandler`, `updateButtonHandler`, `getCommentMemberImage`, `goMemberPage`, `cancelButtonHandler`, `updateCommentInputHandler`, `paginationHandler`) stays exactly as is.
+
+## `scss/pc/community/detail.scss`
+
+Find this exact block:
+
+```scss
+					.image-info {
+						width: 100%;
+						flex-direction: row;
+						gap: 11px;
+						img {
+							width: 80px;
+							height: 80px;
+							border-radius: 50%;
+							object-fit: cover;
+						}
+						.community-name {
+```
+
+Replace with:
+
+```scss
+					.image-info {
+						width: 100%;
+						flex-direction: row;
+						gap: 11px;
+						margin-bottom: 8px;
+						.logo-icon-badge {
+							width: 36px;
+							height: 36px;
+							border-radius: 50%;
+							background: #e8856a;
+							align-items: center;
+							justify-content: center;
+							flex-shrink: 0;
+
+							.MuiSvgIcon-root {
+								color: #ffffff;
+								font-size: 20px;
+							}
+						}
+						.community-name {
+```
+
+(Identical `.logo-icon-badge` rule already used on the `/community` list page, copied verbatim — replaces the old `img` crop rule which is no longer needed since the `<img>` tag was removed from the JSX above.)
+
+Then find this exact block:
+
+```scss
+					.left-config {
+						width: 266px;
+						height: fit-content;
+						gap: 30px;
+						padding: 30px 15px 57px 21px;
+						margin-top: 100px;
+						border-radius: 12px;
+						border: 1px solid rgba(196, 196, 196, 0.79);
+						background: #fff;
+						box-shadow: 0px 1px 4px 0px rgba(24, 26, 32, 0.07);
+```
+
+Replace with:
+
+```scss
+					.left-config {
+						width: 266px;
+						height: fit-content;
+						gap: 30px;
+						padding: 30px 15px 57px 21px;
+						margin-top: 100px;
+						border-radius: 16px;
+						border: 1px solid #e9e7e0;
+						background: #fff;
+						box-shadow: 0 1px 2px rgba(28, 27, 24, 0.03);
+```
+
+(Same softer border-radius/border-color/shadow values already used for this exact sidebar card on the `/community` list page.)
+
+Then find this exact block:
+
+```scss
+					.tab-button {
+						width: 216.612px;
+						height: 36px;
+						padding: 0;
+						justify-content: center;
+						align-items: center;
+						border-radius: 6px;
+						border: 1px solid #181a20;
+						margin-bottom: 10px;
+						color: #181a20;
+						font-family: $font;
+						font-size: 14px;
+						font-style: normal;
+						font-weight: 500;
+						line-height: 150%;
+						letter-spacing: -0.266px;
+					}
+					.tab-button.active {
+						width: 216.612px;
+						height: 36px;
+						padding: 0;
+						justify-content: center;
+						align-items: center;
+						background-color: #000000;
+						color: #ffffff;
+						border-radius: 6px;
+						margin-bottom: 10px;
+						font-family: $font;
+						font-size: 14px;
+						font-style: normal;
+						font-weight: 500;
+						line-height: 150%;
+						letter-spacing: -0.266px;
+					}
+```
+
+Replace with:
+
+```scss
+					.tab-button {
+						width: 216.612px;
+						height: 36px;
+						padding: 0;
+						justify-content: center;
+						align-items: center;
+						border-radius: 10px;
+						border: 1px solid #e9e7e0;
+						margin-bottom: 10px;
+						color: #57564f;
+						font-family: $font;
+						font-size: 14px;
+						font-style: normal;
+						font-weight: 500;
+						line-height: 150%;
+						letter-spacing: -0.266px;
+					}
+					.tab-button.active {
+						width: 216.612px;
+						height: 36px;
+						padding: 0;
+						justify-content: center;
+						align-items: center;
+						background-color: #1c1b18;
+						color: #ffffff;
+						border-radius: 10px;
+						margin-bottom: 10px;
+						font-family: $font;
+						font-size: 14px;
+						font-style: normal;
+						font-weight: 500;
+						line-height: 150%;
+						letter-spacing: -0.266px;
+					}
+```
+
+(Same tab pills, just softer corners and the same gray/dark brand colors used elsewhere instead of pure black/`#181a20` borders — no JSX change, the `FREE`/`RECOMMEND`/`NEWS`/`HUMOR` tabs and `tabChangeHandler` are untouched.)
+
+Then find this exact block:
+
+```scss
+					.title-box {
+						width: 100%;
+						height: auto;
+						flex-direction: row;
+						justify-content: space-between;
+						align-items: center;
+						margin-bottom: 45px;
+						.left {
+							width: 60%;
+							height: auto;
+							.title {
+								color: #000;
+								font-family: $font;
+								font-size: 24px;
+								font-style: normal;
+								font-weight: 600;
+								line-height: normal;
+								letter-spacing: 0.24px;
+							}
+							.sub-title {
+								color: #757575;
+								font-family: $font;
+								font-size: 13px;
+								font-style: normal;
+								font-weight: 700;
+								line-height: normal;
+								letter-spacing: 0.325px;
+							}
+						}
+						.right {
+							width: 91px;
+							height: 32px;
+							border-radius: 4px;
+							background: #eb6753;
+							color: #fff;
+							font-family: $font;
+							font-size: 13px;
+							font-style: normal;
+							font-weight: 500;
+							line-height: normal;
+							letter-spacing: 0.39px;
+						}
+					}
+```
+
+Replace with:
+
+```scss
+					.title-box {
+						width: 100%;
+						height: auto;
+						flex-direction: row;
+						justify-content: space-between;
+						align-items: center;
+						margin-bottom: 30px;
+						.left {
+							width: 60%;
+							height: auto;
+							.title {
+								color: #1c1b18;
+								font-family: $font;
+								font-size: 22px;
+								font-style: normal;
+								font-weight: 700;
+								line-height: normal;
+								letter-spacing: 0.24px;
+								text-transform: capitalize;
+							}
+							.sub-title {
+								color: #8e8c83;
+								font-family: $font;
+								font-size: 13px;
+								font-style: normal;
+								font-weight: 400;
+								line-height: normal;
+								letter-spacing: normal;
+							}
+						}
+						.right {
+							width: auto;
+							height: 36px;
+							padding: 0 16px;
+							gap: 6px;
+							border-radius: 999px;
+							background: #e8856a;
+							color: #fff;
+							font-family: $font;
+							font-size: 13px;
+							font-style: normal;
+							font-weight: 600;
+							line-height: normal;
+							letter-spacing: 0.39px;
+							text-transform: none;
+						}
+					}
+```
+
+(Title becomes a normal-case bold dark heading instead of all-caps-feeling bold gray-caps subtitle; subtitle becomes a lighter, regular-weight gray line; the "Write" button becomes a coral rounded pill sized to its icon+label instead of a fixed-width square-corner box. No text content changed — `{articleCategory} BOARD` and the subtitle string stay exactly as rendered by the JSX.)
+
+Then find this exact block:
+
+```scss
+								.top {
+									width: 100%;
+									height: auto;
+									flex-direction: row;
+									align-items: center;
+									justify-content: center;
+									gap: 17px;
+									button {
+										width: 105.081px;
+										height: 45px;
+										gap: 5px;
+										border-radius: 2px;
+										border: 1px solid #eee;
+										background: #eb6753;
+										p {
+											color: #fff;
+											font-family: $font;
+											font-size: 13px;
+											font-style: normal;
+											font-weight: 700;
+											line-height: normal;
+											letter-spacing: -0.26px;
+										}
+									}
+								}
+```
+
+Replace with:
+
+```scss
+								.top {
+									width: 100%;
+									height: auto;
+									flex-direction: row;
+									align-items: center;
+									justify-content: center;
+									gap: 17px;
+									button {
+										width: auto;
+										height: 36px;
+										padding: 0 18px;
+										gap: 6px;
+										border-radius: 999px;
+										border: none;
+										background: #fbe7e3;
+										.MuiSvgIcon-root {
+											color: #d85a30;
+											font-size: 18px;
+										}
+										p,
+										.text {
+											color: #d85a30;
+											font-family: $font;
+											font-size: 13px;
+											font-style: normal;
+											font-weight: 700;
+											line-height: normal;
+											letter-spacing: -0.26px;
+										}
+									}
+								}
+```
+
+(The like button becomes a small centered coral-tinted pill — light coral background `#fbe7e3` with coral `#d85a30` icon/text — instead of a large solid-coral rectangle. Same `<Button>` element, same `likeBoArticleHandler` click logic, same `meLiked`-driven icon swap — only the button's own styling changed.)
+
+Then find this exact block:
+
+```scss
+						.second-box-config {
+							width: 1012px;
+							height: auto;
+							padding: 30px 24px;
+							gap: 11px;
+							.title-text {
+								align-self: flex-start;
+								color: #000;
+								text-align: center;
+								font-family: $font;
+								font-size: 17px;
+								font-style: normal;
+								font-weight: 700;
+								line-height: normal;
+								letter-spacing: -0.34px;
+							}
+							.leave-comment {
+								input {
+									width: 100%;
+									height: 61px;
+									outline: none;
+									padding: 22px 17px;
+									border: 1px solid #eee;
+									::placeholder {
+										color: #c0c0c0;
+										font-family: $font;
+										font-size: 14px;
+										font-style: normal;
+										font-weight: 500;
+										line-height: normal;
+										letter-spacing: -0.56px;
+									}
+								}
+								.button-box {
+									width: 100%;
+									height: 42px;
+									flex-direction: row;
+									justify-content: space-between;
+									align-items: center;
+									padding-left: 17px;
+									border: 1px solid #eee;
+									border-top: none;
+									p {
+										color: #000;
+										font-family: $font;
+										font-size: 14px;
+										font-style: normal;
+										font-weight: 400;
+										line-height: normal;
+										letter-spacing: 0.56px;
+									}
+									button {
+										width: 100.077px;
+										height: 100%;
+										border-radius: 0;
+										background: #eb6753;
+										color: #fff;
+										font-family: $font;
+										font-size: 14px;
+										font-style: normal;
+										font-weight: 400;
+										line-height: normal;
+										letter-spacing: 0.56px;
+									}
+								}
+							}
+						}
+```
+
+Replace with:
+
+```scss
+						.second-box-config {
+							width: 1012px;
+							height: auto;
+							padding: 30px 24px;
+							gap: 11px;
+							border: 1px solid #eee !important;
+							border-radius: 0 0 8px 8px;
+							.title-text {
+								align-self: flex-start;
+								color: #1c1b18;
+								text-align: center;
+								font-family: $font;
+								font-size: 17px;
+								font-style: normal;
+								font-weight: 700;
+								line-height: normal;
+								letter-spacing: -0.34px;
+							}
+							.leave-comment {
+								flex-direction: row;
+								align-items: center;
+								width: 100%;
+								height: 56px;
+								border: 1px solid #eee;
+								border-radius: 999px;
+								padding: 0 8px 0 20px;
+								input {
+									width: 100%;
+									height: 100%;
+									outline: none;
+									border: none;
+									padding: 0;
+									::placeholder {
+										color: #c0c0c0;
+										font-family: $font;
+										font-size: 14px;
+										font-style: normal;
+										font-weight: 500;
+										line-height: normal;
+										letter-spacing: -0.56px;
+									}
+								}
+								.button-box {
+									width: auto;
+									height: 100%;
+									flex-direction: row;
+									justify-content: flex-end;
+									align-items: center;
+									gap: 10px;
+									padding-left: 17px;
+									border: none;
+									flex-shrink: 0;
+									p {
+										color: #c0c0c0;
+										font-family: $font;
+										font-size: 13px;
+										font-style: normal;
+										font-weight: 400;
+										line-height: normal;
+										letter-spacing: 0.56px;
+									}
+									button {
+										width: auto;
+										height: 38px;
+										padding: 0 20px;
+										border-radius: 999px;
+										background: #e8856a;
+										color: #fff;
+										font-family: $font;
+										font-size: 14px;
+										font-style: normal;
+										font-weight: 600;
+										line-height: normal;
+										letter-spacing: 0.56px;
+									}
+								}
+							}
+						}
+```
+
+(The comment input and the "comment" button were two separately-bordered stacked boxes — they now sit inside one single rounded pill-shaped container, input borderless on the left, word-counter + coral pill "comment" button on the right, matching a single clean comment bar. The `1px solid #eee` on `.second-box-config` is bumped to `!important` so it reliably overrides the component's existing inline `sx={{ border: '1px solid #eee' }}` on the `Stack` in `pages/community/detail.tsx` — same border, just guaranteed to apply consistently; the `total > 0 ? 'none' : ...` conditional bottom-border logic in that `sx` prop is untouched. Same `comment`/`wordsCnt` state, same `onChange`, same `creteCommentHandler` on the button — only visual layout changed.)
+
+Do not change anything else — `.first-box-config`, `.content-and-info`, `.member-info`, `.info .icon-info`, `.comments`, `.comments-box`, `.pagination-box`, `.similar-articles-config`, and every other selector in this file stay exactly as they are. Do not touch `scss/app.scss` (global page background) or `libs/components/community/TViewer.tsx` (article content/image rendering) at all.
+
+---
+
+Verify after implementing:
+1. The sidebar shows a small 36px coral circular icon badge (people icon) next to "Community Board Article" instead of the old oversized stretched logo image.
+2. The header above the card shows a bold dark title + lighter gray subtitle, with a coral pill "✏ Write" button on the right — clicking it still navigates to `/mypage?category=writeArticle` exactly as before.
+3. The like button is now a small centered light-coral pill showing the thumb icon + like count — clicking it still calls `likeBoArticleHandler` and still toggles between filled/outline thumb icon based on `meLiked` exactly as before.
+4. The comment area is a single rounded bar (input + word counter + coral "comment" button) instead of two separately-bordered stacked boxes — typing still updates the 0/100 counter, and clicking "comment" still calls `creteCommentHandler` exactly as before.
+5. The page background color and the article body (image/markdown via `ToastViewerComponent`) look completely unchanged.
+6. No GraphQL/Apollo/React state or handler logic touched — confirm by diffing that only JSX icon/import additions and CSS values changed.

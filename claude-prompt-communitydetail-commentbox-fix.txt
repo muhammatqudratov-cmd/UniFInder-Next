@@ -1,0 +1,68 @@
+Context: bugfix on top of the just-applied Community Detail card redesign. The "Comments" section (`.second-box-config`) and its rounded comment bar (`.leave-comment`) never had an explicit `background` set, so the page's beige background (`#e8e0d5`, set globally in `scss/app.scss` — NOT touched here) shows through behind them, and the plain-rectangle `<input>` doesn't get visually clipped to the bar's rounded corners — producing the broken look in the screenshot (beige patches poking through at the rounded corners and around the button). Fix: give both containers the same white card background already used by the sibling `.first-box-config` card directly above it, and clip the input to the bar's rounded shape. Pure CSS, no JSX/logic touched.
+
+## `scss/pc/community/detail.scss`
+
+Find this exact block:
+
+```scss
+						.second-box-config {
+							width: 1012px;
+							height: auto;
+							padding: 30px 24px;
+							gap: 11px;
+							border: 1px solid #eee !important;
+							border-radius: 0 0 8px 8px;
+```
+
+Replace with:
+
+```scss
+						.second-box-config {
+							width: 1012px;
+							height: auto;
+							padding: 30px 24px;
+							gap: 11px;
+							border: 1px solid #eee !important;
+							border-radius: 0 0 8px 8px;
+							background: #fff;
+```
+
+Then find this exact block:
+
+```scss
+							.leave-comment {
+								flex-direction: row;
+								align-items: center;
+								width: 100%;
+								height: 56px;
+								border: 1px solid #eee;
+								border-radius: 999px;
+								padding: 0 8px 0 20px;
+```
+
+Replace with:
+
+```scss
+							.leave-comment {
+								flex-direction: row;
+								align-items: center;
+								width: 100%;
+								height: 56px;
+								border: 1px solid #eee;
+								border-radius: 999px;
+								padding: 0 8px 0 20px;
+								background: #fff;
+								overflow: hidden;
+```
+
+(`.second-box-config` and `.leave-comment` now both have an explicit white background, matching the white card look of `.first-box-config` right above it instead of showing the beige page background through their gaps; `overflow: hidden` on `.leave-comment` clips the plain rectangular `<input>` to the bar's fully-rounded corners so nothing pokes outside the pill shape anymore.)
+
+Do not change anything else — no other selector, no JSX, no state/handler logic touched.
+
+---
+
+Verify after implementing:
+1. The "Comments (0)" section and the comment input bar now show a solid white background with no beige gaps or patches showing through at the corners.
+2. The comment input bar's rounded pill shape looks clean — the input box no longer pokes outside the rounded corners.
+3. Typing in the input and clicking "comment" still work exactly as before (no logic touched).
+4. The page's overall beige background (everywhere else) is completely unchanged.

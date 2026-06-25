@@ -1,0 +1,32 @@
+Context: the Community Detail page's content area currently falls back to the global body background (`#e8e0d5`, set in `scss/app.scss`, NOT touched here), which is a slightly darker tan than the lighter cream content background used by other pages. Pages like Universities, Agents, and CS each explicitly override their own page-wrapper background to `#f5f3ef` (lighter cream) — Community Detail never got that same override. This adds the identical override so the content area matches those other pages. Pure CSS, no JSX/logic touched.
+
+## `scss/pc/community/detail.scss`
+
+Find this exact block (the very top of the file):
+
+```scss
+#pc-wrap {
+	#community-detail-page {
+		position: relative;
+		padding-bottom: 135px;
+```
+
+Replace with:
+
+```scss
+#pc-wrap {
+	#community-detail-page {
+		position: relative;
+		padding-bottom: 135px;
+		background: #f5f3ef;
+```
+
+(Same `#f5f3ef` value already used for this exact purpose on `#university-list-page` in `scss/pc/university/university.scss`, `#agent.scss`, and `cs.scss` — only this one page's wrapper background changes; the global body color in `scss/app.scss` and the dark hero gradient above it stay completely untouched.)
+
+Do not change anything else — no JSX, no other selector, no state/handler logic touched.
+
+---
+
+Verify after implementing:
+1. The Community Detail page's content area below the dark hero now shows the same lighter cream background (`#f5f3ef`) used on the Universities, Agents, and CS pages, instead of the darker tan global body color.
+2. The dark hero section at the top and every other page's background are completely unchanged.

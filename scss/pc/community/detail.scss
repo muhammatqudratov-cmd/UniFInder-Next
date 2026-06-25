@@ -2,6 +2,7 @@
 	#community-detail-page {
 		position: relative;
 		padding-bottom: 135px;
+		background: #f5f3ef;
 		.container {
 			padding-top: 100px;
 			flex-direction: column;
@@ -15,23 +16,31 @@
 					gap: 30px;
 					padding: 30px 15px 57px 21px;
 					margin-top: 100px;
-					border-radius: 12px;
-					border: 1px solid rgba(196, 196, 196, 0.79);
+					border-radius: 16px;
+					border: 1px solid #e9e7e0;
 					background: #fff;
-					box-shadow: 0px 1px 4px 0px rgba(24, 26, 32, 0.07);
+					box-shadow: 0 1px 2px rgba(28, 27, 24, 0.03);
 					.image-info {
 						width: 100%;
 						flex-direction: row;
+						align-items: center;
 						gap: 11px;
-						img {
-							width: 80px;
-							height: 80px;
+						margin-bottom: 8px;
+						.logo-icon-badge {
+							width: 36px;
+							height: 36px;
 							border-radius: 50%;
-							object-fit: cover;
+							background: #e8856a;
+							align-items: center;
+							justify-content: center;
+							flex-shrink: 0;
+							.MuiSvgIcon-root {
+								color: #ffffff;
+								font-size: 20px;
+							}
 						}
 						.community-name {
 							.name {
-								margin-top: 15px;
 								color: #181a20;
 								font-family: $font;
 								font-size: 15px;
@@ -47,10 +56,10 @@
 						padding: 0;
 						justify-content: center;
 						align-items: center;
-						border-radius: 6px;
-						border: 1px solid #181a20;
+						border-radius: 10px;
+						border: 1px solid #e9e7e0;
 						margin-bottom: 10px;
-						color: #181a20;
+						color: #57564f;
 						font-family: $font;
 						font-size: 14px;
 						font-style: normal;
@@ -64,9 +73,9 @@
 						padding: 0;
 						justify-content: center;
 						align-items: center;
-						background-color: #000000;
+						background-color: #1c1b18;
 						color: #ffffff;
-						border-radius: 6px;
+						border-radius: 10px;
 						margin-bottom: 10px;
 						font-family: $font;
 						font-size: 14px;
@@ -83,41 +92,45 @@
 						flex-direction: row;
 						justify-content: space-between;
 						align-items: center;
-						margin-bottom: 45px;
+						margin-bottom: 30px;
 						.left {
 							width: 60%;
 							height: auto;
 							.title {
-								color: #000;
+								color: #1c1b18;
 								font-family: $font;
-								font-size: 24px;
-								font-style: normal;
-								font-weight: 600;
-								line-height: normal;
-								letter-spacing: 0.24px;
-							}
-							.sub-title {
-								color: #757575;
-								font-family: $font;
-								font-size: 13px;
+								font-size: 22px;
 								font-style: normal;
 								font-weight: 700;
 								line-height: normal;
-								letter-spacing: 0.325px;
+								letter-spacing: 0.24px;
+								text-transform: capitalize;
+							}
+							.sub-title {
+								color: #8e8c83;
+								font-family: $font;
+								font-size: 13px;
+								font-style: normal;
+								font-weight: 400;
+								line-height: normal;
+								letter-spacing: normal;
 							}
 						}
 						.right {
-							width: 91px;
-							height: 32px;
-							border-radius: 4px;
-							background: #eb6753;
+							width: auto;
+							height: 36px;
+							padding: 0 16px;
+							gap: 6px;
+							border-radius: 999px;
+							background: #e8856a;
 							color: #fff;
 							font-family: $font;
 							font-size: 13px;
 							font-style: normal;
-							font-weight: 500;
+							font-weight: 600;
 							line-height: normal;
 							letter-spacing: 0.39px;
+							text-transform: none;
 						}
 					}
 					.config {
@@ -229,14 +242,20 @@
 									justify-content: center;
 									gap: 17px;
 									button {
-										width: 105.081px;
-										height: 45px;
-										gap: 5px;
-										border-radius: 2px;
-										border: 1px solid #eee;
-										background: #eb6753;
-										p {
-											color: #fff;
+										width: auto;
+										height: 36px;
+										padding: 0 18px;
+										gap: 6px;
+										border-radius: 999px;
+										border: none;
+										background: #fbe7e3;
+										.MuiSvgIcon-root {
+											color: #d85a30;
+											font-size: 18px;
+										}
+										p,
+										.text {
+											color: #d85a30;
 											font-family: $font;
 											font-size: 13px;
 											font-style: normal;
@@ -253,9 +272,12 @@
 							height: auto;
 							padding: 30px 24px;
 							gap: 11px;
+							border: 1px solid #eee !important;
+							border-radius: 0 0 8px 8px;
+							background: #fff;
 							.title-text {
 								align-self: flex-start;
-								color: #000;
+								color: #1c1b18;
 								text-align: center;
 								font-family: $font;
 								font-size: 17px;
@@ -265,12 +287,21 @@
 								letter-spacing: -0.34px;
 							}
 							.leave-comment {
+								flex-direction: row;
+								align-items: center;
+								width: 100%;
+								height: 56px;
+								border: 1px solid #eee;
+								border-radius: 999px;
+								padding: 0 8px 0 20px;
+								background: #fff;
+								overflow: hidden;
 								input {
 									width: 100%;
-									height: 61px;
+									height: 100%;
 									outline: none;
-									padding: 22px 17px;
-									border: 1px solid #eee;
+									border: none;
+									padding: 0;
 									::placeholder {
 										color: #c0c0c0;
 										font-family: $font;
@@ -282,33 +313,35 @@
 									}
 								}
 								.button-box {
-									width: 100%;
-									height: 42px;
+									width: auto;
+									height: 100%;
 									flex-direction: row;
-									justify-content: space-between;
+									justify-content: flex-end;
 									align-items: center;
+									gap: 10px;
 									padding-left: 17px;
-									border: 1px solid #eee;
-									border-top: none;
+									border: none;
+									flex-shrink: 0;
 									p {
-										color: #000;
+										color: #c0c0c0;
 										font-family: $font;
-										font-size: 14px;
+										font-size: 13px;
 										font-style: normal;
 										font-weight: 400;
 										line-height: normal;
 										letter-spacing: 0.56px;
 									}
 									button {
-										width: 100.077px;
-										height: 100%;
-										border-radius: 0;
-										background: #eb6753;
+										width: auto;
+										height: 38px;
+										padding: 0 20px;
+										border-radius: 999px;
+										background: #e8856a;
 										color: #fff;
 										font-family: $font;
 										font-size: 14px;
 										font-style: normal;
-										font-weight: 400;
+										font-weight: 600;
 										line-height: normal;
 										letter-spacing: 0.56px;
 									}

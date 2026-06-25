@@ -1,0 +1,67 @@
+Context: small alignment bugfix on the just-applied Community Detail sidebar icon badge. The 36px icon badge and the "Community Board Article" label sit in a row (`.image-info`), but the row never set `align-items`, so it defaulted to stretch, and the label itself had a leftover `margin-top: 15px` (originally there to push the label down to vertically center it against the old 80px circular image) — together this makes the icon sit at the top while the two-line label sits lower, off-center from it. Fix: vertically center the row and drop the now-wrong top margin. Pure CSS, no JSX/logic touched.
+
+## `scss/pc/community/detail.scss`
+
+Find this exact block:
+
+```scss
+					.image-info {
+						width: 100%;
+						flex-direction: row;
+						gap: 11px;
+						margin-bottom: 8px;
+						.logo-icon-badge {
+```
+
+Replace with:
+
+```scss
+					.image-info {
+						width: 100%;
+						flex-direction: row;
+						align-items: center;
+						gap: 11px;
+						margin-bottom: 8px;
+						.logo-icon-badge {
+```
+
+Then find this exact block:
+
+```scss
+						.community-name {
+							.name {
+								margin-top: 15px;
+								color: #181a20;
+								font-family: $font;
+								font-size: 15px;
+								font-style: normal;
+								font-weight: 600;
+								line-height: normal;
+							}
+						}
+```
+
+Replace with:
+
+```scss
+						.community-name {
+							.name {
+								color: #181a20;
+								font-family: $font;
+								font-size: 15px;
+								font-style: normal;
+								font-weight: 600;
+								line-height: normal;
+							}
+						}
+```
+
+(`align-items: center` on the row vertically centers the icon badge and the label together; removing the stale `margin-top: 15px` — which was only there to compensate for the old, much taller 80px circular image — stops the label from sitting lower than the icon.)
+
+Do not change anything else — no JSX, no other selector, no state/handler logic touched.
+
+---
+
+Verify after implementing:
+1. The coral icon badge and "Community Board Article" text are now vertically centered together on the same row, regardless of the label wrapping to one or two lines.
+2. Nothing else on the sidebar (tabs, spacing, colors) changed.
