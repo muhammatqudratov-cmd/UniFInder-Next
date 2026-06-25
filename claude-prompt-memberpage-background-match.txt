@@ -1,0 +1,30 @@
+Context: first step of the Member Page redesign — match its page background to the rest of the site. Every other page uses the cream background `#e8e0d5` (set globally in `scss/app.scss`: `body { background: #e8e0d5; }` and `html, body, #__next { background: #e8e0d5 !important; }`), but the Member Page has its own scoped override painting it light gray instead.
+
+Pure CSS, one value change. No JSX, no component logic changes.
+
+## `scss/pc/member/memberPage.scss`
+
+Find this exact block:
+
+```scss
+#pc-wrap {
+	#member-page {
+		background: #f6f6f6;
+```
+
+Replace with:
+
+```scss
+#pc-wrap {
+	#member-page {
+		background: #e8e0d5;
+```
+
+Do not change anything else in this file — the white card panels (`.back-frame`, `.left-config`), layout, spacing, and every other rule stay exactly as they are. Do not touch `pages/member/index.tsx` or any other component file.
+
+---
+
+Verify after implementing:
+1. Open any member's profile page — the page background is now the same cream tone (`#e8e0d5`) as every other page on the site, instead of the lighter gray it had before.
+2. The white profile card and listing table panels are unchanged (still white, unaffected by this change).
+3. No GraphQL/Apollo/React state or handler logic touched — confirm by diffing that only one `background` value changed.

@@ -1,0 +1,146 @@
+Context: user picked variant 3 ("small uppercase eyebrow, large bold title, minimal breadcrumb") from 3 hero-title design options shown for the Member Page. Two changes: (1) give the Member Page hero its own distinct title styling (a green uppercase eyebrow label above a larger/bolder title), and (2) replace the leftover real-estate-template breadcrumb text "Home / For Rent" with the theme-relevant "Home / Member Profile". This only affects the `/member` route — the shared `LayoutBasic` hero component is used by several other routes (`/account/join`, `/community/detail`, default), which must render exactly as before.
+
+Two files: one JSX structural addition (new route-specific branch, mirroring the existing `/community`/`/mypage`/`/agent/detail` branches already in the file) + copy change, and one CSS addition. No GraphQL/Apollo/React state, data fetching, or event-handler logic touched anywhere.
+
+## `libs/components/layout/LayoutBasic.tsx`
+
+Find this exact block:
+
+```tsx
+				case '/member':
+					title = 'Member Page';
+					desc = 'Home / For Rent';
+					bgImage = '';
+					break;
+```
+
+Replace with:
+
+```tsx
+				case '/member':
+					title = 'Member Page';
+					desc = 'Home / Member Profile';
+					bgImage = '';
+					eyebrow = 'AGENT PROFILE';
+					break;
+```
+
+Then find this exact block (the final two branches of the hero-content ternary chain):
+
+```tsx
+							) : router.pathname === '/agent/detail' ? (
+								<Stack className={'container agent-detail-hero-container'}>
+									<span className={'agent-detail-breadcrumb'}>Home / Agents / {agentHeroName || '...'}</span>
+									<Stack className={'verified-badge'}>
+										<span className={'verified-dot'} />
+										{t(memoizedValues.eyebrow!)}
+									</Stack>
+									<strong className={'agent-detail-heading'}>{t(memoizedValues.title)}</strong>
+									<p className={'agent-detail-lead'}>{t(memoizedValues.desc)}</p>
+								</Stack>
+							) : (
+								<Stack className={`container${memoizedValues.stats ? ' has-stats' : ''}`}>
+```
+
+Replace with:
+
+```tsx
+							) : router.pathname === '/agent/detail' ? (
+								<Stack className={'container agent-detail-hero-container'}>
+									<span className={'agent-detail-breadcrumb'}>Home / Agents / {agentHeroName || '...'}</span>
+									<Stack className={'verified-badge'}>
+										<span className={'verified-dot'} />
+										{t(memoizedValues.eyebrow!)}
+									</Stack>
+									<strong className={'agent-detail-heading'}>{t(memoizedValues.title)}</strong>
+									<p className={'agent-detail-lead'}>{t(memoizedValues.desc)}</p>
+								</Stack>
+							) : router.pathname === '/member' ? (
+								<Stack className={'container member-hero-container'}>
+									<Stack className={'eyebrow member-eyebrow'}>
+										<span className={'dash'} />
+										{t(memoizedValues.eyebrow!)}
+									</Stack>
+									<strong className={'member-heading'}>{t(memoizedValues.title)}</strong>
+									<span>{t(memoizedValues.desc)}</span>
+								</Stack>
+							) : (
+								<Stack className={`container${memoizedValues.stats ? ' has-stats' : ''}`}>
+```
+
+(Adds a `/member`-specific branch, mirrored exactly on the existing `/community`/`/mypage`/`/agent/detail` pattern already in this file, so `/account/join`, `/community/detail`, and the `default` case still fall through to the unchanged final `else` branch exactly as before.)
+
+## `scss/pc/main.scss`
+
+Find this exact block (inside `.header-basic .container`, right after the `.eyebrow` rule):
+
+```scss
+			.eyebrow {
+				flex-direction: row;
+				align-items: center;
+				gap: 10px;
+				margin-bottom: 18px;
+				color: #e8856a;
+				font-family: $font;
+				font-size: 14px;
+				font-weight: 600;
+				letter-spacing: 1.5px;
+				text-transform: uppercase;
+				.dash {
+					width: 18px;
+					height: 1px;
+					background: #e8856a;
+					display: inline-block;
+					flex-shrink: 0;
+				}
+			}
+```
+
+Replace with:
+
+```scss
+			.eyebrow {
+				flex-direction: row;
+				align-items: center;
+				gap: 10px;
+				margin-bottom: 18px;
+				color: #e8856a;
+				font-family: $font;
+				font-size: 14px;
+				font-weight: 600;
+				letter-spacing: 1.5px;
+				text-transform: uppercase;
+				.dash {
+					width: 18px;
+					height: 1px;
+					background: #e8856a;
+					display: inline-block;
+					flex-shrink: 0;
+				}
+				&.member-eyebrow {
+					color: #97c459;
+					font-size: 11px;
+					letter-spacing: 2px;
+					.dash {
+						background: #97c459;
+					}
+				}
+			}
+			.member-heading {
+				font-size: 40px !important;
+				font-weight: 800 !important;
+				line-height: 1.1 !important;
+			}
+```
+
+(`.member-eyebrow` overrides the shared `.eyebrow` coral color to green and tightens letter-spacing/size for this route only; `.member-heading` bumps the shared `strong` styling to a larger, bolder weight — scoped to the new `.member-heading` class so it only applies to the Member Page's title, not the plain `strong` used by `/account/join`/`/community/detail`/default.)
+
+Do not change anything else — every other route's hero branch, the `.agent-detail-hero-container`/`.community-hero-container`/etc. styling, and all other CSS stay exactly as they are.
+
+---
+
+Verify after implementing:
+1. Open the Member Page — the hero now shows a small green uppercase "AGENT PROFILE" eyebrow label above a larger, bolder "Member Page" title, with the breadcrumb reading "Home / Member Profile" instead of "Home / For Rent".
+2. Open `/account/join` (login/signup) and a community detail page — their hero titles/breadcrumbs are completely unchanged (still plain, no eyebrow, original text).
+3. Open Agents, Community, MyPage, Agent Detail pages — all unchanged.
+4. No GraphQL/Apollo/React state or handler logic touched — confirm by diffing that only the `/member` switch case, one new JSX ternary branch, and two CSS additions changed.

@@ -166,8 +166,9 @@ const withLayoutBasic = (Component: any) => {
 					break;
 				case '/member':
 					title = 'Member Page';
-					desc = 'Home / For Rent';
-					bgImage = '/img/banner/incheon.jpg';
+					desc = 'Home / Member Profile';
+					bgImage = '';
+					eyebrow = 'AGENT PROFILE';
 					break;
 				default:
 					break;
@@ -351,6 +352,15 @@ const withLayoutBasic = (Component: any) => {
 									</Stack>
 									<strong className={'agent-detail-heading'}>{t(memoizedValues.title)}</strong>
 									<p className={'agent-detail-lead'}>{t(memoizedValues.desc)}</p>
+								</Stack>
+							) : router.pathname === '/member' ? (
+								<Stack className={'container member-hero-container'}>
+									<Stack className={'eyebrow member-eyebrow'}>
+										<span className={'dash'} />
+										{t(memoizedValues.eyebrow!)}
+									</Stack>
+									<strong className={'member-heading'}>{t(memoizedValues.title)}</strong>
+									<span>{t(memoizedValues.desc)}</span>
 								</Stack>
 							) : (
 								<Stack className={`container${memoizedValues.stats ? ' has-stats' : ''}`}>

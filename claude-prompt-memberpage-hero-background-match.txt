@@ -1,0 +1,37 @@
+Context: correction to the previous request — the user means the top "landing"/hero banner section specifically (the tall section with the "Member Page" title and "Home / For Rent" breadcrumb), not the page's lower content background (which was already fixed separately). Other pages' hero sections (Agents, Community, MyPage, CS) all share the same dark gradient `linear-gradient(135deg, #15140f 0%, #1c2620 50%, #1a2230 100%)`, defined as the base style of the shared `.header-basic` wrapper in `scss/pc/main.scss`. The Member Page's hero currently overrides this with a blue-sky stock photo (`/img/banner/incheon.jpg`) via an inline `backgroundImage` style set per-route inside `LayoutBasic.tsx`. Removing that one image path for the `/member` route lets it fall through to the same shared gradient background every other hero already uses — no new CSS needed, since the gradient is already the component's default when no image is set.
+
+This is a one-line value change inside an existing per-route `switch` statement — purely presentational (a static background-image string), not business logic. No GraphQL/Apollo/React state, data fetching, or event-handler logic is touched.
+
+## `libs/components/layout/LayoutBasic.tsx`
+
+Find this exact block:
+
+```tsx
+				case '/member':
+					title = 'Member Page';
+					desc = 'Home / For Rent';
+					bgImage = '/img/banner/incheon.jpg';
+					break;
+```
+
+Replace with:
+
+```tsx
+				case '/member':
+					title = 'Member Page';
+					desc = 'Home / For Rent';
+					bgImage = '';
+					break;
+```
+
+(Clearing `bgImage` means the inline `style={{ backgroundImage: ... }}` is no longer applied for `/member` — the hero wrapper then falls back to `.header-basic`'s own base `background: linear-gradient(135deg, #15140f 0%, #1c2620 50%, #1a2230 100%);` in `scss/pc/main.scss`, the same gradient already used by the Agents/Community/MyPage/CS hero sections.)
+
+Do not change anything else — `title`, `desc`, and every other route's `case` block stay exactly as they are. Do not touch `scss/pc/main.scss`, `scss/pc/member/memberPage.scss`, or any other file.
+
+---
+
+Verify after implementing:
+1. Open the Member Page — the top hero banner now shows the same dark gradient background as the Agents, Community, MyPage, and CS pages' hero sections, instead of the blue-sky photo.
+2. "Member Page" title and "Home / For Rent" breadcrumb text are still legible (white text over the dark gradient, same as on other hero sections).
+3. Open Agents/Community/MyPage/CS pages — their hero backgrounds are unchanged.
+4. No GraphQL/Apollo/React state or handler logic touched — confirm by diffing that only the `bgImage` value for the `/member` case changed.

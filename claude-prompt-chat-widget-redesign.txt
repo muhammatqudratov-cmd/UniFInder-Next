@@ -1,0 +1,316 @@
+Context: user picked variant 4 ("dark gradient header, frosted look") from 4 chat-widget design options shown for the live online-chat popup. Currently the widget uses a generic pale Material-blue palette (`rgb(233,243,255)` background, blue/teal message bubbles, teal send button) that doesn't match the site's brand (dark `#1c1b18`, coral `#e8856a`, green `#5a8a52`, cream `#f5f3ef`/`#faf8f5`, font `Poppins`). This redesign recolors the panel, header, message bubbles, input, and send button to match the brand — pure visual change only.
+
+Pure CSS, no JSX, no `Chat.tsx` logic changes (socket/online-user-count logic, message send handler, open/close toggle state — all untouched). Scoped entirely to the `.chatting` block in `scss/pc/main.scss`.
+
+## `scss/pc/main.scss`
+
+Find this exact block:
+
+```scss
+	.chatting {
+		.chat-button {
+			border: none;
+			position: fixed;
+			bottom: 90px;
+			right: 30px;
+			height: 50px;
+			width: 50px;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			border-radius: 50%;
+			height: 50px;
+			background: #fff;
+			box-shadow: 0px 0px 10px 0px rgba(50, 50, 50, 0.2);
+			transition: transform 0.3s;
+			z-index: 999;
+			&:hover {
+				cursor: pointer;
+				transform: scale(1.1);
+				background-color: #fff;
+			}
+		}
+		.chat-frame {
+			position: fixed;
+			right: -380px;
+			transition: right 0.7s ease-in-out;
+			width: 380px;
+			height: 500px;
+			display: flex;
+			flex-direction: column;
+			background: rgb(233, 243, 255);
+			border-radius: 34px;
+			box-shadow: 0px 0px 15px 0px rgba(50, 50, 50, 0.3);
+			z-index: 100;
+			bottom: 150px;
+			transition: right 0.7s ease-in-out;
+			&.open {
+				right: 10px;
+			}
+			.chat-top {
+				width: 100%;
+				height: 103px;
+				display: flex;
+				justify-content: center;
+				align-items: center;
+				border-bottom: 1px solid rgba(205, 205, 205, 0.83);
+				font-size: 30px;
+				line-height: 54px;
+				color: #000000;
+			}
+			.chat-content {
+				position: relative;
+				padding: 17px;
+				width: 100%;
+				height: 100%;
+				display: flex;
+				flex-direction: column;
+				justify-content: flex-start;
+				overflow: auto;
+				.chat-main {
+					position: relative;
+					width: 100%;
+					display: flex;
+					flex-direction: column;
+					.welcome {
+						margin-left: 10px;
+						padding: 9px;
+						width: auto;
+						height: auto;
+						display: flex;
+						background: #9fa7ac;
+						border-radius: 20px 20px 20px 0px;
+						color: #fff;
+					}
+					.msg-left {
+						margin-left: 10px;
+						padding: 9px;
+						width: auto;
+						height: auto;
+						display: flex;
+						background: #1d7ab4;
+						border-radius: 20px 20px 20px 0px;
+						color: #fff;
+					}
+				}
+			}
+			.chat-bott {
+				width: 100%;
+				height: 103px;
+				display: flex;
+				justify-content: center;
+				align-items: center;
+				border-top: 1px solid rgba(205, 205, 205, 0.83);
+				.msg-input {
+					padding: 20px;
+					width: 276px;
+					height: 50px;
+					display: flex;
+					flex-direction: column;
+					align-items: center;
+					background: #f7f7f7;
+					border-radius: 28px;
+					border: none;
+					outline-color: #257677;
+					font-family: 'Poppins';
+					font-style: normal;
+					font-weight: 400;
+					font-size: 16px;
+					line-height: 24px;
+				}
+				.send-msg-btn {
+					margin-left: 14px;
+					width: 50px;
+					height: 50px;
+					display: flex;
+					justify-content: center;
+					align-items: center;
+					border-radius: 50%;
+					background: #33c1c1;
+					border: none;
+				}
+			}
+			.msg-right {
+				padding: 9px;
+				width: auto;
+				height: auto;
+				display: flex;
+				background: #d0ece8;
+				border-radius: 20px 20px 0px 20px;
+			}
+		}
+	}
+```
+
+Replace with:
+
+```scss
+	.chatting {
+		.chat-button {
+			border: none;
+			position: fixed;
+			bottom: 90px;
+			right: 30px;
+			height: 50px;
+			width: 50px;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			border-radius: 50%;
+			height: 50px;
+			background: #1c1b18;
+			color: #fff;
+			box-shadow: 0px 4px 14px 0px rgba(28, 27, 24, 0.35);
+			transition: transform 0.3s;
+			z-index: 999;
+			&:hover {
+				cursor: pointer;
+				transform: scale(1.1);
+				background-color: #1c1b18;
+			}
+		}
+		.chat-frame {
+			position: fixed;
+			right: -380px;
+			transition: right 0.7s ease-in-out;
+			width: 380px;
+			height: 500px;
+			display: flex;
+			flex-direction: column;
+			background: #fff;
+			border-radius: 26px;
+			box-shadow: 0px 14px 34px 0px rgba(28, 27, 24, 0.3);
+			overflow: hidden;
+			z-index: 100;
+			bottom: 150px;
+			transition: right 0.7s ease-in-out;
+			&.open {
+				right: 10px;
+			}
+			.chat-top {
+				width: 100%;
+				height: 103px;
+				display: flex;
+				flex-direction: column;
+				justify-content: center;
+				align-items: flex-start;
+				padding: 0 20px;
+				background: linear-gradient(135deg, #1c1b18, #3a382f);
+				font-size: 17px;
+				font-weight: 600;
+				font-family: 'Poppins', sans-serif;
+				line-height: 1.3;
+				color: #fff;
+				&::after {
+					content: 'We typically reply in minutes';
+					font-size: 11px;
+					font-weight: 400;
+					color: #e8e0d5;
+					margin-top: 2px;
+				}
+			}
+			.chat-content {
+				position: relative;
+				padding: 17px;
+				width: 100%;
+				height: 100%;
+				display: flex;
+				flex-direction: column;
+				justify-content: flex-start;
+				overflow: auto;
+				background: #fff;
+				.chat-main {
+					position: relative;
+					width: 100%;
+					display: flex;
+					flex-direction: column;
+					.welcome {
+						margin-left: 10px;
+						padding: 9px 13px;
+						width: auto;
+						height: auto;
+						display: flex;
+						background: #f5f3ef;
+						border-radius: 14px 14px 14px 4px;
+						color: #1c1b18;
+						font-family: 'Poppins', sans-serif;
+						font-size: 13px;
+					}
+					.msg-left {
+						margin-left: 10px;
+						padding: 9px 13px;
+						width: auto;
+						height: auto;
+						display: flex;
+						background: #f5f3ef;
+						border-radius: 14px 14px 14px 4px;
+						color: #1c1b18;
+						font-family: 'Poppins', sans-serif;
+						font-size: 13px;
+					}
+				}
+			}
+			.chat-bott {
+				width: 100%;
+				height: 103px;
+				display: flex;
+				justify-content: center;
+				align-items: center;
+				background: #fff;
+				border-top: 1px solid #f5f3ef;
+				.msg-input {
+					padding: 20px;
+					width: 276px;
+					height: 50px;
+					display: flex;
+					flex-direction: column;
+					align-items: center;
+					background: #f5f3ef;
+					border-radius: 28px;
+					border: none;
+					outline-color: #e8856a;
+					font-family: 'Poppins';
+					font-style: normal;
+					font-weight: 400;
+					font-size: 16px;
+					line-height: 24px;
+				}
+				.send-msg-btn {
+					margin-left: 14px;
+					width: 50px;
+					height: 50px;
+					display: flex;
+					justify-content: center;
+					align-items: center;
+					border-radius: 50%;
+					background: #e8856a;
+					border: none;
+				}
+			}
+			.msg-right {
+				padding: 9px 13px;
+				width: auto;
+				height: auto;
+				display: flex;
+				background: #5a8a52;
+				border-radius: 14px 14px 4px 14px;
+				color: #fff;
+				font-family: 'Poppins', sans-serif;
+				font-size: 13px;
+			}
+		}
+	}
+```
+
+(Panel recolored to white with a dark gradient header (matches the site's dark accent `#1c1b18` used elsewhere); a static "We typically reply in minutes" subtitle is added purely via CSS `content` on `.chat-top::after` — no JSX/markup change needed. Received messages (`welcome`, `msg-left`) become a soft cream bubble with dark text; sent messages (`msg-right`) become a solid green bubble with white text, replacing the old blue/teal palette. Input pill and send button switch to cream/coral. The launcher button (`chat-button`) becomes dark to match. Bubble corner-radius shapes (which corner is squared) are unchanged from the original asymmetric-corner pattern, just recolored.)
+
+Do not change anything in `Chat.tsx` — socket connection, online-user count, message-send handler, and open/close toggle logic stay 100% untouched. Do not change anything outside the `.chatting` block in `scss/pc/main.scss`.
+
+---
+
+Verify after implementing:
+1. Click the chat launcher button — it's now dark/filled instead of plain white, opens the panel exactly as before (no change to open/close behavior).
+2. Open the panel — header now shows a dark gradient bar with "Online Chat" + a small "We typically reply in minutes" line beneath it, panel body is white.
+3. Send a message — your own message renders as a solid green bubble with white text on the right; the "Welcome to Live chat!" message and any other received message render as a cream bubble with dark text on the left.
+4. Input field and send button now use the cream/coral palette instead of gray/teal.
+5. No GraphQL/Apollo/React state, socket, or handler logic touched — confirm by diffing that only CSS color/background/typography values changed inside `.chatting`.
