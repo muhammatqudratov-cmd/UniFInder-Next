@@ -6,6 +6,7 @@ import { useQuery } from '@apollo/client';
 import { BoardArticleCategory } from '../../enums/board-article.enum';
 import { T } from '../../types/common';
 import { useRouter } from 'next/router';
+import { REACT_APP_API_URL } from '../../config';
 
 const CommunityBoards = () => {
 	const device = useDeviceDetect();
@@ -83,22 +84,29 @@ const CommunityBoards = () => {
 							className="community-card"
 							onClick={() => router.push(`/community/detail?articleCategory=${article.articleCategory}&id=${article._id}`)}
 						>
-							<div className="community-card-tags">
-								<span className={`community-tag ${article.articleCategory === BoardArticleCategory.NEWS ? 'community-tag-news' : 'community-tag-free'}`}>
-									{article.articleCategory}
-								</span>
-								{article.articleViews > 50 && (
-									<span className="community-tag community-tag-hot">HOT</span>
-								)}
-							</div>
-							<div className="community-card-row">
-								<span className="community-card-num">{String(index + 1).padStart(2, '0')}</span>
-								<span className="community-card-title">{article.articleTitle}</span>
-								<span className="community-card-arrow">›</span>
-							</div>
-							<div className="community-card-meta">
-								<span>👁 {article.articleViews}</span>
-								<span>💬 {article.articleComments}</span>
+							<img
+								className="community-card-thumb"
+								src={article.articleImage ? `${REACT_APP_API_URL}/${article.articleImage}` : '/img/community/communityImg.png'}
+								alt=""
+							/>
+							<div className="community-card-content">
+								<div className="community-card-tags">
+									<span className={`community-tag ${article.articleCategory === BoardArticleCategory.NEWS ? 'community-tag-news' : 'community-tag-free'}`}>
+										{article.articleCategory}
+									</span>
+									{article.articleViews > 50 && (
+										<span className="community-tag community-tag-hot">HOT</span>
+									)}
+								</div>
+								<div className="community-card-row">
+									<span className="community-card-num">{String(index + 1).padStart(2, '0')}</span>
+									<span className="community-card-title">{article.articleTitle}</span>
+									<span className="community-card-arrow">›</span>
+								</div>
+								<div className="community-card-meta">
+									<span>👁 {article.articleViews}</span>
+									<span>💬 {article.articleComments}</span>
+								</div>
 							</div>
 						</div>
 					))}

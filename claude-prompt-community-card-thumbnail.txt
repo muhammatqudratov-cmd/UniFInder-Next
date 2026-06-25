@@ -1,0 +1,167 @@
+Context: user picked variant 1 from 3 mockup options shown for the homepage "Community Board" widget cards — add a small square thumbnail image on the left of each card, using the article's existing `articleImage` field (already present on the `BoardArticle` type, just never read by this component), with the rest of the card's design completely untouched (same tags, same "01" number, same title, same eye/comment counts, same chevron, same colors/spacing). Falls back to the same default image path already used by other community card components in this codebase (`/img/community/communityImg.png`) when an article has no image.
+
+Pure JSX restructure (wrap existing children in a new row layout + add one `<img>`) and one CSS addition. No GraphQL/Apollo query, state, or click-handler logic changes — `router.push(...)` on card click stays exactly as is.
+
+## `libs/components/homepage/CommunityBoards.tsx`
+
+Find this exact block (the top of the file, imports):
+
+```tsx
+import React, { useState } from 'react';
+import useDeviceDetect from '../../hooks/useDeviceDetect';
+import { BoardArticle } from '../../types/board-article/board-article';
+import { GET_BOARD_ARTICLES } from '../../../apollo/user/query';
+import { useQuery } from '@apollo/client';
+import { BoardArticleCategory } from '../../enums/board-article.enum';
+import { T } from '../../types/common';
+import { useRouter } from 'next/router';
+```
+
+Replace with:
+
+```tsx
+import React, { useState } from 'react';
+import useDeviceDetect from '../../hooks/useDeviceDetect';
+import { BoardArticle } from '../../types/board-article/board-article';
+import { GET_BOARD_ARTICLES } from '../../../apollo/user/query';
+import { useQuery } from '@apollo/client';
+import { BoardArticleCategory } from '../../enums/board-article.enum';
+import { T } from '../../types/common';
+import { useRouter } from 'next/router';
+import { REACT_APP_API_URL } from '../../config';
+```
+
+(Adds the same `REACT_APP_API_URL` import already used by other community card components, e.g. `libs/components/common/CommunityCard.tsx`, to build the image URL — no other import changes.)
+
+Then find this exact block:
+
+```tsx
+						<div
+							key={article._id}
+							className="community-card"
+							onClick={() => router.push(`/community/detail?articleCategory=${article.articleCategory}&id=${article._id}`)}
+						>
+							<div className="community-card-tags">
+								<span className={`community-tag ${article.articleCategory === BoardArticleCategory.NEWS ? 'community-tag-news' : 'community-tag-free'}`}>
+									{article.articleCategory}
+								</span>
+								{article.articleViews > 50 && (
+									<span className="community-tag community-tag-hot">HOT</span>
+								)}
+							</div>
+							<div className="community-card-row">
+								<span className="community-card-num">{String(index + 1).padStart(2, '0')}</span>
+								<span className="community-card-title">{article.articleTitle}</span>
+								<span className="community-card-arrow">›</span>
+							</div>
+							<div className="community-card-meta">
+								<span>👁 {article.articleViews}</span>
+								<span>💬 {article.articleComments}</span>
+							</div>
+						</div>
+```
+
+Replace with:
+
+```tsx
+						<div
+							key={article._id}
+							className="community-card"
+							onClick={() => router.push(`/community/detail?articleCategory=${article.articleCategory}&id=${article._id}`)}
+						>
+							<img
+								className="community-card-thumb"
+								src={article.articleImage ? `${REACT_APP_API_URL}/${article.articleImage}` : '/img/community/communityImg.png'}
+								alt=""
+							/>
+							<div className="community-card-content">
+								<div className="community-card-tags">
+									<span className={`community-tag ${article.articleCategory === BoardArticleCategory.NEWS ? 'community-tag-news' : 'community-tag-free'}`}>
+										{article.articleCategory}
+									</span>
+									{article.articleViews > 50 && (
+										<span className="community-tag community-tag-hot">HOT</span>
+									)}
+								</div>
+								<div className="community-card-row">
+									<span className="community-card-num">{String(index + 1).padStart(2, '0')}</span>
+									<span className="community-card-title">{article.articleTitle}</span>
+									<span className="community-card-arrow">›</span>
+								</div>
+								<div className="community-card-meta">
+									<span>👁 {article.articleViews}</span>
+									<span>💬 {article.articleComments}</span>
+								</div>
+							</div>
+						</div>
+```
+
+(The existing three children — tags row, title row, meta row — are wrapped unchanged in a new `.community-card-content` column div, and a new thumbnail `<img>` is added as the first child so the card becomes a horizontal row: thumbnail on the left, the exact same content stacked on the right. Image source reuses `article.articleImage`, a field that already exists on the `BoardArticle` type and was simply never rendered before; the fallback path matches the convention already used elsewhere in the codebase. `onClick` and every other prop/handler stay identical.)
+
+## `scss/pc/homepage/homepage.scss`
+
+Find this exact block:
+
+```scss
+.community-card {
+  background: white !important;
+  border: 1.5px solid #EBEBEB !important;
+  border-radius: 18px !important;
+  padding: 20px 24px !important;
+  cursor: pointer !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 10px !important;
+  height: auto !important;
+  min-height: unset !important;
+  max-height: unset !important;
+}
+```
+
+Replace with:
+
+```scss
+.community-card {
+  background: white !important;
+  border: 1.5px solid #EBEBEB !important;
+  border-radius: 18px !important;
+  padding: 16px 20px !important;
+  cursor: pointer !important;
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 16px !important;
+  height: auto !important;
+  min-height: unset !important;
+  max-height: unset !important;
+}
+
+.community-card-thumb {
+  width: 64px !important;
+  height: 64px !important;
+  border-radius: 12px !important;
+  object-fit: cover !important;
+  flex-shrink: 0 !important;
+}
+
+.community-card-content {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 10px !important;
+  flex: 1 !important;
+  min-width: 0 !important;
+}
+```
+
+(`.community-card` becomes a horizontal flex row instead of a column, so the new thumbnail sits beside the content. The new `.community-card-thumb` is a 64×64 rounded-corner square. The new `.community-card-content` wraps the original column layout — same `gap: 10px` as the card had before — so the tags/title/meta rows stack exactly as before, just now to the right of the image.)
+
+Do not change anything else — `.community-card-tags`, `.community-tag*`, `.community-card-row`, `.community-card-num`, `.community-card-title`, `.community-card-arrow`, `.community-card-meta`, `.community-grid`, `.community-header*`, `.community-tabs`, `.community-tab*` all stay exactly as they are. Do not touch any other component or any GraphQL/query/state/handler code.
+
+---
+
+Verify after implementing:
+1. Each Community Board card now shows a small 64×64 rounded thumbnail image on the left, with the tags/number/title/chevron/eye-comment counts stacked to the right exactly as before.
+2. Articles with no `articleImage` show the default `/img/community/communityImg.png` placeholder instead of a broken image.
+3. Clicking anywhere on the card (including the new thumbnail) still navigates to the article detail page exactly as before.
+4. Switching between "News" and "Free Board" tabs still works exactly as before.
+5. No GraphQL/Apollo/React state or handler logic touched — confirm by diffing that only JSX structure (one new `<img>`, one new wrapper `<div>`) and CSS values changed.
