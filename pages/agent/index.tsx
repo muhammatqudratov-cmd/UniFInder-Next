@@ -128,7 +128,7 @@ const AgentList: NextPage = ({ initialInput, ...props }: any) => {
 		}
 	};
 
-	if (getAgentsLoading) return <p>Loading agents...</p>;
+	if (getAgentsLoading && agents.length === 0) return <p>Loading agents...</p>;
 
 	if (device === 'mobile') {
 		return <h1>AGENTS PAGE MOBILE</h1>;

@@ -1,0 +1,66 @@
+Context: this is a backend (GraphQL server / NestJS resolver-service layer) bug, confirmed by inspecting the actual GraphQL response in the browser. This is NOT a frontend bug — the frontend (Next.js) code is correct and unchanged.
+
+## Confirmed symptom (exact data observed)
+
+On the Agents list page, clicking the like (heart) button on an agent card:
+1. Correctly fires the `LikeTargetMember` mutation.
+2. Correctly increments `memberLikes` (confirmed via Network tab: `memberLikes: 2` after liking).
+3. But the subsequent `GetAgents` query response always returns `"meLiked": null` for every member in the list — even immediately after liking one of them as the currently logged-in user.
+
+Actual captured response from `getAgents`:
+```json
+{
+  "_id": "6a27ea3fbd735537e2caa7e1",
+  "memberNick": "mukhammed",
+  "memberLikes": 2,
+  "meLiked": null
+}
+```
+
+Expected (matching how `getUniversities` already works correctly for the same logged-in user):
+```json
+{
+  "_id": "6a27ea3fbd735537e2caa7e1",
+  "memberNick": "mukhammed",
+  "memberLikes": 2,
+  "meLiked": [
+    { "memberId": "<currently logged-in user's _id>", "likeRefId": "6a27ea3fbd735537e2caa7e1", "myFavorite": true }
+  ]
+}
+```
+
+## Why this breaks the UI
+
+The frontend (`AgentCard.tsx`) renders the liked (coral/filled) heart icon only when:
+```tsx
+agent?.meLiked && agent?.meLiked[0]?.myFavorite
+```
+This is the exact same pattern used by `UniversityCard.tsx` for universities, which works correctly because `getUniversities`'s resolver populates `meLiked` for the current user. Since `getAgents`'s resolver always returns `meLiked: null` regardless of whether the current user has liked that member, the frontend can never show the liked state — this is purely a missing/broken backend computation, not a frontend or CSS issue.
+
+## What to fix
+
+Find the GraphQL resolver/service that implements `getAgents` (likely a `MemberResolver`/`MemberService`, e.g. something like `getAgents()` in a member resolver or service file) and find the resolver/service that implements `getUniversities` (likely `UniversityResolver`/`UniversityService`), which DOES correctly compute `meLiked`.
+
+In the working `getUniversities` implementation, locate how it attaches `meLiked` to each item in the returned list — this is typically done by:
+1. Taking the authenticated member's `_id` from the request context (`memberId`).
+2. Querying the `Like` collection/table for documents where `memberId` = current user and `likeRefId` is in the list of returned university `_id`s (often filtered additionally by a `likeGroup`/`likeRefType` discriminator such as `LikeGroup.MEMBER` vs `LikeGroup.UNIVERSITY` or similar enum used elsewhere in this codebase).
+3. Mapping each returned university to include a `meLiked` array containing the matching `Like` document (or an empty array if none found) — NOT `null`.
+
+Apply the exact same lookup/attachment logic to `getAgents`'s resolver/service, using the appropriate like-group/ref-type value for members/agents (check how `likeTargetMember`'s mutation creates its `Like` documents — it should already be tagging them with a member-specific group/type; reuse that same value when querying `meLiked` back out in `getAgents`).
+
+Do not change:
+- The `LikeTargetMember` mutation itself (it already correctly creates the Like record and increments `memberLikes` — confirmed working).
+- The `getUniversities` resolver/service (it's the correct reference implementation — copy its pattern, don't modify it).
+- Any GraphQL schema field names (`meLiked`, `memberId`, `likeRefId`, `myFavorite` must stay exactly as-is — the frontend query already expects this exact shape).
+- Any frontend code.
+
+The fix should result in `getAgents` returning `meLiked` as an array (empty `[]` if the current user hasn't liked that agent, or containing one object with `myFavorite: true` if they have) instead of `null`, exactly mirroring `getUniversities`'s behavior.
+
+---
+
+Verify after implementing:
+1. Call `getAgents` as a logged-in user who has NOT liked any listed agent — every item's `meLiked` is `[]` (not `null`).
+2. Like one agent via `likeTargetMember`, then call `getAgents` again (or let the frontend refetch) — that agent's `meLiked` is now `[{ memberId: <your id>, likeRefId: <agent id>, myFavorite: true }]`.
+3. On the Agents list page in the browser, the heart icon now turns coral/filled immediately after liking, and reverts to gray/outline after unliking — matching the existing working behavior on `/university`.
+4. Liking/unliking universities is completely unaffected (its resolver/service was not modified).
+5. `memberLikes`/`memberViews` counters still increment exactly as before.

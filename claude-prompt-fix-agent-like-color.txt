@@ -1,0 +1,106 @@
+Context: visual bug, not a design change. On the Agents list page (`/agent`), clicking the like (heart) button on an `AgentCard` never turns the icon red/coral — it stays gray even when `agent?.meLiked[0]?.myFavorite` is true. The same broken pattern also exists on `UniversityBigCard` (used on the agent detail page's "Listed Universities" section).
+
+Root cause, confirmed in `scss/pc/general.scss`: a plain `svg { color: #8e8c83; }` rule and the `.MuiSvgIcon-colorPrimary { color: #e8856a; }` override rule are both written as direct children of `.buttons`, giving them CSS specificity of `(0,1,1)` and `(0,1,0)` respectively. Because `.buttons svg` is MORE specific than `.MuiSvgIcon-colorPrimary` alone, the gray color always wins — the coral override class MUI applies when `color="primary"` is set on the liked `FavoriteIcon` (in `AgentCard.tsx` / `UniversityBigCard`) never actually takes effect. This is purely a CSS specificity bug; the React logic that decides when to render `<FavoriteIcon color="primary" />` vs `<FavoriteBorderIcon />` is correct and untouched.
+
+This is different from `scss/pc/university/university.scss` and `scss/pc/mypage/myFavorites.scss`, where the equivalent `.buttons svg { ... }` rule never sets a competing `color`, so MUI's own `color="primary"` class is free to apply — that's why liking works correctly on those cards.
+
+Fix, CSS-only, two occurrences in the same file — no JSX, no component logic, no other selector touched:
+
+## `scss/pc/general.scss`
+
+1. Find (inside `.university-big-card-box .bott .buttons`):
+
+```scss
+			.buttons {
+				width: auto;
+				height: auto;
+				display: flex;
+				flex-direction: row;
+				align-items: center;
+				gap: 7px;
+				color: #8e8c83;
+				svg {
+					width: 18px;
+					height: 18px;
+					cursor: pointer;
+					color: #8e8c83;
+				}
+				.MuiSvgIcon-colorPrimary {
+					color: #e8856a;
+				}
+```
+
+Replace with:
+
+```scss
+			.buttons {
+				width: auto;
+				height: auto;
+				display: flex;
+				flex-direction: row;
+				align-items: center;
+				gap: 7px;
+				color: #8e8c83;
+				svg {
+					width: 18px;
+					height: 18px;
+					cursor: pointer;
+					color: #8e8c83;
+					&.MuiSvgIcon-colorPrimary {
+						color: #e8856a;
+					}
+				}
+```
+
+2. Find (inside `.agent-general-card .agent-desc .buttons`):
+
+```scss
+			.buttons {
+				width: auto;
+				display: flex;
+				flex-direction: row;
+				justify-content: center;
+				align-items: center;
+				svg {
+					width: 18px;
+					height: 18px;
+					cursor: pointer;
+					color: #8e8c83;
+				}
+				.MuiSvgIcon-colorPrimary {
+					color: #e8856a;
+				}
+```
+
+Replace with:
+
+```scss
+			.buttons {
+				width: auto;
+				display: flex;
+				flex-direction: row;
+				justify-content: center;
+				align-items: center;
+				svg {
+					width: 18px;
+					height: 18px;
+					cursor: pointer;
+					color: #8e8c83;
+					&.MuiSvgIcon-colorPrimary {
+						color: #e8856a;
+					}
+				}
+```
+
+What this does: nesting `.MuiSvgIcon-colorPrimary` as `&.MuiSvgIcon-colorPrimary` inside the `svg` block compiles to `svg.MuiSvgIcon-colorPrimary`, which has specificity `(0,2,1)` — now guaranteed higher than the plain `svg` rule's `(0,1,1)` no matter the source order, so the coral color always wins once the icon actually has MUI's `colorPrimary` class (i.e. once the agent/university is liked).
+
+Do not change anything else — no other file, no other selector, no JSX, no handler, no query/mutation.
+
+---
+
+Verify after implementing:
+1. On the Agents list page (`/agent`), clicking the heart icon on an agent card now turns it red/coral immediately (after the like mutation + refetch completes), matching the like-count increment.
+2. Clicking it again (unlike) returns the icon to gray, exactly as the like state toggles.
+3. The eye icon and view count next to it are visually unchanged.
+4. On the agent detail page, the "Listed Universities" cards (`UniversityBigCard`) show the same correct red-on-like / gray-on-unlike behavior for their heart icon.
+5. No other card type (My Favorites, university search results) changes appearance — they were already correct and are untouched by this fix.

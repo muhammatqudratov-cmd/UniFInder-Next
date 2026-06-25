@@ -1,0 +1,35 @@
+Context: visual/structural bug, minimal scoped fix — not a GraphQL/data logic change. On the Agents list page (`/agent`), clicking the like (heart) button causes the entire page to flash: the whole layout disappears and is replaced by a bare loading line, then reappears a moment later.
+
+Root cause, confirmed in `pages/agent/index.tsx`:
+
+```tsx
+if (getAgentsLoading) return <p>Loading agents...</p>;
+```
+
+`getAgentsLoading` comes from the `GET_AGENTS` query with `notifyOnNetworkStatusChange: true` — this means `loading` flips to `true` not just on the very first page load, but on EVERY subsequent network request for this query, including the `getAgentsRefetch({ input: searchFilter })` call inside `likeMemberHandler` (used after every like/unlike). Because the early-return guard checks `getAgentsLoading` unconditionally, every like click causes the whole page (header, search bar, both agent cards) to briefly unmount and get replaced by the bare `<p>Loading agents...</p>` line, then unmount again back to the full page once the refetch resolves — this is the flashing/"reload" effect.
+
+## `pages/agent/index.tsx`
+
+Find:
+
+```tsx
+	if (getAgentsLoading) return <p>Loading agents...</p>;
+```
+
+Replace with:
+
+```tsx
+	if (getAgentsLoading && agents.length === 0) return <p>Loading agents...</p>;
+```
+
+What this does: the loading placeholder still shows on the genuine first load (when `agents` is still its initial empty array), but on any later refetch — triggered by liking, searching, sorting, or paginating — the page keeps rendering the already-loaded `agents` list instead of unmounting to a bare loading line. Once the refetch's `onCompleted` callback runs (`setAgents(data?.getAgents?.list)`), the list updates in place with the new like state, with no full-page flash.
+
+Do not change anything else: no GraphQL query/mutation, no `onCompleted` logic, no `likeMemberHandler`, no other condition, no other file.
+
+---
+
+Verify after implementing:
+1. On `/agent`, the very first time the page loads (e.g. a hard refresh), "Loading agents..." still appears briefly before the agent cards render.
+2. After the cards are showing, clicking a heart icon to like/unlike no longer makes the page flash or go blank — the card grid stays visible the whole time, and the heart icon + like count update in place once the refetch completes.
+3. Searching, sorting, and paginating on this page still work and still update the list correctly — only the full-page flash on every refetch is gone.
+4. No other page or component is affected.
