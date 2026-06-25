@@ -82,57 +82,91 @@ html, body, #__next {
 	&:has(.swal2-icon.swal2-question)::before {
 		background: #1c1b18;
 	}
-}
-.swal2-icon {
-	position: absolute !important;
-	top: 24px !important;
-	left: 24px !important;
-	width: 38px !important;
-	height: 38px !important;
-	min-width: 38px !important;
-	margin: 0 !important;
-	border: none !important;
-	border-radius: 10px !important;
-	display: flex !important;
-	align-items: center !important;
-	justify-content: center !important;
-	animation: none !important;
-	transform: none !important;
-	&::before,
-	&::after {
-		content: none !important;
-	}
-	.swal2-success-ring,
-	.swal2-success-fix,
-	[class^='swal2-success-line'],
-	[class^='swal2-x-mark-line'] {
-		display: none !important;
-	}
-	&.swal2-error {
-		background: rgba(232, 133, 106, 0.12) !important;
+	.swal2-icon {
+		position: absolute !important;
+		top: 24px !important;
+		left: 24px !important;
+		right: auto !important;
+		width: 38px !important;
+		height: 38px !important;
+		min-width: 38px !important;
+		margin: 0 !important;
+		border: none !important;
+		border-radius: 10px !important;
+		display: flex !important;
+		align-items: center !important;
+		justify-content: center !important;
+		animation: none !important;
+		transform: none !important;
+		&::before,
 		&::after {
-			content: '\2715' !important;
-			font-size: 20px;
-			font-weight: 700;
-			color: #1c1b18;
+			content: none !important;
 		}
-	}
-	&.swal2-success {
-		background: rgba(90, 138, 82, 0.12) !important;
-		&::after {
-			content: '\2713' !important;
-			font-size: 21px;
-			font-weight: 700;
-			color: #1c1b18;
+		.swal2-success-ring,
+		.swal2-success-fix,
+		[class^='swal2-success-line'],
+		[class^='swal2-success-circular-line'],
+		[class^='swal2-x-mark-line'] {
+			display: none !important;
 		}
-	}
-	&.swal2-question {
-		background: #f5f3ef !important;
-		&::after {
-			content: '?' !important;
-			font-size: 20px;
-			font-weight: 700;
-			color: #1c1b18;
+		&.swal2-error {
+			background: transparent !important;
+			border: 1.5px solid #f0997b !important;
+			&::before,
+			&::after {
+				content: '' !important;
+				position: absolute !important;
+				top: 50% !important;
+				left: 50% !important;
+				width: 13px !important;
+				height: 2px !important;
+				border-radius: 1px !important;
+				background: #d85a30 !important;
+			}
+			&::before {
+				transform: translate(-50%, -50%) rotate(45deg) !important;
+			}
+			&::after {
+				transform: translate(-50%, -50%) rotate(-45deg) !important;
+			}
+		}
+		&.swal2-success {
+			background: transparent !important;
+			border: 1.5px solid #97c459 !important;
+			&::before {
+				content: '' !important;
+				position: absolute !important;
+				width: 7px !important;
+				height: 2px !important;
+				border-radius: 1px !important;
+				background: #3b6d11 !important;
+				top: 53% !important;
+				left: 32% !important;
+				transform: translate(-50%, -50%) rotate(45deg) !important;
+			}
+			&::after {
+				content: '' !important;
+				position: absolute !important;
+				width: 14px !important;
+				height: 2px !important;
+				border-radius: 1px !important;
+				background: #3b6d11 !important;
+				top: 46% !important;
+				left: 56% !important;
+				transform: translate(-50%, -50%) rotate(-45deg) !important;
+			}
+		}
+		&.swal2-question {
+			background: transparent !important;
+			border: 1.5px solid #d3d1c7 !important;
+			&::after {
+				content: '?' !important;
+				font-family: Arial, Helvetica, sans-serif !important;
+				font-size: 19px;
+				font-weight: 700;
+				line-height: 1 !important;
+				color: #5f5e5a;
+			}
 		}
 	}
 }
@@ -201,6 +235,32 @@ html, body, #__next {
 	.swal2-title {
 		margin: 0 !important;
 		font-size: 12.5px !important;
+	}
+	&:has(.swal2-icon.swal2-success) {
+		background: #eaf3de !important;
+		.swal2-icon.swal2-success {
+			background: #5a8a52 !important;
+			border: none !important;
+			border-radius: 50% !important;
+			&::before {
+				width: 4px !important;
+				height: 1.5px !important;
+				background: #fff !important;
+				top: 56% !important;
+				left: 38% !important;
+			}
+			&::after {
+				width: 8px !important;
+				height: 1.5px !important;
+				background: #fff !important;
+				top: 44% !important;
+				left: 60% !important;
+			}
+		}
+		.swal2-title {
+			color: #27500a !important;
+			font-weight: 600 !important;
+		}
 	}
 }
 

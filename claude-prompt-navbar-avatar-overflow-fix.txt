@@ -1,0 +1,40 @@
+Context: in the rounded navbar pill (`.navbar-main.transparent`, `border-radius: 999px`), the user's profile picture sits flush against the pill's right edge with no inner clearance, so the circular avatar visually clips/sticks out past the pill's curved corner. Root cause: `.user-box` (the flex container holding the avatar, right-aligned via `justify-content: flex-end`) has no right-side padding, so the 34px avatar touches the container's right boundary exactly where the pill's curve is sharpest.
+
+Pure CSS, one rule. No JSX, no component logic, no `Top.tsx` changes, no GraphQL/Apollo/state changes.
+
+## `scss/pc/main.scss`
+
+Find this exact block:
+
+```scss
+.user-box {
+	width: 270px;
+	display: flex;
+	flex-direction: row;
+	justify-content: flex-end;
+}
+```
+
+Replace with:
+
+```scss
+.user-box {
+	width: 270px;
+	display: flex;
+	flex-direction: row;
+	justify-content: flex-end;
+	padding-right: 14px;
+}
+```
+
+(Adds inner right-side clearance so the avatar sits inside the pill's curve instead of touching its edge. Only `.user-box` changes — the logo/left side of the navbar, `.container`, and the pill's own border-radius/background are untouched.)
+
+Do not change anything else in `scss/pc/main.scss` or `Top.tsx` — avatar size, border, and click handler stay exactly as they are.
+
+---
+
+Verify after implementing:
+1. Load any page with the navbar — the profile avatar (circle) now sits fully inside the rounded pill with a small visible gap from the right edge, no longer touching/clipping past the curve, in both the default and scrolled (`scrolled-nav`/`transparent`) states.
+2. Confirm the logo and other left-side navbar items are unaffected (unchanged position).
+3. Click the avatar — the logout dropdown still opens correctly (click handler untouched, only spacing changed).
+4. No GraphQL/Apollo/React state or handler logic touched — confirm by diffing that only `padding-right: 14px;` was added to `.user-box`.

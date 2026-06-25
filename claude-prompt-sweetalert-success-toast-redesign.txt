@@ -1,0 +1,95 @@
+Context: the small top-end toast notification shown when a user presses "like" (fired by `sweetTopSmallSuccessAlert` in `libs/sweetAlert.ts`, which uses SweetAlert2's `toast: true` mode) currently relies entirely on the generic `.swal2-toast` rule plus the inherited base `.swal2-popup`/`.swal2-title`/`.swal2-icon` styling. User wants a completely different, dedicated design for this success toast specifically (not a small tweak): a soft green-tinted card with a solid green circular icon (white checkmark) and dark-green bold title text, scoped only to the success variant of the toast so error/question toasts (if ever shown as toasts) are untouched.
+
+Pure CSS, scoped to `.swal2-toast` only. No JSX, no `libs/sweetAlert.ts`, no call-site logic changes. The existing modal/popup icon styling (error/success/question squares from earlier prompts) is untouched — this only adds a toast-specific override that wins by appearing later in the same specificity tier.
+
+## `scss/app.scss`
+
+Find this exact block:
+
+```scss
+.swal2-toast {
+	border-radius: 12px !important;
+	padding: 12px 18px !important;
+	font-family: $font !important;
+	font-size: 13px !important;
+	box-shadow: 0 8px 24px rgba(28, 27, 24, 0.12) !important;
+	&::before {
+		content: none !important;
+	}
+	.swal2-icon {
+		position: static !important;
+		width: 20px !important;
+		height: 20px !important;
+		min-width: 20px !important;
+		margin: 0 10px 0 0 !important;
+	}
+	.swal2-title {
+		margin: 0 !important;
+		font-size: 12.5px !important;
+	}
+}
+```
+
+Replace with:
+
+```scss
+.swal2-toast {
+	border-radius: 12px !important;
+	padding: 12px 18px !important;
+	font-family: $font !important;
+	font-size: 13px !important;
+	box-shadow: 0 8px 24px rgba(28, 27, 24, 0.12) !important;
+	&::before {
+		content: none !important;
+	}
+	.swal2-icon {
+		position: static !important;
+		width: 20px !important;
+		height: 20px !important;
+		min-width: 20px !important;
+		margin: 0 10px 0 0 !important;
+	}
+	.swal2-title {
+		margin: 0 !important;
+		font-size: 12.5px !important;
+	}
+	&:has(.swal2-icon.swal2-success) {
+		background: #eaf3de !important;
+		.swal2-icon.swal2-success {
+			background: #5a8a52 !important;
+			border: none !important;
+			border-radius: 50% !important;
+			&::before {
+				width: 4px !important;
+				height: 1.5px !important;
+				background: #fff !important;
+				top: 56% !important;
+				left: 38% !important;
+			}
+			&::after {
+				width: 8px !important;
+				height: 1.5px !important;
+				background: #fff !important;
+				top: 44% !important;
+				left: 60% !important;
+			}
+		}
+		.swal2-title {
+			color: #27500a !important;
+			font-weight: 600 !important;
+		}
+	}
+}
+```
+
+(`&:has(.swal2-icon.swal2-success)` scopes the green tint to success toasts only, leaving error/question toasts on the plain white background. The icon becomes a solid green filled circle (instead of the modal's transparent-outline square) with a smaller white checkmark sized for the 20px toast badge; `top`/`left` percentages for the two checkmark bars are visual-construction estimates — flag to the user that the checkmark's exact tilt may need a small nudge once seen live. The title text turns dark green and bold for stronger contrast against the tinted background.)
+
+Do not change anything else in `app.scss` — the modal/popup icon styling (`.swal2-popup .swal2-icon.swal2-error/.swal2-success/.swal2-question`), title, buttons, and accent bar rules from previous prompts stay exactly as they are. Do not touch `libs/sweetAlert.ts` or any `.tsx` call site — `sweetTopSmallSuccessAlert`'s call signature, timer, and `enable_forward` reload logic must remain untouched.
+
+---
+
+Verify after implementing:
+1. Press "like" on a university — the toast that appears now has a soft green-tinted background (not plain white), a solid green circular icon with a white checkmark, and bold dark-green title text that's clearly visible (no white-on-white spilling).
+2. Trigger any error/question toast (if applicable elsewhere) — confirm those stay on a plain white background, unaffected by this change.
+3. Trigger a full modal error/success/question alert (not a toast) — confirm those still show the transparent-outline square icons from the previous prompts, unchanged.
+4. No GraphQL/Apollo/React state or handler logic touched — confirm by diffing that only the `.swal2-toast` block changed, and `sweetTopSmallSuccessAlert` in `libs/sweetAlert.ts` is untouched.

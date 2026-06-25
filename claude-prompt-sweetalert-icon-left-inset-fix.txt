@@ -1,0 +1,202 @@
+Context: follow-up fix to the SweetAlert2 theme in `scss/app.scss`. User confirmed the icon badge is sitting right up against / touching the popup card's left edge, instead of staying inset 24px like the rest of the layout (title margin, popup padding) assumes.
+
+Root cause: our `.swal2-icon { ... left: 24px !important; ... }` rule is a bare `.swal2-icon` selector with specificity (0,1,0). SweetAlert2 injects its own default stylesheet into the page at runtime — the same mechanism that earlier caused the top accent bar's `overflow: hidden` to lose a cascade tie. If SweetAlert2's own bundled `.swal2-icon` positioning rules happen to load after ours and tie on specificity for a given property, theirs can win regardless of our `!important` (ties between two `!important` declarations are broken by source order, and their runtime-injected stylesheet loads after our compiled CSS). The robust fix already established in this codebase for this exact failure mode is to stop relying on the cascade race: raise our rule's specificity so it wins unconditionally. Moving the `.swal2-icon` rule to be nested inside `.swal2-popup` (making the compiled selector `.swal2-popup .swal2-icon`, specificity 0,2,0) makes it outrank any bare `.swal2-icon` rule from SweetAlert2's own stylesheet regardless of load order.
+
+Pure CSS restructuring — the rule moves location and its selector becomes a descendant selector, but every property and value inside stays identical. No JSX, no `libs/sweetAlert.ts`, no call-site logic changes.
+
+## `scss/app.scss`
+
+Find this exact block (note: `.swal2-icon` currently sits as its own top-level rule, directly after the closing `}` of `.swal2-popup`):
+
+```scss
+.swal2-popup {
+	position: relative !important;
+	overflow: hidden !important;
+	border-radius: 18px !important;
+	padding: 26px 24px 22px !important;
+	background: #fff !important;
+	box-shadow: 0 16px 40px rgba(28, 27, 24, 0.2) !important;
+	border: none !important;
+	font-family: $font !important;
+	text-align: left !important;
+	&::before {
+		content: '';
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		height: 4px;
+		border-radius: 18px 18px 0 0;
+		background: #1c1b18;
+	}
+	&:has(.swal2-icon.swal2-error)::before {
+		background: #e8856a;
+	}
+	&:has(.swal2-icon.swal2-success)::before {
+		background: #5a8a52;
+	}
+	&:has(.swal2-icon.swal2-question)::before {
+		background: #1c1b18;
+	}
+}
+.swal2-icon {
+	position: absolute !important;
+	top: 24px !important;
+	left: 24px !important;
+	width: 38px !important;
+	height: 38px !important;
+	min-width: 38px !important;
+	margin: 0 !important;
+	border: none !important;
+	border-radius: 10px !important;
+	display: flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	animation: none !important;
+	transform: none !important;
+	&::before,
+	&::after {
+		content: none !important;
+	}
+	.swal2-success-ring,
+	.swal2-success-fix,
+	[class^='swal2-success-line'],
+	[class^='swal2-x-mark-line'] {
+		display: none !important;
+	}
+	&.swal2-error {
+		background: transparent !important;
+		border: 1.5px solid #f0997b !important;
+		&::after {
+			content: '\2715' !important;
+			font-size: 20px;
+			font-weight: 700;
+			color: #d85a30;
+		}
+	}
+	&.swal2-success {
+		background: transparent !important;
+		border: 1.5px solid #97c459 !important;
+		&::after {
+			content: '\2713' !important;
+			font-size: 21px;
+			font-weight: 700;
+			color: #3b6d11;
+		}
+	}
+	&.swal2-question {
+		background: transparent !important;
+		border: 1.5px solid #d3d1c7 !important;
+		&::after {
+			content: '?' !important;
+			font-size: 20px;
+			font-weight: 700;
+			color: #5f5e5a;
+		}
+	}
+}
+```
+
+Replace with:
+
+```scss
+.swal2-popup {
+	position: relative !important;
+	overflow: hidden !important;
+	border-radius: 18px !important;
+	padding: 26px 24px 22px !important;
+	background: #fff !important;
+	box-shadow: 0 16px 40px rgba(28, 27, 24, 0.2) !important;
+	border: none !important;
+	font-family: $font !important;
+	text-align: left !important;
+	&::before {
+		content: '';
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		height: 4px;
+		border-radius: 18px 18px 0 0;
+		background: #1c1b18;
+	}
+	&:has(.swal2-icon.swal2-error)::before {
+		background: #e8856a;
+	}
+	&:has(.swal2-icon.swal2-success)::before {
+		background: #5a8a52;
+	}
+	&:has(.swal2-icon.swal2-question)::before {
+		background: #1c1b18;
+	}
+	.swal2-icon {
+		position: absolute !important;
+		top: 24px !important;
+		left: 24px !important;
+		right: auto !important;
+		width: 38px !important;
+		height: 38px !important;
+		min-width: 38px !important;
+		margin: 0 !important;
+		border: none !important;
+		border-radius: 10px !important;
+		display: flex !important;
+		align-items: center !important;
+		justify-content: center !important;
+		animation: none !important;
+		transform: none !important;
+		&::before,
+		&::after {
+			content: none !important;
+		}
+		.swal2-success-ring,
+		.swal2-success-fix,
+		[class^='swal2-success-line'],
+		[class^='swal2-x-mark-line'] {
+			display: none !important;
+		}
+		&.swal2-error {
+			background: transparent !important;
+			border: 1.5px solid #f0997b !important;
+			&::after {
+				content: '\2715' !important;
+				font-size: 20px;
+				font-weight: 700;
+				color: #d85a30;
+			}
+		}
+		&.swal2-success {
+			background: transparent !important;
+			border: 1.5px solid #97c459 !important;
+			&::after {
+				content: '\2713' !important;
+				font-size: 21px;
+				font-weight: 700;
+				color: #3b6d11;
+			}
+		}
+		&.swal2-question {
+			background: transparent !important;
+			border: 1.5px solid #d3d1c7 !important;
+			&::after {
+				content: '?' !important;
+				font-size: 20px;
+				font-weight: 700;
+				color: #5f5e5a;
+			}
+		}
+	}
+}
+```
+
+(The `.swal2-icon` block is now nested inside `.swal2-popup`, compiling to `.swal2-popup .swal2-icon` — specificity 0,2,0 instead of 0,1,0 — so it always outranks any bare `.swal2-icon` rule SweetAlert2's own runtime-injected stylesheet might apply, regardless of load order. Added `right: auto !important;` defensively in case their stylesheet sets a competing `right` offset that would otherwise pull the badge away from the intended left position.)
+
+Do not change anything else in `app.scss` — every property value is identical to before, only the selector nesting/specificity changed. Do not touch `libs/sweetAlert.ts` or any `.tsx` call site.
+
+---
+
+Verify after implementing:
+1. Trigger an error alert several times in a row — the thin-coral-outline badge sits with a clear, consistent 24px gap from both the card's top and left inner edges every time, never touching or crowding the card's left border.
+2. Same check for a success alert and a confirm dialog.
+3. Badge size, border style, glyph colors, and title/button positions are unchanged from the previous prompt — only the inset consistency is fixed.
+4. No GraphQL/Apollo/React state or handler logic touched — confirm by diffing that only the selector nesting changed (same declarations, now scoped under `.swal2-popup`).

@@ -1,0 +1,83 @@
+Context: user picked variant 3 ("thin-stroke square, no fill") from 4 icon-badge design options shown for the SweetAlert2 alert icon. Only the icon badge's visual treatment changes: instead of a solid tinted-fill background with a dark glyph, the badge becomes a transparent square with a thin (1.5px) colored border and a matching-tone colored glyph. Badge size/position, title text, popup card, accent bar, buttons, and the animation/overflow fix from the previous prompts are all left exactly as they are — this is a color/border swap only, scoped strictly to the `&.swal2-error`, `&.swal2-success`, and `&.swal2-question` sub-rules inside `.swal2-icon`.
+
+Pure CSS, no JSX, no `libs/sweetAlert.ts`, no call-site logic changes.
+
+## `scss/app.scss`
+
+Find this exact block:
+
+```scss
+	&.swal2-error {
+		background: rgba(232, 133, 106, 0.12) !important;
+		&::after {
+			content: '\2715' !important;
+			font-size: 20px;
+			font-weight: 700;
+			color: #1c1b18;
+		}
+	}
+	&.swal2-success {
+		background: rgba(90, 138, 82, 0.12) !important;
+		&::after {
+			content: '\2713' !important;
+			font-size: 21px;
+			font-weight: 700;
+			color: #1c1b18;
+		}
+	}
+	&.swal2-question {
+		background: #f5f3ef !important;
+		&::after {
+			content: '?' !important;
+			font-size: 20px;
+			font-weight: 700;
+			color: #1c1b18;
+		}
+	}
+```
+
+Replace with:
+
+```scss
+	&.swal2-error {
+		background: transparent !important;
+		border: 1.5px solid #f0997b !important;
+		&::after {
+			content: '\2715' !important;
+			font-size: 20px;
+			font-weight: 700;
+			color: #d85a30;
+		}
+	}
+	&.swal2-success {
+		background: transparent !important;
+		border: 1.5px solid #97c459 !important;
+		&::after {
+			content: '\2713' !important;
+			font-size: 21px;
+			font-weight: 700;
+			color: #3b6d11;
+		}
+	}
+	&.swal2-question {
+		background: transparent !important;
+		border: 1.5px solid #d3d1c7 !important;
+		&::after {
+			content: '?' !important;
+			font-size: 20px;
+			font-weight: 700;
+			color: #5f5e5a;
+		}
+	}
+```
+
+Do not change anything else in `app.scss` — badge size/position (`width`, `height`, `top`, `left`, `border-radius`), `animation: none !important;` / `transform: none !important;`, the title/subtitle/buttons/margins, the accent bar, and every other rule from the previous SweetAlert2 prompts stay exactly as they are. Do not touch `libs/sweetAlert.ts` or any `.tsx` call site.
+
+---
+
+Verify after implementing:
+1. Trigger an error alert — the badge is now a transparent square with a thin coral outline and a coral ✕ glyph (no solid pink fill behind it anymore).
+2. Trigger a success alert — transparent square, thin green outline, green ✓ glyph.
+3. Trigger a confirm dialog — transparent square, thin gray outline, gray "?" glyph.
+4. Badge stays fully inside the card on every trigger (the earlier overflow/animation fix is untouched), same size/position as before, title text unchanged.
+5. No GraphQL/Apollo/React state or handler logic touched — confirm by diffing that only the three `&.swal2-error` / `&.swal2-success` / `&.swal2-question` sub-blocks changed.

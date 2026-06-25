@@ -1,0 +1,96 @@
+Context: follow-up fix to the SweetAlert2 icon badge in `scss/app.scss`. Latest screenshot shows the ✕ glyph inside the coral-outlined badge is not visually centered in its box (sits offset, not in the middle).
+
+Root cause: the glyph is drawn via `::after { content: '\2715'; }` (the heavy multi-stroke ✕ character, U+2715) and inherits `font-family: $font` (Poppins, a custom display webfont) from the popup. Poppins' glyph metrics for that specific symbol are not evenly balanced inside its own em-box, and the pseudo-element's default `line-height` (inherited, larger than the glyph itself) adds extra space unevenly above/below the character — so even though the parent badge centers the pseudo-element's box via flexbox, the glyph drawn inside that box still looks off-center. Fix: (1) switch the error glyph to the lighter, more evenly-balanced multiplication-sign character `×` (U+00D7), which standard sans-serif font metrics center far more predictably than the heavy ✕; (2) explicitly set `line-height: 1` and a neutral system sans-serif font on all three glyphs (`::after` for error/success/question) so the pseudo-element's box tightly wraps the character with no extra ascender/descender space, instead of inheriting Poppins' uneven metrics for these specific symbols. The badge's size, border, color, and position are untouched — this only changes how precisely the glyph sits inside the already-correctly-positioned box.
+
+Pure CSS, no JSX, no `libs/sweetAlert.ts`, no call-site logic changes.
+
+## `scss/app.scss`
+
+Find this exact block:
+
+```scss
+		&.swal2-error {
+			background: transparent !important;
+			border: 1.5px solid #f0997b !important;
+			&::after {
+				content: '\2715' !important;
+				font-size: 20px;
+				font-weight: 700;
+				color: #d85a30;
+			}
+		}
+		&.swal2-success {
+			background: transparent !important;
+			border: 1.5px solid #97c459 !important;
+			&::after {
+				content: '\2713' !important;
+				font-size: 21px;
+				font-weight: 700;
+				color: #3b6d11;
+			}
+		}
+		&.swal2-question {
+			background: transparent !important;
+			border: 1.5px solid #d3d1c7 !important;
+			&::after {
+				content: '?' !important;
+				font-size: 20px;
+				font-weight: 700;
+				color: #5f5e5a;
+			}
+		}
+```
+
+Replace with:
+
+```scss
+		&.swal2-error {
+			background: transparent !important;
+			border: 1.5px solid #f0997b !important;
+			&::after {
+				content: '\00d7' !important;
+				font-family: Arial, Helvetica, sans-serif !important;
+				font-size: 24px;
+				font-weight: 700;
+				line-height: 1 !important;
+				color: #d85a30;
+			}
+		}
+		&.swal2-success {
+			background: transparent !important;
+			border: 1.5px solid #97c459 !important;
+			&::after {
+				content: '\2713' !important;
+				font-family: Arial, Helvetica, sans-serif !important;
+				font-size: 19px;
+				font-weight: 700;
+				line-height: 1 !important;
+				color: #3b6d11;
+			}
+		}
+		&.swal2-question {
+			background: transparent !important;
+			border: 1.5px solid #d3d1c7 !important;
+			&::after {
+				content: '?' !important;
+				font-family: Arial, Helvetica, sans-serif !important;
+				font-size: 19px;
+				font-weight: 700;
+				line-height: 1 !important;
+				color: #5f5e5a;
+			}
+		}
+```
+
+(The error glyph switches from the heavy ✕ (U+2715) to the lighter × (U+00D7) for cleaner centering, font-size bumped slightly since × renders visually smaller than ✕ at the same size; the success ✓ and question "?" keep their characters but get `line-height: 1` and the same neutral system font for consistent centering, with font-size nudged down slightly to stay visually balanced against the new × weight.)
+
+Do not change anything else in `app.scss` — badge size/position/border (`width`, `height`, `top`, `left`, `border-radius`, `border` color), and all other rules from the previous prompts stay exactly as they are. Do not touch `libs/sweetAlert.ts` or any `.tsx` call site.
+
+---
+
+Verify after implementing:
+1. Trigger an error alert — the × glyph sits visibly centered both horizontally and vertically inside the coral-outlined badge, with even spacing on all sides.
+2. Trigger a success alert — the ✓ glyph is centered the same way inside the green-outlined badge.
+3. Trigger a confirm dialog — the "?" glyph is centered inside the gray-outlined badge.
+4. Badge size, border thickness/color, position (24px inset from top/left), and title/button layout are all unchanged from before — only the glyph's centering and (for error) character changed.
+5. No GraphQL/Apollo/React state or handler logic touched — confirm by diffing that only the three `::after` sub-rules changed.

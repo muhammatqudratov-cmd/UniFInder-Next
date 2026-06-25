@@ -1,0 +1,40 @@
+Context: root cause finally identified for the recurring "white color spilling/covering" complaint on the success icon (both in the full modal and the "like" toast). SweetAlert2's built-in success icon markup renders several internal helper elements for its default checkmark animation: `.swal2-success-ring`, `.swal2-success-fix`, `.swal2-success-line-tip`, `.swal2-success-line-long`, AND `.swal2-success-circular-line-left` / `.swal2-success-circular-line-right`. Our existing hide rule only matches elements whose class starts with `swal2-success-line` (via `[class^='swal2-success-line']`), which catches `-line-tip` and `-line-long` but NOT `.swal2-success-circular-line-left`/`-right` — those start with `swal2-success-circular-line`, a different prefix, so they were never matched and never hidden. By default these two elements render as solid white half-circles positioned to mask the ring animation — exactly the white shape bleeding over the badge that's been reported. This is the actual fix; the earlier toast background-color and icon-redesign changes were correct but couldn't fix this because the leak was a separate unhidden element, not a background or specificity issue.
+
+Pure CSS, one selector list edit. No JSX, no `libs/sweetAlert.ts`, no call-site logic changes.
+
+## `scss/app.scss`
+
+Find this exact block (inside `.swal2-popup .swal2-icon`):
+
+```scss
+		.swal2-success-ring,
+		.swal2-success-fix,
+		[class^='swal2-success-line'],
+		[class^='swal2-x-mark-line'] {
+			display: none !important;
+		}
+```
+
+Replace with:
+
+```scss
+		.swal2-success-ring,
+		.swal2-success-fix,
+		[class^='swal2-success-line'],
+		[class^='swal2-success-circular-line'],
+		[class^='swal2-x-mark-line'] {
+			display: none !important;
+		}
+```
+
+(Added `[class^='swal2-success-circular-line']` to the hide list, which now also catches `.swal2-success-circular-line-left` and `.swal2-success-circular-line-right` — the two elements that were rendering as unhidden solid-white shapes over the icon badge in both the modal and the toast.)
+
+Do not change anything else in `app.scss` — this is a one-line addition to an existing selector list inside `.swal2-popup .swal2-icon`. Do not touch `libs/sweetAlert.ts` or any `.tsx` call site.
+
+---
+
+Verify after implementing:
+1. Press "like" on a university — the toast's green circular icon now shows cleanly with no white shape bleeding over or around it, and the "Success" title text is fully legible against the tinted background.
+2. Trigger a full success modal — same check: no white shapes over the green icon badge.
+3. Trigger error/question alerts — unaffected (they never had success-only elements to begin with).
+4. No GraphQL/Apollo/React state or handler logic touched — confirm by diffing that only one selector was added to the existing hide-list rule.

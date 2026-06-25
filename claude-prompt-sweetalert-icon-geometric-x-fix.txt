@@ -1,0 +1,98 @@
+Context: the ✕/× glyph inside the error icon badge still isn't visually centered even after switching characters and adding `line-height: 1`. The reason a text-character approach keeps having this problem: any text glyph's rendered position inside its line box depends on the font's internal ascent/descent metrics, which are never perfectly symmetric — no amount of `line-height`/font tuning fully guarantees a text character sits dead-center in a flex-centered box across all renderers. The reliable fix is to stop drawing the X with a text character entirely and draw it with pure geometry instead: two short rotated bars (`::before` and `::after`), each centered with `top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(...)`. This is centered by math, not by font metrics, so it is exact regardless of font or browser. Applying the same geometric approach to the success checkmark for consistency (also currently text-glyph-based). The question mark "?" is left as a text character (no clean 2-bar geometric equivalent), but it already uses the same centering technique as before.
+
+Pure CSS, no JSX, no `libs/sweetAlert.ts`, no call-site logic changes. Badge size/border/position untouched — only how the × and ✓ marks are drawn changes.
+
+## `scss/app.scss`
+
+Find this exact block:
+
+```scss
+		&.swal2-error {
+			background: transparent !important;
+			border: 1.5px solid #f0997b !important;
+			&::after {
+				content: '\00d7' !important;
+				font-family: Arial, Helvetica, sans-serif !important;
+				font-size: 24px;
+				font-weight: 700;
+				line-height: 1 !important;
+				color: #d85a30;
+			}
+		}
+		&.swal2-success {
+			background: transparent !important;
+			border: 1.5px solid #97c459 !important;
+			&::after {
+				content: '\2713' !important;
+				font-family: Arial, Helvetica, sans-serif !important;
+				font-size: 19px;
+				font-weight: 700;
+				line-height: 1 !important;
+				color: #3b6d11;
+			}
+		}
+```
+
+Replace with:
+
+```scss
+		&.swal2-error {
+			background: transparent !important;
+			border: 1.5px solid #f0997b !important;
+			&::before,
+			&::after {
+				content: '' !important;
+				position: absolute !important;
+				top: 50% !important;
+				left: 50% !important;
+				width: 13px !important;
+				height: 2px !important;
+				border-radius: 1px !important;
+				background: #d85a30 !important;
+			}
+			&::before {
+				transform: translate(-50%, -50%) rotate(45deg) !important;
+			}
+			&::after {
+				transform: translate(-50%, -50%) rotate(-45deg) !important;
+			}
+		}
+		&.swal2-success {
+			background: transparent !important;
+			border: 1.5px solid #97c459 !important;
+			&::before {
+				content: '' !important;
+				position: absolute !important;
+				width: 7px !important;
+				height: 2px !important;
+				border-radius: 1px !important;
+				background: #3b6d11 !important;
+				top: 53% !important;
+				left: 32% !important;
+				transform: translate(-50%, -50%) rotate(45deg) !important;
+			}
+			&::after {
+				content: '' !important;
+				position: absolute !important;
+				width: 14px !important;
+				height: 2px !important;
+				border-radius: 1px !important;
+				background: #3b6d11 !important;
+				top: 46% !important;
+				left: 56% !important;
+				transform: translate(-50%, -50%) rotate(-45deg) !important;
+			}
+		}
+```
+
+(Both marks are now drawn with two small rotated bars centered via `top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(...)` — pure geometry, independent of any font's glyph metrics. The success checkmark's two bar positions (`top`/`left` percentages) form the short-then-long tick shape; these are visual-construction values, not measured from any external source — flag to the user that the checkmark's exact tilt/position may need one more small percentage nudge once seen live, same as any hand-built CSS icon.)
+
+Do not change anything else in `app.scss` — badge size, border, position, the question-mark glyph rule, and everything else from the previous prompts stay exactly as they are. Do not touch `libs/sweetAlert.ts` or any `.tsx` call site.
+
+---
+
+Verify after implementing:
+1. Trigger an error alert — the × is now built from two crossing bars, sitting exactly centered in the coral-outlined badge (centered by geometry, not font rendering) at every screen size/zoom level.
+2. Trigger a success alert — the ✓ checkmark (two bars) appears reasonably centered in the green-outlined badge; if the tilt/position looks slightly off, report which direction (up/down/left/right) and the `top`/`left` percentages can be nudged precisely.
+3. Trigger a confirm dialog — the "?" mark is unchanged from before.
+4. Badge size, border, and position are unchanged. No GraphQL/Apollo/React state or handler logic touched — confirm only the `&.swal2-error` and `&.swal2-success` mark-drawing changed.
