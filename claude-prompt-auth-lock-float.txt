@@ -1,0 +1,91 @@
+Context: follow-up on the Login/Signup hero animation. The three small decorative shapes (`.auth-shape-square`, `.auth-shape-circle`, `.auth-shape-dashed`) already animate via `animation: authFloat 4s ease-in-out infinite`. The central lock icon (`.auth-lock-icon`) was never given that animation — confirmed directly in `scss/pc/main.scss`, it only has the static centering `transform: translate(-50%, -50%)` and no `animation` property at all — which is why it looks completely frozen. It can't simply reuse the existing `authFloat` keyframes, because those keyframes set `transform: translateY(...)` directly, which would overwrite (not combine with) the lock icon's `translate(-50%, -50%)` centering and knock it off-center. This adds a dedicated keyframe that keeps the same centering offset at every step while floating it up and down, so the lock now visibly moves like the shapes around it. Pure CSS, no JSX/logic touched.
+
+## `scss/pc/main.scss`
+
+### 1. Add a dedicated keyframe for the lock icon
+
+Find this exact block:
+
+```scss
+	@keyframes authFloat {
+		0%,
+		100% {
+			transform: translateY(0);
+		}
+		50% {
+			transform: translateY(-14px);
+		}
+	}
+```
+
+Replace with:
+
+```scss
+	@keyframes authFloat {
+		0%,
+		100% {
+			transform: translateY(0);
+		}
+		50% {
+			transform: translateY(-14px);
+		}
+	}
+
+	@keyframes authLockFloat {
+		0%,
+		100% {
+			transform: translate(-50%, -50%);
+		}
+		50% {
+			transform: translate(-50%, calc(-50% - 14px));
+		}
+	}
+```
+
+### 2. Apply it to `.auth-lock-icon`
+
+Find this exact block:
+
+```scss
+					.auth-lock-icon {
+						position: absolute;
+						top: 50%;
+						left: 50%;
+						transform: translate(-50%, -50%);
+						width: 96px;
+						height: 96px;
+						border-radius: 28px;
+						background: linear-gradient(135deg, #e8856a 0%, #d85a30 100%);
+						display: flex;
+						align-items: center;
+						justify-content: center;
+						box-shadow: 0 12px 28px rgba(232, 133, 106, 0.35);
+```
+
+Replace with:
+
+```scss
+					.auth-lock-icon {
+						position: absolute;
+						top: 50%;
+						left: 50%;
+						transform: translate(-50%, -50%);
+						animation: authLockFloat 4s ease-in-out infinite;
+						width: 96px;
+						height: 96px;
+						border-radius: 28px;
+						background: linear-gradient(135deg, #e8856a 0%, #d85a30 100%);
+						display: flex;
+						align-items: center;
+						justify-content: center;
+						box-shadow: 0 12px 28px rgba(232, 133, 106, 0.35);
+```
+
+Do not change anything else — the lock icon's size, colors, shadow, and the three shapes' existing animation stay exactly as they are; no JSX, no other selector, no state/handler logic touched.
+
+---
+
+Verify after implementing:
+1. The coral lock icon in the center of the Login/Signup hero now visibly floats up and down in a continuous loop, staying perfectly horizontally centered the whole time (it should never drift sideways).
+2. The three small shapes around it keep floating exactly as before.
+3. Nothing else on the page (size, color, position, any other hero) changed.

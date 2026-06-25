@@ -1,0 +1,26 @@
+Context: follow-up sizing fix on the just-applied Login/Signup hero redesign. The base `.header-basic` hero is `height: 557px` — and every other page's hero modifier that sets its own height explicitly also uses `557px` (confirmed directly in `scss/pc/main.scss`: the default `.header-basic` block, the `.agent-hero`/marquee hero block, and the Member/Community-Detail-style hero block all use `557px`). The `.auth` modifier (used only by `/account/join`) is currently the only one set to `460px`, making the Login/Signup hero visibly shorter than every other page's hero. This change makes it `557px` to match. Pure CSS, no JSX/logic touched.
+
+## `scss/pc/main.scss`
+
+Find this exact line:
+
+```scss
+		&.auth {
+			height: 460px;
+```
+
+Replace with:
+
+```scss
+		&.auth {
+			height: 557px;
+```
+
+Do not change anything else in this block (the `.auth-hero-container` layout, badges, lock icon, floating shapes, and their animation all stay exactly as already implemented) — no other selector, no JSX, no state/handler logic touched.
+
+---
+
+Verify after implementing:
+1. The Login/Signup page's hero is now the same height (557px) as the hero on University, Agent, My Page, Community, Agent Detail, and Member pages.
+2. The eyebrow pill, heading, paragraph, badges, and the floating lock/shapes graphic on the right still look correctly positioned and aren't cut off or stretched oddly at the new height.
+3. No other page's hero height changed.

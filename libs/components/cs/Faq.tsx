@@ -53,52 +53,52 @@ const Faq = () => {
 			{
 				id: '00f5a45ed8897f8090116a01',
 				subject: 'Are the universities displayed on the site reliable?',
-				content: 'of course we only have verified universities',
+				content: 'Yes, every university listed on our platform is manually verified before it appears on the site.',
 			},
 			{
 				id: '00f5a45ed8897f8090116a22',
 				subject: 'What types of universities do you offer?',
-				content: 'We offer single-family homes, condos, townhouses, apartments, and penthouses',
+				content: 'We list public and private universities, colleges, and graduate schools across a wide range of countries and fields of study.',
 			},
 			{
 				id: '00f5a45ed8897f8090116a21',
 				subject: 'How can I search for universities on your website?',
-				content: 'Simply use our search bar to enter location, price range, bedrooms/bathrooms, and university type.',
+				content: 'Simply use our search bar to filter by location, tuition range, program type, and university ranking.',
 			},
 			{
 				id: '00f5a45ed8897f8090116a23',
-				subject: 'Do you provide assistance for first-time homebuyers?',
-				content: 'Yes, we guide you through the process and help find suitable financing.',
+				subject: 'Do you provide assistance for first-time applicants?',
+				content: 'Yes, we guide you through the application process and help you find suitable scholarship or financial aid options.',
 			},
 			{
 				id: '00f5a45ed8897f8090116a24',
-				subject: 'What should I consider when buying a university?',
-				content: 'Location, condition, size, amenities, and future development plans.',
+				subject: 'What should I consider when choosing a university?',
+				content: 'Location, tuition cost, program reputation, campus facilities, and career outcomes.',
 			},
 			{
 				id: '00f5a45ed8897f8090116a25',
-				subject: 'How long does the home-buying process typically take?',
-				content: 'Usually 3 to 6 days, depending on various factors.',
+				subject: 'How long does the application process typically take?',
+				content: 'Usually a few weeks to a few months, depending on the university and the program.',
 			},
 			{
 				id: '00f5a45ed8897f8090116a29',
-				subject: 'What happens if I encounter issues with the university after purchase?',
-				content: 'We offer post-purchase support to address any concerns promptly.',
+				subject: 'What happens if I encounter issues with a university listing?',
+				content: 'We offer ongoing support to address any concerns about a university listing promptly.',
 			},
 			{
 				id: '00f5a45ed8897f8090116a28',
-				subject: 'Do you offer universities in specific neighborhoods?',
-				content: 'Yes, we have listings in various neighborhoods based on your preferences.',
+				subject: 'Do you offer universities in specific countries or cities?',
+				content: 'Yes, we have listings in various countries and cities based on your preferences.',
 			},
 			{
 				id: '00f5a45ed8897f8090116a27',
-				subject: 'Can I sell my university through your website?',
-				content: 'Absolutely, we provide services for selling universities as well.',
+				subject: 'Can I list my university on your website?',
+				content: 'Yes, university administrators can register and list their institution through our platform.',
 			},
 			{
 				id: '00f5a45ed8897f8090116b99',
-				subject: 'What if I need help understanding legal aspects of university purchase?',
-				content: 'Our team can provide basic guidance and recommend legal professionals if needed.',
+				subject: 'What if I need help understanding the application requirements?',
+				content: 'Our team can provide basic guidance and recommend education consultants if needed.',
 			},
 		],
 		payment: [
@@ -161,62 +161,62 @@ const Faq = () => {
 		buyers: [
 			{
 				id: '00f5a45ed8897f8090116a03',
-				subject: 'What should buyers pay attention to?',
-				content: 'Buyers should check and decide whether the university they want to buy or rent is actually suitable!',
+				subject: 'What should applicants pay attention to?',
+				content: 'Applicants should carefully check a university\'s accreditation, tuition fees, and program details before applying.',
 			},
 			{
 				id: '00f5a45ed8897f8090116a85',
 				subject: 'How can I determine if a university is within my budget?',
 				content:
-					'Calculate your budget by considering your income, down payment, and potential mortgage payments. Our agents can assist you within your budget.',
+					'Calculate your budget by considering tuition, accommodation, and living costs. Our advisors can help you find universities that fit your budget.',
 			},
 			{
 				id: '00f5a45ed8897f8090116a84',
-				subject: 'What documents do I need to provide when purchasing a university?',
+				subject: 'What documents do I need to provide when applying to a university?',
 				content:
-					"You'll typically need identification, proof of income, bank statements, and any necessary loan documentation. Our team will guide you through.",
+					"You'll typically need transcripts, identification, proof of English proficiency, and recommendation letters. Our team will guide you through it.",
 			},
 			{
 				id: '00f5a45ed8897f8090116a83',
-				subject: 'What factors should I consider when choosing a neighborhood?',
+				subject: 'What factors should I consider when choosing a city to study in?',
 				content:
-					'Consider factors such as location, safety, schools, amenities, transportation, and future development plans.',
+					'Consider factors such as cost of living, safety, job opportunities, climate, and proximity to campus.',
 			},
 			{
 				id: '00f5a45ed8897f8090116a82',
-				subject: 'Can I negotiate the price of a university?',
+				subject: 'Can I negotiate the tuition fee of a university?',
 				content:
-					'Yes, you can negotiate the price of a university. Our agents will assist you in making competitive offers and negotiating terms with the seller.',
+					'Some universities offer fee waivers or scholarships. Our advisors can help you explore the available financial aid options.',
 			},
 			{
 				id: '00f5a45ed8897f8090116a81',
-				subject: 'What are some red flags to watch out for when viewing universities?',
+				subject: 'What are some red flags to watch out for when researching universities?',
 				content:
-					'Watch out for signs of structural damage, water damage, mold, outdated systems, and undesirable neighborhood conditions.',
+					'Watch out for unaccredited institutions, unrealistic admission guarantees, and unusually high upfront fees.',
 			},
 			{
 				id: '00f5a45ed8897f8090116a80',
-				subject: 'Do you provide assistance with university inspections?',
+				subject: 'Do you provide assistance with campus visits?',
 				content:
-					'Yes, we can recommend reputable inspectors and accompany you during university inspections to identify any potential issues.',
+					'Yes, we can help arrange virtual or in-person campus tours so you can get a feel for the university before applying.',
 			},
 			{
 				id: '00f5a45ed8897f8090116a79',
 				subject: 'How long does it typically take to find the right university?',
 				content:
-					'The timeframe varies depending on your preferences and market conditions. Our agents will work diligently to find the right university as quickly as possible.',
+					'The timeframe varies depending on your preferences and application deadlines. Our advisors will work diligently to help you find the right university as quickly as possible.',
 			},
 			{
 				id: '00f5a45ed8897f8090116a78',
-				subject: 'What are the advantages of using a real estate agent when buying a university?',
+				subject: 'What are the advantages of using an education consultant when applying to a university?',
 				content:
-					'Real estate agents provide expertise, negotiation skills, and guidance throughout the buying process, ultimately saving you time and hassle.',
+					'Education consultants provide expertise, application guidance, and support throughout the process, ultimately saving you time and hassle.',
 			},
 			{
 				id: '00f5a45ed8897f8090116a77',
-				subject: 'What happens if I change my mind about a university after making an offer?',
+				subject: 'What happens if I change my mind after accepting an admission offer?',
 				content:
-					'Depending on the terms of the offer and the stage of the transaction, you may have options to withdraw your offer.',
+					'Depending on the university\'s policy and the stage of enrollment, you may have options to withdraw your acceptance.',
 			},
 		],
 
@@ -229,28 +229,28 @@ const Faq = () => {
 			},
 			{
 				id: '00f5a45ed8897f8090116a62',
-				subject: 'What qualifications do I need to become a real estate agent?',
-				content: 'Complete pre-licensing course, pass licensing exam, meet state requirements.',
+				subject: 'What qualifications do I need to become a university listing agent?',
+				content: 'Familiarity with the education sector, strong communication skills, and approval from our admin team.',
 			},
 			{
 				id: '00f5a45ed8897f8090116a63',
-				subject: 'How do I find clients as a new real estate agent?',
-				content: 'Build network, use online/offline marketing, join reputable brokerage.',
+				subject: 'How do I find clients as a new listing agent?',
+				content: 'Build your network, promote your listings through our platform, and connect with prospective students and universities.',
 			},
 			{
 				id: '00f5a45ed8897f8090116a64',
-				subject: 'What are some effective marketing strategies for selling universities?',
-				content: 'Use social media, online platforms, networking events, and direct mail.',
+				subject: 'What are some effective marketing strategies for promoting universities?',
+				content: 'Use social media, online platforms, networking events, and education fairs.',
 			},
 			{
 				id: '00f5a45ed8897f8090116a65',
-				subject: 'How do I handle negotiations with buyers and sellers?',
-				content: 'Develop strong negotiation skills, understand market trends, represent client interests.',
+				subject: 'How do I handle communication with universities and applicants?',
+				content: 'Develop strong communication skills, understand applicant needs, and represent the university\'s interests fairly.',
 			},
 			{
 				id: '00f5a45ed8897f8090116a66',
-				subject: 'What should I do to stay updated with market trends and changes?',
-				content: 'Attend industry events, follow real estate news, participate in training.',
+				subject: 'What should I do to stay updated with education trends and changes?',
+				content: 'Attend industry events, follow education news, participate in training.',
 			},
 			{
 				id: '00f5a45ed8897f8090116a67',
@@ -260,18 +260,18 @@ const Faq = () => {
 			},
 			{
 				id: '00f5a45ed8897f8090116a68',
-				subject: 'What tools and technologies should I utilize as a real estate agent?',
-				content: 'Use CRM software, virtual tours, digital marketing tools, and mobile apps.',
+				subject: 'What tools and technologies should I utilize as a listing agent?',
+				content: 'Use our admin dashboard, virtual tour tools, digital marketing tools, and mobile apps.',
 			},
 			{
 				id: '00f5a45ed8897f8090116a69',
-				subject: 'How do I ensure compliance with real estate laws and regulations?',
-				content: 'Stay updated with laws, attend education courses, consult legal professionals.',
+				subject: 'How do I ensure compliance with education regulations?',
+				content: 'Stay updated with accreditation standards, attend relevant training, and consult our admin team when in doubt.',
 			},
 			{
 				id: '00f5a45ed8897f8090116a70',
-				subject: 'What strategies can I use to grow my real estate business?',
-				content: 'Build relationships, provide exceptional service, seek referrals, and continuously improve skills.',
+				subject: 'What strategies can I use to grow my listings on the platform?',
+				content: 'Build relationships with universities, provide accurate information, seek referrals, and continuously improve your listings.',
 			},
 		],
 		membership: [
@@ -461,7 +461,7 @@ const Faq = () => {
 							changeCategoryHandler('buyers');
 						}}
 					>
-						Foy Buyers
+						For Applicants
 					</div>
 					<div
 						className={category === 'agents' ? 'active' : ''}

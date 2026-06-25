@@ -1,0 +1,578 @@
+Context: the actual Login/Signup form (rendered by `pages/account/join.tsx`, below the hero we already redesigned) currently looks nothing like the reference screenshot — it's a wide 1200x900px two-column card with a logo block on the left and a static banner image (`/img/banner/joinBg.svg`) on the right (confirmed directly in `scss/pc/account/join.scss` and the live JSX). The reference shows a single centered "Welcome back" card with a Login/Sign up tab toggle, uppercase field labels, a "Remember me"/"Forgot password?" row, a full-width button, an "or continue with" divider, and one social option below it.
+
+Two explicit instructions from the request: (1) make this page's design consistent with the rest of the site, and (2) the row under "or continue with" should NOT be Google + SSO buttons (those don't exist anywhere in this codebase — they were only in the reference image) — it should instead be the Telegram login option, since this project already has a fully working Telegram OAuth integration wired into this exact page (`<TelegramLoginButton onAuth={handleTelegramAuth} />`, calling the real `TELEGRAM_LOGIN` mutation). That integration is NOT touched — only repositioned/restyled into the new card layout, with a proper "or continue with" divider above it instead of the current empty placeholder `<div>`.
+
+Every piece of state and every handler (`input`, `loginView`, `telegramLogin`, `handleTelegramAuth`, `viewChangeHandler`, `checkUserTypeHandler`, `handleInput`, `doLogin`, `doSignUp`) is preserved exactly. The only additions are two new tab buttons that call the already-existing `viewChangeHandler` (the same function the bottom "Sign up"/"Login" link already calls) — no new state, no new GraphQL, no new business logic.
+
+## `pages/account/join.tsx`
+
+Find this exact block (the entire desktop `return` JSX, from `return (` through its closing `);`):
+
+```tsx
+		return (
+			<Stack className={'join-page'}>
+				<Stack className={'container'}>
+					<Stack className={'main'}>
+						<Stack className={'left'}>
+							{/* @ts-ignore */}
+							<Box className={'logo'}>
+								<img src="/img/logo/logoText.svg" alt="" />
+								<span>UniFinder</span>
+							</Box>
+							<Box className={'info'}>
+								<span>{loginView ? 'login' : 'signup'}</span>
+								<p>{loginView ? 'Login' : 'Sign'} in with this account across the following sites.</p>
+							</Box>
+							<Box className={'input-wrap'}>
+								<div className={'input-box'}>
+									<span>Nickname</span>
+									<input
+										type="text"
+										placeholder={'Enter Nickname'}
+										onChange={(e) => handleInput('nick', e.target.value)}
+										required={true}
+										onKeyDown={(event) => {
+											if (event.key == 'Enter' && loginView) doLogin();
+											if (event.key == 'Enter' && !loginView) doSignUp();
+										}}
+									/>
+								</div>
+								<div className={'input-box'}>
+									<span>Password</span>
+									<input
+										type="text"
+										placeholder={'Enter Password'}
+										onChange={(e) => handleInput('password', e.target.value)}
+										required={true}
+										onKeyDown={(event) => {
+											if (event.key == 'Enter' && loginView) doLogin();
+											if (event.key == 'Enter' && !loginView) doSignUp();
+										}}
+									/>
+								</div>
+								{!loginView && (
+									<div className={'input-box'}>
+										<span>Phone</span>
+										<input
+											type="text"
+											placeholder={'Enter Phone'}
+											onChange={(e) => handleInput('phone', e.target.value)}
+											required={true}
+											onKeyDown={(event) => {
+												if (event.key == 'Enter') doSignUp();
+											}}
+										/>
+									</div>
+								)}
+							</Box>
+							<Box className={'register'}>
+								{!loginView && (
+									<div className={'type-option'}>
+										<span className={'text'}>I want to be registered as:</span>
+										<div>
+											<FormGroup>
+												<FormControlLabel
+													control={
+														<Checkbox
+															size="small"
+															name={'USER'}
+															onChange={checkUserTypeHandler}
+															checked={input?.type == 'USER'}
+														/>
+													}
+													label="User"
+												/>
+											</FormGroup>
+											<FormGroup>
+												<FormControlLabel
+													control={
+														<Checkbox
+															size="small"
+															name={'AGENT'}
+															onChange={checkUserTypeHandler}
+															checked={input?.type == 'AGENT'}
+														/>
+													}
+													label="Agent"
+												/>
+											</FormGroup>
+										</div>
+									</div>
+								)}
+
+								{loginView && (
+									<div className={'remember-info'}>
+										<FormGroup>
+											<FormControlLabel control={<Checkbox defaultChecked size="small" />} label="Remember me" />
+										</FormGroup>
+										<a>Lost your password?</a>
+									</div>
+								)}
+
+								{loginView ? (
+									<Button
+										variant="contained"
+										endIcon={<img src="/img/icons/rightup.svg" alt="" />}
+										disabled={input.nick == '' || input.password == ''}
+										onClick={doLogin}
+									>
+										LOGIN
+									</Button>
+								) : (
+									<Button
+										variant="contained"
+										disabled={input.nick == '' || input.password == '' || input.phone == '' || input.type == ''}
+										onClick={doSignUp}
+										endIcon={<img src="/img/icons/rightup.svg" alt="" />}
+									>
+										SIGNUP
+									</Button>
+								)}
+								{loginView && (
+									<>
+										<div style={{ textAlign: 'center', margin: '16px 0', color: '#999' }}></div>
+										<TelegramLoginButton onAuth={handleTelegramAuth} />
+									</>
+								)}
+							</Box>
+							<Box className={'ask-info'}>
+								{loginView ? (
+									<p>
+										Not registered yet?
+										<b
+											onClick={() => {
+												viewChangeHandler(false);
+											}}
+										>
+											SIGNUP
+										</b>
+									</p>
+								) : (
+									<p>
+										Have account?
+										<b onClick={() => viewChangeHandler(true)}> LOGIN</b>
+									</p>
+								)}
+							</Box>
+						</Stack>
+						<Stack className={'right'}></Stack>
+					</Stack>
+				</Stack>
+			</Stack>
+		);
+```
+
+Replace with:
+
+```tsx
+		return (
+			<Stack className={'join-page'}>
+				<Stack className={'login-card'}>
+					<Stack className={'card-header'}>
+						<strong>{loginView ? 'Welcome back' : 'Create your account'}</strong>
+						<span>{loginView ? 'Sign in to continue across UniFinder.' : 'Sign up to get started with UniFinder.'}</span>
+					</Stack>
+
+					<Stack className={'view-tabs'}>
+						<button
+							type={'button'}
+							className={`view-tab ${loginView ? 'active' : ''}`}
+							onClick={() => viewChangeHandler(true)}
+						>
+							Login
+						</button>
+						<button
+							type={'button'}
+							className={`view-tab ${!loginView ? 'active' : ''}`}
+							onClick={() => viewChangeHandler(false)}
+						>
+							Sign up
+						</button>
+					</Stack>
+
+					<Box className={'input-wrap'}>
+						<div className={'input-box'}>
+							<span>Nickname</span>
+							<input
+								type="text"
+								placeholder={'Enter your nickname'}
+								onChange={(e) => handleInput('nick', e.target.value)}
+								required={true}
+								onKeyDown={(event) => {
+									if (event.key == 'Enter' && loginView) doLogin();
+									if (event.key == 'Enter' && !loginView) doSignUp();
+								}}
+							/>
+						</div>
+						<div className={'input-box'}>
+							<span>Password</span>
+							<input
+								type="text"
+								placeholder={'Enter password'}
+								onChange={(e) => handleInput('password', e.target.value)}
+								required={true}
+								onKeyDown={(event) => {
+									if (event.key == 'Enter' && loginView) doLogin();
+									if (event.key == 'Enter' && !loginView) doSignUp();
+								}}
+							/>
+						</div>
+						{!loginView && (
+							<div className={'input-box'}>
+								<span>Phone</span>
+								<input
+									type="text"
+									placeholder={'Enter your phone'}
+									onChange={(e) => handleInput('phone', e.target.value)}
+									required={true}
+									onKeyDown={(event) => {
+										if (event.key == 'Enter') doSignUp();
+									}}
+								/>
+							</div>
+						)}
+					</Box>
+					<Box className={'register'}>
+						{!loginView && (
+							<div className={'type-option'}>
+								<span className={'text'}>I want to be registered as:</span>
+								<div>
+									<FormGroup>
+										<FormControlLabel
+											control={
+												<Checkbox
+													size="small"
+													name={'USER'}
+													onChange={checkUserTypeHandler}
+													checked={input?.type == 'USER'}
+												/>
+											}
+											label="User"
+										/>
+									</FormGroup>
+									<FormGroup>
+										<FormControlLabel
+											control={
+												<Checkbox
+													size="small"
+													name={'AGENT'}
+													onChange={checkUserTypeHandler}
+													checked={input?.type == 'AGENT'}
+												/>
+											}
+											label="Agent"
+										/>
+									</FormGroup>
+								</div>
+							</div>
+						)}
+
+						{loginView && (
+							<div className={'remember-info'}>
+								<FormGroup>
+									<FormControlLabel control={<Checkbox defaultChecked size="small" />} label="Remember me" />
+								</FormGroup>
+								<a>Forgot password?</a>
+							</div>
+						)}
+
+						{loginView ? (
+							<Button
+								variant="contained"
+								disabled={input.nick == '' || input.password == ''}
+								onClick={doLogin}
+							>
+								Login
+							</Button>
+						) : (
+							<Button
+								variant="contained"
+								disabled={input.nick == '' || input.password == '' || input.phone == '' || input.type == ''}
+								onClick={doSignUp}
+							>
+								Sign up
+							</Button>
+						)}
+						{loginView && (
+							<>
+								<Stack className={'divider-row'}>
+									<span className={'line'} />
+									<span className={'divider-text'}>or continue with</span>
+									<span className={'line'} />
+								</Stack>
+								<Stack className={'telegram-row'}>
+									<TelegramLoginButton onAuth={handleTelegramAuth} />
+								</Stack>
+							</>
+						)}
+					</Box>
+					<Box className={'ask-info'}>
+						{loginView ? (
+							<p>
+								Not registered yet?
+								<b
+									onClick={() => {
+										viewChangeHandler(false);
+									}}
+								>
+									Sign up
+								</b>
+							</p>
+						) : (
+							<p>
+								Have account?
+								<b onClick={() => viewChangeHandler(true)}> Login</b>
+							</p>
+						)}
+					</Box>
+				</Stack>
+			</Stack>
+		);
+```
+
+(`viewChangeHandler`, `checkUserTypeHandler`, `handleInput`, `doLogin`, `doSignUp`, `handleTelegramAuth`, and the `input`/`loginView` state are all called exactly as before — the two new tab buttons just call the same `viewChangeHandler` the bottom link already used. The Telegram widget itself is untouched, only moved under a real divider instead of the empty placeholder `<div>`. The logo block and the right-side banner image are removed since the reference design doesn't use them and the page no longer needs the two-column layout.)
+
+Do not change any imports, any handler definition above the `return`, or the `getStaticProps`/mutation/state declarations — only this JSX block changes.
+
+---
+
+## `scss/pc/account/join.scss`
+
+Replace the entire file contents with:
+
+```scss
+#pc-wrap {
+	.join-page {
+		position: relative;
+		padding: 90px 0px;
+		width: 100%;
+		height: auto;
+		background: #f5f3ef;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+
+		.login-card {
+			width: 460px;
+			padding: 40px 36px;
+			display: flex;
+			flex-direction: column;
+			border-radius: 20px;
+			background: #fff;
+			box-shadow: 0px 8px 24px rgba(28, 27, 24, 0.08);
+
+			.card-header {
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+				text-align: center;
+				margin-bottom: 24px;
+				strong {
+					font-family: $font;
+					font-size: 26px;
+					font-style: normal;
+					font-weight: 700;
+					line-height: normal;
+					color: #181a20;
+				}
+				span {
+					margin-top: 6px;
+					font-family: $font;
+					font-size: 14px;
+					font-style: normal;
+					font-weight: 400;
+					line-height: normal;
+					color: #8e8c83;
+				}
+			}
+
+			.view-tabs {
+				flex-direction: row;
+				gap: 6px;
+				padding: 4px;
+				margin-bottom: 28px;
+				border-radius: 12px;
+				background: #f5f3ef;
+				.view-tab {
+					flex: 1;
+					height: 40px;
+					border: none;
+					border-radius: 9px;
+					background: transparent;
+					font-family: $font;
+					font-size: 14px;
+					font-style: normal;
+					font-weight: 600;
+					line-height: normal;
+					color: #8e8c83;
+					cursor: pointer;
+					&.active {
+						background: #fff;
+						color: #181a20;
+						box-shadow: 0px 1px 2px rgba(28, 27, 24, 0.08);
+					}
+				}
+			}
+
+			.input-wrap {
+				width: 100%;
+				display: flex;
+				flex-direction: column;
+
+				.input-box {
+					margin-top: 18px;
+					display: flex;
+					flex-direction: column;
+					&:first-child {
+						margin-top: 0px;
+					}
+					span {
+						margin-bottom: 8px;
+						font-family: $font;
+						font-size: 12px;
+						font-style: normal;
+						font-weight: 600;
+						letter-spacing: 0.5px;
+						text-transform: uppercase;
+						line-height: normal;
+						color: #57564f;
+					}
+					input {
+						padding: 0px 16px;
+						width: 100%;
+						height: 50px;
+						border-radius: 10px;
+						border: 1px solid #e9e7e0;
+						background: #fff;
+						font-family: $font;
+						font-size: 14px;
+						font-style: normal;
+						font-weight: 400;
+						line-height: 26px;
+						color: #181a20;
+					}
+				}
+			}
+			.register {
+				margin-top: 24px;
+				width: 100%;
+				display: flex;
+				flex-direction: column;
+				align-items: stretch;
+				.type-option {
+					display: flex;
+					flex-direction: row;
+					align-items: center;
+					span.text {
+						font-family: $font;
+						font-size: 13px;
+						font-style: normal;
+						font-weight: 600;
+						line-height: normal;
+						color: #181a20;
+					}
+					div {
+						margin-left: 16px;
+						display: flex;
+						flex-direction: row;
+						&:nth-child(1) {
+							margin-right: 20px;
+						}
+					}
+				}
+				.remember-info {
+					width: 100%;
+					display: flex;
+					flex-direction: row;
+					justify-content: space-between;
+					align-items: center;
+					a {
+						font-family: $font;
+						font-size: 13px;
+						font-style: normal;
+						font-weight: 500;
+						line-height: 26px;
+						cursor: pointer;
+						color: #e8856a;
+					}
+				}
+				button {
+					margin-top: 20px;
+					width: 100%;
+					height: 50px;
+					border-radius: 12px;
+					background: #e8856a;
+					font-family: $font;
+					font-size: 15px;
+					font-style: normal;
+					font-weight: 600;
+					line-height: normal;
+					color: #fff;
+					text-transform: none;
+				}
+				.divider-row {
+					flex-direction: row;
+					align-items: center;
+					gap: 12px;
+					margin-top: 24px;
+					.line {
+						flex: 1;
+						height: 1px;
+						background: #e9e7e0;
+					}
+					.divider-text {
+						font-family: $font;
+						font-size: 12px;
+						font-style: normal;
+						font-weight: 500;
+						line-height: normal;
+						color: #8e8c83;
+						white-space: nowrap;
+					}
+				}
+				.telegram-row {
+					margin-top: 16px;
+					width: 100%;
+					display: flex;
+					align-items: center;
+					justify-content: center;
+				}
+			}
+			.ask-info {
+				margin-top: 28px;
+				display: flex;
+				justify-content: center;
+				p {
+					font-family: $font;
+					font-size: 13px;
+					font-style: normal;
+					line-height: normal;
+					font-weight: 400;
+					color: #57564f;
+					b {
+						margin-left: 6px;
+						font-weight: 600;
+						font-size: 13px;
+						cursor: pointer;
+						text-decoration: underline;
+						color: #e8856a;
+					}
+				}
+			}
+		}
+	}
+}
+```
+
+(The page-wrapper background is `#f5f3ef` — the same lighter cream already used on the University, Agent, CS, and Community Detail page wrappers — instead of the old card's own pink/banner-image look, so this page is visually consistent with the rest of the site. The card itself uses the same coral `#e8856a` accent, `#181a20`/`#57564f`/`#8e8c83` text colors, and `$font` family already established everywhere else in the project.)
+
+Do not change anything else — no JSX/logic in any other page, no other stylesheet.
+
+---
+
+Verify after implementing:
+1. The Login/Signup page now shows a single centered white card titled "Welcome back" (or "Create your account" in sign-up view) with a Login/Sign up tab toggle, sitting on the same lighter cream (`#f5f3ef`) background used by other pages.
+2. Clicking the new "Login"/"Sign up" tabs switches the form exactly like the existing bottom "Sign up"/"Login" link already did (same `viewChangeHandler`, same conditional fields).
+3. Typing a nickname and password and clicking "Login" still calls `doLogin` and works exactly as before; switching to Sign up, filling nickname/password/phone and picking User/Agent and clicking "Sign up" still calls `doSignUp` exactly as before.
+4. Below "or continue with", only the real Telegram login widget appears (centered) — no Google or SSO buttons anywhere, and clicking through Telegram login still calls `handleTelegramAuth` and the `TELEGRAM_LOGIN` mutation exactly as before.
+5. The hero above this card (dark gradient, eyebrow, floating lock) from the previous changes is untouched.

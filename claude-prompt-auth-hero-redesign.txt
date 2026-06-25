@@ -1,0 +1,313 @@
+Context: the Login/Signup page (`/account/join`) hero is rendered by the shared `withLayoutBasic` HOC, not by `pages/account/join.tsx` itself. Two problems, both confirmed by reading the live code directly:
+
+1. Background mismatch: in the `memoizedValues` switch inside `libs/components/layout/LayoutBasic.tsx`, the `/account/join` case is the ONLY route (besides `/cs`, which doesn't render this hero at all) that still sets `bgImage = '/img/banner/korea2.jpg'`. That value gets applied as an inline `style={{ backgroundImage: url(...), backgroundSize: 'cover' }}` directly on the `.header-basic` wrapper, which completely covers the dark gradient background (`linear-gradient(135deg, #15140f 0%, #1c2620 50%, #1a2230 100%)`) that every other page's hero uses (University, Agent, My Page, Community, Community Detail, Member all already have `bgImage = ''` for exactly this reason). This is why the Login/Signup hero currently looks different from every other page.
+2. No rich hero markup: `/account/join` has no dedicated branch in the hero's JSX ternary chain, so it falls into the generic fallback branch and only ever renders a bare `<strong>Login/Signup</strong><span>Authentication Process</span>` — no eyebrow pill, no paragraph, no badges, no graphic.
+
+This change: (a) removes the stock photo so the hero falls back to the same dark gradient background used by every other page, (b) adds a dedicated hero branch for `/account/join` with an eyebrow pill, a heading with a coral-colored "/" between "Login" and "Signup", a description paragraph, two badge chips, and a small graphic (lock icon + floating decorative shapes) on the right, mirroring the structure already used for the `/community` and `/member` hero branches, and (c) adds a CSS keyframe animation so the small decorative shapes gently float up and down. This is presentational-only — no GraphQL, no Apollo, no existing state/handlers touched. `setAuthHeader(true)` and the `authHeader` state are untouched (still controls the `.auth` modifier class).
+
+## `libs/components/layout/LayoutBasic.tsx`
+
+### 1. Add an icon import
+
+Find this exact line near the top:
+
+```tsx
+import PersonIcon from '@mui/icons-material/Person';
+```
+
+Replace with:
+
+```tsx
+import PersonIcon from '@mui/icons-material/Person';
+import LockIcon from '@mui/icons-material/Lock';
+```
+
+### 2. Update the `/account/join` switch case
+
+Find this exact block:
+
+```tsx
+				case '/account/join':
+					title = 'Login/Signup';
+					desc = 'Authentication Process';
+					bgImage = '/img/banner/korea2.jpg';
+					setAuthHeader(true);
+					break;
+```
+
+Replace with:
+
+```tsx
+				case '/account/join':
+					title = 'Login/Signup';
+					desc =
+						'One secure identity across every UniFinder space — universities, agents, and the community. Sign in once, explore everywhere.';
+					bgImage = '';
+					eyebrow = 'AUTHENTICATION PROCESS';
+					setAuthHeader(true);
+					break;
+```
+
+### 3. Add a dedicated hero branch for `/account/join`
+
+Find this exact block (the `/community/detail` branch followed by the start of the final fallback branch):
+
+```tsx
+							) : router.pathname === '/community/detail' ? (
+								<Stack className={'container community-detail-hero-container'}>
+									<Stack className={'eyebrow'}>
+										<span className={'dash'} />
+										{t(memoizedValues.eyebrow!)}
+									</Stack>
+									<strong className={'community-detail-heading'}>{t(memoizedValues.title)}</strong>
+									<span>{t(memoizedValues.desc)}</span>
+								</Stack>
+							) : (
+```
+
+Replace with:
+
+```tsx
+							) : router.pathname === '/community/detail' ? (
+								<Stack className={'container community-detail-hero-container'}>
+									<Stack className={'eyebrow'}>
+										<span className={'dash'} />
+										{t(memoizedValues.eyebrow!)}
+									</Stack>
+									<strong className={'community-detail-heading'}>{t(memoizedValues.title)}</strong>
+									<span>{t(memoizedValues.desc)}</span>
+								</Stack>
+							) : router.pathname === '/account/join' ? (
+								<Stack className={'container auth-hero-container'}>
+									<Stack className={'auth-hero-text'}>
+										<Stack className={'eyebrow'}>
+											<span className={'dash'} />
+											{t(memoizedValues.eyebrow!)}
+										</Stack>
+										<strong className={'auth-heading'}>
+											Login <span className={'auth-slash'}>/</span> Signup
+										</strong>
+										<p className={'auth-lead'}>{t(memoizedValues.desc)}</p>
+										<Stack className={'auth-badges'}>
+											<Stack className={'auth-badge'}>
+												<span className={'auth-badge-dot green'} />
+												End-to-end encrypted
+											</Stack>
+											<Stack className={'auth-badge'}>
+												<span className={'auth-badge-dot coral'} />
+												Single sign-on
+											</Stack>
+										</Stack>
+									</Stack>
+									<Stack className={'auth-hero-art'}>
+										<Stack className={'auth-shape auth-shape-square'} />
+										<Stack className={'auth-shape auth-shape-circle'} />
+										<Stack className={'auth-shape auth-shape-dashed'} />
+										<Stack className={'auth-lock-icon'}>
+											<LockIcon />
+										</Stack>
+									</Stack>
+								</Stack>
+							) : (
+```
+
+Do not touch anything else in this file — the final fallback branch (`) : ( <strong>{t(memoizedValues.title)}</strong> ... )`) stays exactly as-is for whichever other routes still use it.
+
+---
+
+## `scss/pc/main.scss`
+
+### 1. Add the floating keyframes
+
+Find this exact block:
+
+```scss
+	@keyframes browsingFadeIn {
+		from {
+			opacity: 0;
+		}
+		to {
+			opacity: 1;
+		}
+	}
+
+	.header-basic {
+```
+
+Replace with:
+
+```scss
+	@keyframes browsingFadeIn {
+		from {
+			opacity: 0;
+		}
+		to {
+			opacity: 1;
+		}
+	}
+
+	@keyframes authFloat {
+		0%,
+		100% {
+			transform: translateY(0);
+		}
+		50% {
+			transform: translateY(-14px);
+		}
+	}
+
+	.header-basic {
+```
+
+### 2. Expand the `.auth` modifier with the new hero layout
+
+Find this exact block:
+
+```scss
+		&.auth {
+			height: 300px;
+		}
+```
+
+Replace with:
+
+```scss
+		&.auth {
+			height: 460px;
+			.auth-hero-container {
+				position: relative;
+				z-index: 1;
+				width: 100%;
+				max-width: 1200px;
+				margin: 0 auto;
+				padding: 0 5%;
+				flex-direction: row;
+				align-items: center;
+				justify-content: space-between;
+				.auth-hero-text {
+					display: flex;
+					flex-direction: column;
+					align-items: flex-start;
+					max-width: 520px;
+				}
+				.auth-heading {
+					color: #fff;
+					font-family: $font;
+					font-size: 48px;
+					font-weight: 800;
+					line-height: 1.15;
+					letter-spacing: -0.5px;
+					.auth-slash {
+						color: #e8856a;
+					}
+				}
+				.auth-lead {
+					margin-top: 16px;
+					max-width: 460px;
+					color: rgba(255, 255, 255, 0.65);
+					font-family: $font;
+					font-size: 16px;
+					font-weight: 400;
+					line-height: 1.6;
+				}
+				.auth-badges {
+					flex-direction: row;
+					align-items: center;
+					gap: 12px;
+					margin-top: 24px;
+					.auth-badge {
+						flex-direction: row;
+						align-items: center;
+						gap: 8px;
+						padding: 8px 16px;
+						border-radius: 999px;
+						border: 1px solid rgba(255, 255, 255, 0.16);
+						background: rgba(255, 255, 255, 0.06);
+						color: rgba(255, 255, 255, 0.75);
+						font-family: $font;
+						font-size: 13px;
+						font-weight: 500;
+						.auth-badge-dot {
+							width: 7px;
+							height: 7px;
+							border-radius: 50%;
+							flex-shrink: 0;
+							&.green {
+								background: #97c459;
+							}
+							&.coral {
+								background: #e8856a;
+							}
+						}
+					}
+				}
+				.auth-hero-art {
+					position: relative;
+					width: 280px;
+					height: 280px;
+					flex-shrink: 0;
+					.auth-lock-icon {
+						position: absolute;
+						top: 50%;
+						left: 50%;
+						transform: translate(-50%, -50%);
+						width: 96px;
+						height: 96px;
+						border-radius: 28px;
+						background: linear-gradient(135deg, #e8856a 0%, #d85a30 100%);
+						display: flex;
+						align-items: center;
+						justify-content: center;
+						box-shadow: 0 12px 28px rgba(232, 133, 106, 0.35);
+						.MuiSvgIcon-root {
+							color: #fff;
+							font-size: 44px;
+						}
+					}
+					.auth-shape {
+						position: absolute;
+						animation: authFloat 4s ease-in-out infinite;
+					}
+					.auth-shape-square {
+						top: 8%;
+						left: 4%;
+						width: 36px;
+						height: 36px;
+						border-radius: 10px;
+						background: #e8856a;
+						animation-delay: 0s;
+					}
+					.auth-shape-circle {
+						bottom: 14%;
+						left: 0;
+						width: 22px;
+						height: 22px;
+						border-radius: 50%;
+						background: #1c1b18;
+						animation-delay: 0.8s;
+					}
+					.auth-shape-dashed {
+						top: 10%;
+						right: 2%;
+						width: 64px;
+						height: 64px;
+						border-radius: 50%;
+						border: 2px dashed rgba(255, 255, 255, 0.3);
+						background: transparent;
+						animation-delay: 1.4s;
+					}
+				}
+			}
+		}
+```
+
+(The base `.header-basic` background — the dark gradient — is untouched and now shows through on `/account/join` too, since `bgImage` is empty. No other selector, page, or piece of logic is touched.)
+
+---
+
+Verify after implementing:
+1. The Login/Signup page's hero now shows the same dark gradient background used by University, Agent, My Page, Community, Community Detail and Member pages — the old stock photo is gone.
+2. The hero shows an "AUTHENTICATION PROCESS" eyebrow pill, a "Login / Signup" heading with a coral-colored "/", the new description paragraph, and two badge chips ("End-to-end encrypted", "Single sign-on").
+3. On the right side, a coral lock icon sits in the center with three small decorative shapes (square, circle, dashed ring) floating gently up and down around it in a continuous loop.
+4. Every other page's hero (University, Agent, My Page, Community, Agent Detail, Member, Community Detail) is completely unchanged.
+5. The actual login/signup form below the hero, and all of its validation/submit logic, is completely unchanged — only the hero above it changed.

@@ -12,6 +12,7 @@ import { userVar } from '../../../apollo/store';
 import { useTranslation } from 'next-i18next';
 import { REACT_APP_API_URL } from '../../config';
 import PersonIcon from '@mui/icons-material/Person';
+import LockIcon from '@mui/icons-material/Lock';
 import 'swiper/css';
 import 'swiper/css/pagination';
 import 'swiper/css/navigation';
@@ -161,8 +162,10 @@ const withLayoutBasic = (Component: any) => {
 					break;
 				case '/account/join':
 					title = 'Login/Signup';
-					desc = 'Authentication Process';
-					bgImage = '/img/banner/korea2.jpg';
+					desc =
+						'One secure identity across every UniFinder space — universities, agents, and the community. Sign in once, explore everywhere.';
+					bgImage = '';
+					eyebrow = 'AUTHENTICATION PROCESS';
 					setAuthHeader(true);
 					break;
 				case '/member':
@@ -371,6 +374,37 @@ const withLayoutBasic = (Component: any) => {
 									</Stack>
 									<strong className={'community-detail-heading'}>{t(memoizedValues.title)}</strong>
 									<span>{t(memoizedValues.desc)}</span>
+								</Stack>
+							) : router.pathname === '/account/join' ? (
+								<Stack className={'container auth-hero-container'}>
+									<Stack className={'auth-hero-text'}>
+										<Stack className={'eyebrow'}>
+											<span className={'dash'} />
+											{t(memoizedValues.eyebrow!)}
+										</Stack>
+										<strong className={'auth-heading'}>
+											Login <span className={'auth-slash'}>/</span> Signup
+										</strong>
+										<p className={'auth-lead'}>{t(memoizedValues.desc)}</p>
+										<Stack className={'auth-badges'}>
+											<Stack className={'auth-badge'}>
+												<span className={'auth-badge-dot green'} />
+												End-to-end encrypted
+											</Stack>
+											<Stack className={'auth-badge'}>
+												<span className={'auth-badge-dot coral'} />
+												Single sign-on
+											</Stack>
+										</Stack>
+									</Stack>
+									<Stack className={'auth-hero-art'}>
+										<Stack className={'auth-shape auth-shape-square'} />
+										<Stack className={'auth-shape auth-shape-circle'} />
+										<Stack className={'auth-shape auth-shape-dashed'} />
+										<Stack className={'auth-lock-icon'}>
+											<LockIcon />
+										</Stack>
+									</Stack>
 								</Stack>
 							) : (
 								<Stack className={`container${memoizedValues.stats ? ' has-stats' : ''}`}>
