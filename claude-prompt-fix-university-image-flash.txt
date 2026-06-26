@@ -1,0 +1,70 @@
+Context: precisely-diagnosed bug fix, minimal scoped change — no redesign, no GraphQL/data logic change.
+
+## Bug
+On a university detail page, right after clicking a university card, the main image briefly flashes a generic furniture/living-room photo before switching to the real university photo.
+
+## Root cause, confirmed in `pages/university/detail.tsx`
+
+```tsx
+const [slideImage, setSlideImage] = useState<string>('');
+...
+const {
+	loading: getUniversityLoading,
+	data: getUniversityData,
+	error: getUniversityError,
+	refetch: getUniversityRefetch,
+} = useQuery(GET_UNIVERSITY, {
+	fetchPolicy: 'network-only',
+	variables: { input: universityId },
+	skip: !universityId,
+	notifyOnNetworkStatusChange: true,
+	onCompleted(data: T) {
+		if (data?.getUniversity) setUniversity(data?.getUniversity);
+		if (data?.getUniversity) setSlideImage(data?.getUniversity?.universityImages[0]);
+	},
+});
+...
+<img
+	src={slideImage ? `${REACT_APP_API_URL}/${slideImage}` : '/img/university/bigImage.png'}
+	alt={'main-image'}
+/>
+```
+
+`slideImage` starts as an empty string and is only populated once `GET_UNIVERSITY`'s `onCompleted` callback runs. Until that query resolves (a few hundred ms), the `<img>` falls back to `/img/university/bigImage.png` — which is a generic stock photo of a living room/sofa, unrelated to any university. Once the query resolves, `slideImage` updates and the real university photo replaces it. This swap is the visible "flash" the user sees every time they open a university detail page.
+
+`/img/university/bigImage.png` is a leftover placeholder asset (visually a furniture/interior photo) that was never meant to be shown to users as a "loading" state — it's just the unconditional fallback for "no slideImage yet", which is indistinguishable from "this university genuinely has no images."
+
+## Fix — `pages/university/detail.tsx`
+
+Find:
+```tsx
+								<Stack className={'images'}>
+									<Stack className={'main-image'}>
+										<img
+											src={slideImage ? `${REACT_APP_API_URL}/${slideImage}` : '/img/university/bigImage.png'}
+											alt={'main-image'}
+										/>
+									</Stack>
+```
+
+Replace with:
+```tsx
+								<Stack className={'images'}>
+									<Stack className={'main-image'}>
+										{slideImage && (
+											<img src={`${REACT_APP_API_URL}/${slideImage}`} alt={'main-image'} />
+										)}
+									</Stack>
+```
+
+What this does: while `slideImage` is still empty (i.e. `GET_UNIVERSITY` hasn't resolved yet), nothing renders inside `.main-image` instead of the unrelated stock placeholder photo — so there is no flash of an irrelevant image. As soon as `onCompleted` sets the real `slideImage`, the actual university photo appears directly, with no intermediate wrong image. The `.main-image` container's existing CSS sizing/box stays exactly as-is, so layout doesn't shift.
+
+Do not change anything else in this file — no other image, no GraphQL query, no other Stack, no other condition. Do not delete the `/img/university/bigImage.png` file itself (it isn't referenced anywhere else by this prompt's scope, but removing the file is out of scope — only this one usage is being removed).
+
+---
+
+Verify after implementing:
+1. Click into any university card from the list/search/homepage — the main image area is blank for a fraction of a second (no flash of the furniture/living-room photo), then the correct university photo appears directly.
+2. Clicking the sub-image thumbnails below the main image still correctly swaps the main image, exactly as before.
+3. The like/view icons, price, and all other detail-page content are unaffected.
+4. No other page (university list, agent pages, mypage) is affected — this image-loading fallback exists only in this one detail page.

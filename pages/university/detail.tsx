@@ -292,10 +292,9 @@ const UniversityDetail: NextPage = ({ initialComment, ...props }: any) => {
 							</Stack>
 							<Stack className={'images'}>
 								<Stack className={'main-image'}>
-									<img
-										src={slideImage ? `${REACT_APP_API_URL}/${slideImage}` : '/img/university/bigImage.png'}
-										alt={'main-image'}
-									/>
+									{slideImage && (
+										<img src={`${REACT_APP_API_URL}/${slideImage}`} alt={'main-image'} />
+									)}
 								</Stack>
 								<Stack className={'sub-images'}>
 									{university?.universityImages.map((subImg: string) => {
