@@ -1,0 +1,49 @@
+Context: data-contract bug fix, not a design change. Filtering universities by the "Daejeon" city causes a GraphQL validation error:
+
+```
+Variable "$input" got invalid value "DAEJEON" at "input.universityLocation"; Value "DAEJEON" does not exist in "UniversityLocation" enum. Did you mean the enum value "DAEJON"?
+```
+
+Root cause, confirmed in `libs/enums/university.enum.ts`:
+
+```ts
+export enum UniversityLocation {
+	SEOUL = 'SEOUL',
+	INCHEON = 'INCHEON',
+	BUSAN = 'BUSAN',
+	DAEGU = 'DAEGU',
+	DAEJEON = 'DAEJEON',
+	GWANGJU = 'GWANGJU',
+	ULSAN = 'ULSAN',
+	SEJONG = 'SEJONG',
+	...
+}
+```
+
+The frontend enum spells this city `DAEJEON`, but the backend GraphQL schema's enum spells it `DAEJON` (no middle "E") — confirmed by the error message itself. This is also confirmed by the existing image asset on disk: `public/img/banner/cities/DAEJON.webp` is already named without the "E", matching the backend spelling — so the location-picker thumbnail for this city is currently a broken/404 image too, for the same reason.
+
+`HeaderFilter.tsx` builds its location dropdown directly from this enum (`Object.values(UniversityLocation)`), uses the raw enum value as both the displayed label and the image filename (`/img/banner/cities/${loc}.webp`), and sends it as-is to the `GET_UNIVERSITIES` query's `universityLocation` filter — so fixing the enum's spelling fixes both the broken image and the GraphQL error in one change, with no other file needing edits.
+
+## `libs/enums/university.enum.ts`
+
+Find:
+
+```ts
+	DAEJEON = 'DAEJEON',
+```
+
+Replace with:
+
+```ts
+	DAEJON = 'DAEJON',
+```
+
+Do not change any other enum member, any other file, or any other location's spelling — only this one line.
+
+---
+
+Verify after implementing:
+1. In the homepage/university search location dropdown, the Daejeon option now shows its city thumbnail image correctly (no broken image icon).
+2. Selecting Daejeon as a location filter and searching no longer throws the "does not exist in UniversityLocation enum" GraphQL error — results filtered to Daejeon load normally.
+3. All other cities (Seoul, Incheon, Busan, Daegu, Gwangju, Ulsan, Sejong, etc.) are completely unaffected.
+4. No other GraphQL query, mutation, or component logic changed.

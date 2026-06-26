@@ -154,7 +154,6 @@ const UniversityDetail: NextPage = ({ initialComment, ...props }: any) => {
 			if (!user._id) throw new Error(Message.NOT_AUTHENTICATED);
 			// Execute like
 			await likeTargetUniversity({ variables: { input: id } });
-			await getUniversitiesRefetch({ input: universityId });
 			await getUniversitiesRefetch({
 				input: {
 					page: 1,

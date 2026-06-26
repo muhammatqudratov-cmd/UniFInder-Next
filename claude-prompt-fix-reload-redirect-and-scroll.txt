@@ -1,0 +1,121 @@
+Context: two separate bugs, each a minimal scoped logic/config fix — not a redesign, not a GraphQL/data-shape change.
+
+=====================================================================
+BUG 1: Reloading a logged-in page (e.g. /mypage) redirects to the home page
+=====================================================================
+
+Root cause, confirmed by reading `pages/mypage/index.tsx` and `libs/components/layout/LayoutBasic.tsx`:
+
+`pages/mypage/index.tsx` has its own guard effect:
+
+```tsx
+/** LIFECYCLE **/
+useEffect(() => {
+	if (!user._id) router.push('/').then();
+}, [user]);
+```
+
+`userVar` (the Apollo reactive var holding the logged-in user) is NOT persisted itself — it always starts empty on a fresh page load. It only gets restored from the JWT in `localStorage` by a *different* `useEffect`, inside the Layout HOC that wraps this page:
+
+```tsx
+// libs/components/layout/LayoutBasic.tsx
+useEffect(() => {
+	const jwt = getJwtToken();
+	if (jwt) updateUserInfo(jwt);
+}, []);
+```
+
+`MyPage` is the child component rendered *inside* `withLayoutBasic(MyPage)`. React fires child effects before parent effects on mount. So on every hard reload of `/mypage`, the sequence is:
+1. `MyPage`'s own effect runs first — `user._id` is still empty (default state) — it immediately calls `router.push('/')`.
+2. Only after that does `LayoutBasic`'s effect run and actually restore `userVar` from the saved JWT — too late, the redirect to home has already fired.
+
+This is why a logged-in user gets bounced to the home page on reload, even though their session/JWT is still valid.
+
+## Fix — `pages/mypage/index.tsx`
+
+Add an import:
+
+Find:
+```tsx
+import { LIKE_TARGET_MEMBER, SUBSCRIBE, UNSUBSCRIBE } from '../../apollo/user/mutation';
+import { Messages } from '../../libs/config';
+```
+
+Replace with:
+```tsx
+import { LIKE_TARGET_MEMBER, SUBSCRIBE, UNSUBSCRIBE } from '../../apollo/user/mutation';
+import { Messages } from '../../libs/config';
+import { getJwtToken } from '../../libs/auth';
+```
+
+Then find:
+```tsx
+	/** LIFECYCLE **/
+	useEffect(() => {
+		if (!user._id) router.push('/').then();
+	}, [user]);
+```
+
+Replace with:
+```tsx
+	/** LIFECYCLE **/
+	useEffect(() => {
+		if (!user._id && !getJwtToken()) router.push('/').then();
+	}, [user]);
+```
+
+What this does: on the very first render after a reload, if there is no `user._id` BUT a valid JWT still exists in `localStorage`, this effect now does nothing instead of redirecting — it waits. `LayoutBasic`'s effect then runs, calls `updateUserInfo(jwt)`, which updates `userVar`. Because this effect's dependency array is `[user]`, it re-runs automatically once `user._id` is populated, and at that point the `if` condition is false, so no redirect happens. If there genuinely is no JWT (truly logged out), the redirect to home still happens exactly as before — that behavior is unchanged.
+
+Do not change `LayoutBasic.tsx`, `libs/auth/index.ts`, any other Layout HOC, or any other guard/redirect logic elsewhere in the app — only this one file.
+
+=====================================================================
+BUG 2: Going "back" after viewing a detail page jumps to the very top instead of restoring scroll position
+=====================================================================
+
+Root cause, confirmed in `next.config.js`: Next.js's Pages Router does NOT restore the previous scroll position on browser back/forward navigation by default — it always scrolls the new page to the top, unless the `scrollRestoration` experimental flag is explicitly turned on. This config currently has no such flag:
+
+```js
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+	reactStrictMode: true,
+	env: {
+		REACT_APP_API_URL: process.env.REACT_APP_API_URL,
+		REACT_APP_API_GRAPHQL_URL: process.env.REACT_APP_API_GRAPHQL_URL,
+		REACT_APP_API_WS: process.env.REACT_APP_API_WS,
+	},
+};
+```
+
+This is why scrolling down on a list page, opening a detail item, then clicking the browser's back button always lands back at the very top of the list instead of the scroll position you were at before.
+
+## Fix — `next.config.js`
+
+Find:
+```js
+const nextConfig = {
+	reactStrictMode: true,
+	env: {
+```
+
+Replace with:
+```js
+const nextConfig = {
+	reactStrictMode: true,
+	experimental: {
+		scrollRestoration: true,
+	},
+	env: {
+```
+
+This is a built-in Next.js framework behavior toggle (native browser scroll-position restoration on back/forward navigation), not a custom business-logic change — it does not touch any component, page, query, or mutation.
+
+Do not change anything else in this file — no other config key, no env variable, no i18n setup.
+
+---
+
+Verify after implementing:
+1. Log in, open `/mypage` (or any page that requires login), then do a hard browser refresh — you stay on the page, you are NOT redirected to the home page.
+2. Log out completely (clear session), then try to open `/mypage` directly — you ARE still redirected to the home page, exactly as before (this safety behavior is unchanged).
+3. On any list page (e.g. `/university` or `/agent`), scroll down, click into a detail item, then click the browser's back button — you land back at the same scroll position you were at before, not at the top.
+4. Forward navigation (browser forward button) still works normally.
+5. No other page's redirect/guard behavior, and no other layout, query, or mutation, has changed.

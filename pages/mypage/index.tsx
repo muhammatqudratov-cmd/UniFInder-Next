@@ -20,6 +20,7 @@ import MemberFollowings from '../../libs/components/member/MemberFollowings';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { LIKE_TARGET_MEMBER, SUBSCRIBE, UNSUBSCRIBE } from '../../apollo/user/mutation';
 import { Messages } from '../../libs/config';
+import { getJwtToken } from '../../libs/auth';
 
 export const getStaticProps = async ({ locale }: any) => ({
 	props: {
@@ -40,7 +41,7 @@ const MyPage: NextPage = () => {
 
 	/** LIFECYCLE **/
 	useEffect(() => {
-		if (!user._id) router.push('/').then();
+		if (!user._id && !getJwtToken()) router.push('/').then();
 	}, [user]);
 
 	/** HANDLERS **/

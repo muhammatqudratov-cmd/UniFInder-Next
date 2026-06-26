@@ -1,0 +1,84 @@
+Context: precisely-diagnosed bug fix, minimal scoped change — removing one redundant/broken line, not a redesign or data-shape change.
+
+## Bug
+On the university detail page, clicking the like (heart) button throws:
+
+```
+Variable "$input" got invalid value "6a3e080cde03cf4f7f63e611"; Expected type "UniversitiesInquiry" to be an object.
+```
+
+## Root cause, confirmed in `pages/university/detail.tsx`
+
+`GET_UNIVERSITIES` declares `query GetUniversities($input: UniversitiesInquiry!)` — its `$input` variable must always be a `UniversitiesInquiry` object (with `page`, `limit`, `sort`, `direction`, `search`, etc.), never a raw string.
+
+In `likeUniversityHandler`, there are two consecutive `getUniversitiesRefetch(...)` calls:
+
+```tsx
+const likeUniversityHandler = async (user: T, id: string) => {
+	try {
+		if (!id) return;
+		if (!user._id) throw new Error(Message.NOT_AUTHENTICATED);
+		// Execute like
+		await likeTargetUniversity({ variables: { input: id } });
+		await getUniversitiesRefetch({ input: universityId });
+		await getUniversitiesRefetch({
+			input: {
+				page: 1,
+				limit: 4,
+				sort: 'createdAt',
+				direction: Direction.DESC,
+				search: {
+					locationList: [university?.universityLocation],
+				},
+			},
+		});
+```
+
+The first call, `getUniversitiesRefetch({ input: universityId })`, passes `universityId` — a plain `string` state variable (`const [universityId, setUniversityId] = useState<string | null>(null);`, the university's raw `_id`, used elsewhere only as the `GET_MEMBER`-style single-university lookup variable) — directly as the `$input` for `GET_UNIVERSITIES`. Since `GET_UNIVERSITIES` expects an object, not a string, this throws the exact "Expected type \"UniversitiesInquiry\" to be an object" error immediately on every like click.
+
+The very next line, `getUniversitiesRefetch({ input: { page: 1, limit: 4, ... } })`, is the correct, fully-formed call that was clearly meant to be the only refetch here — it already supplies a proper `UniversitiesInquiry` object. The first call is a leftover duplicate that does nothing useful and only breaks the like action.
+
+## Fix — `pages/university/detail.tsx`
+
+Find:
+```tsx
+			await likeTargetUniversity({ variables: { input: id } });
+			await getUniversitiesRefetch({ input: universityId });
+			await getUniversitiesRefetch({
+				input: {
+					page: 1,
+					limit: 4,
+					sort: 'createdAt',
+					direction: Direction.DESC,
+					search: {
+						locationList: [university?.universityLocation],
+					},
+				},
+			});
+```
+
+Replace with:
+```tsx
+			await likeTargetUniversity({ variables: { input: id } });
+			await getUniversitiesRefetch({
+				input: {
+					page: 1,
+					limit: 4,
+					sort: 'createdAt',
+					direction: Direction.DESC,
+					search: {
+						locationList: [university?.universityLocation],
+					},
+				},
+			});
+```
+
+Simply delete the redundant `await getUniversitiesRefetch({ input: universityId });` line. Do not change `likeTargetUniversity`, the second (correct) `getUniversitiesRefetch` call's contents, `universityId`'s declaration or its other usages (lines 73-74, 100), or any other file.
+
+---
+
+Verify after implementing:
+1. On a university detail page, clicking the like (heart) button no longer throws the "Expected type \"UniversitiesInquiry\" to be an object" error in the console/network tab.
+2. The like still toggles correctly (heart turns coral/filled, like count increments) — the `likeTargetUniversity` mutation behavior is unchanged.
+3. The "similar universities" / related-universities list on this page (filtered by the same `universityLocation`) still refreshes correctly after liking.
+4. No other page (agent detail, university list, homepage, mypage) is affected — this change is scoped to this one handler in this one file.

@@ -17,7 +17,7 @@ export enum UniversityLocation {
 	INCHEON = 'INCHEON',
 	BUSAN = 'BUSAN',
 	DAEGU = 'DAEGU',
-	DAEJEON = 'DAEJEON',
+	DAEJON = 'DAEJON',
 	GWANGJU = 'GWANGJU',
 	ULSAN = 'ULSAN',
 	SEJONG = 'SEJONG',
