@@ -1,0 +1,96 @@
+Context: translation/copy-only fix — correcting leftover real-estate-template mistranslations in the Russian and Korean locale files so they match the actual English (university-themed) reference values. No component, route, or logic change.
+
+## Background
+`public/locales/en/common.json` is the correct reference (already university-themed):
+
+```json
+{
+  "Home": "Home",
+  "Universities": "Universities",
+  "Agents": "Agents",
+  "Community": "Community",
+  "My Page": "My Page",
+  "CS": "CS",
+  "Login": "Login",
+  "Register": "Register",
+  "Location": "Location",
+  "University type": "University type",
+  "Rooms": "Rooms",
+  "Advanced": "Advanced",
+  "University Search": "University Search",
+  ...
+}
+```
+
+The Russian (`ru`) and Korean (`kr`) locale files still have a few leftover values from the real-estate template this project was adapted from. The navbar items (`Universities`, `CS`) in `ru/common.json` were already fixed in a previous pass — this prompt fixes the remaining leftover entries in both `ru/common.json` and `kr/common.json`.
+
+## Fix 1 — `public/locales/ru/common.json`
+
+Find:
+```json
+	"University type": "Тип недвижимости",
+	"Rooms": "Комната",
+	"Advanced": "Расширенные",
+	"University Search": "поиск Имущество",
+```
+
+Replace with:
+```json
+	"University type": "Тип университета",
+	"Rooms": "Комнаты",
+	"Advanced": "Расширенные",
+	"University Search": "Поиск университета",
+```
+
+What changed and why:
+- `"University type"`: "Тип недвижимости" ("Property type") → "Тип университета" ("University type") — matches the English key's actual meaning.
+- `"Rooms"`: "Комната" (singular "Room") → "Комнаты" (plural "Rooms") — matches the English key's plural form; this is the dormitory-rooms search filter label.
+- `"Advanced"`: unchanged — already correct.
+- `"University Search"`: "поиск Имущество" (grammatically broken "search Property") → "Поиск университета" ("University Search") — matches the English key's meaning and fixes the broken grammar.
+
+Do not change any other key in this file (`Home`, `Universities`, `Agents`, `Community`, `My Page`, `CS`, `Login`, `Register`, `Location`, etc.) — those are already correct.
+
+## Fix 2 — `public/locales/kr/common.json`
+
+Find:
+```json
+	"Universities": "매물",
+```
+
+Replace with:
+```json
+	"Universities": "대학교",
+```
+
+Find:
+```json
+	"University type": "매물 유형",
+```
+
+Replace with:
+```json
+	"University type": "대학교 유형",
+```
+
+Find:
+```json
+	"University Search": "매물 찾기",
+```
+
+Replace with:
+```json
+	"University Search": "대학교 찾기",
+```
+
+What changed and why: "매물" means "property listing / property for sale" (a real-estate term) — it doesn't belong in a university-search app. "대학교" is the correct Korean word for "university". `University type` and `University Search` used the same wrong "매물" root word and are corrected the same way.
+
+Do not change any other key in this file (`Home`, `Agents`, `Community`, `My Page`, `CS`, `Login`, `Register`, `Location`, `Rooms`, `Advanced`, etc.) — those are already correct (e.g. `"CS": "고객센터"` is the correct term for a Notice+FAQ support section, and was not touched).
+
+---
+
+Verify after implementing:
+1. Switch the site language to Russian — the "University type" and "Advanced" filter labels on the search/filter UI now read "Тип университета" and the search-related label reads "Поиск университета"; the dormitory rooms filter now reads "Комнаты" (plural).
+2. Switch the site language to Korean — the navbar item that was "매물" now reads "대학교", and the same two filter-related labels read "대학교 유형" / "대학교 찾기" instead of "매물 유형" / "매물 찾기".
+3. Switching to English shows the existing unchanged labels.
+4. No other key in either locale file changed, and no component, route, or query logic was touched — this is a pure copy/translation fix in two JSON files.
+5. If the change doesn't visibly appear immediately, restart the Next.js dev server (next-i18next caches loaded translations in memory and won't auto re-read edited locale JSON files without a restart).

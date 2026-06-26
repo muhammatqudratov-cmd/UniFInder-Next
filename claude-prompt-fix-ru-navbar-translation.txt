@@ -1,0 +1,68 @@
+Context: translation/copy-only fix — correcting two mistranslated navbar labels in the Russian locale file so they match the actual English page names. No component, route, or logic change.
+
+## Bug
+On the Russian locale, the top navbar shows: Главная, Имущество, Агенты, Сообщество, Моя страница, Обслуживание — for the English nav: Home, Universities, Agents, Community, My Page, CS.
+
+"Имущество" means "property / real estate" and "Обслуживание" means "maintenance/service" — both are leftover mistranslations from the real-estate template this project was adapted from, and don't match this app's actual university-themed pages.
+
+## Root cause, confirmed in `public/locales/ru/common.json`
+
+```json
+{
+	"Home": "Главная",
+	"Universities": "Имущество",
+	"Agents": "Агенты",
+	"Community": "Сообщество",
+	"My Page": "Моя страница",
+	"CS": "Обслуживание",
+	...
+}
+```
+
+Compare with `public/locales/en/common.json` (the correct reference):
+
+```json
+{
+	"Home": "Home",
+	"Universities": "Universities",
+	"Agents": "Agents",
+	"Community": "Community",
+	"My Page": "My Page",
+	"CS": "CS",
+	...
+}
+```
+
+`Home`, `Agents`, `Community`, `My Page` are already correctly translated (Главная, Агенты, Сообщество, Моя страница). Only the `Universities` and `CS` keys' Russian values are wrong — `Universities` should read "Университеты" (the literal, correct Russian word for "Universities"), and `CS` (the Notice + FAQ support section — confirmed in `pages/cs/index.tsx`) should read "Поддержка" (the standard Russian term for a customer-support/help section), not "Обслуживание".
+
+## Fix — `public/locales/ru/common.json`
+
+Find:
+```json
+	"Universities": "Имущество",
+```
+
+Replace with:
+```json
+	"Universities": "Университеты",
+```
+
+Find:
+```json
+	"CS": "Обслуживание",
+```
+
+Replace with:
+```json
+	"CS": "Поддержка",
+```
+
+Do not change any other key in this file (`Home`, `Agents`, `Community`, `My Page`, `Login`, `Register`, `Location`, `University type`, `Rooms`, `Advanced`, `University Search`, etc.) and do not touch `public/locales/en/common.json` or `public/locales/kr/common.json` — only these two Russian values, in this one file.
+
+---
+
+Verify after implementing:
+1. Switch the site language to Russian — the navbar now reads: Главная, Университеты, Агенты, Сообщество, Моя страница, Поддержка.
+2. Clicking each of these still navigates to the correct page exactly as before (Home, /university, /agent, /community, /mypage, /cs) — only the displayed label text changed, not any route or link.
+3. Switching back to English or Korean still shows their existing labels unchanged.
+4. No other Russian-translated text elsewhere on the site (login page, search filters, etc.) is affected — only these two navbar entries changed.
