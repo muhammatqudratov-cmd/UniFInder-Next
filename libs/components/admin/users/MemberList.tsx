@@ -25,7 +25,8 @@ interface Data {
 	fullname: string;
 	phone: string;
 	type: string;
-	flags: string;
+	warnings: string;
+	blocks: string;
 	state: string;
 }
 
@@ -80,10 +81,16 @@ const headCells: readonly HeadCell[] = [
 		label: 'MEMBER TYPE',
 	},
 	{
-		id: 'flags',
+		id: 'warnings',
 		numeric: false,
 		disablePadding: false,
-		label: 'FLAGS',
+		label: 'WARNING',
+	},
+	{
+		id: 'blocks',
+		numeric: false,
+		disablePadding: false,
+		label: 'BLOCK CRIMES',
 	},
 	{
 		id: 'state',
@@ -176,7 +183,7 @@ export const MemberPanelList = (props: MemberPanelListType) => {
 					<TableBody>
 						{members.length === 0 && (
 							<TableRow>
-								<TableCell align="center" colSpan={7}>
+								<TableCell align="center" colSpan={8}>
 									<span className={'no-data'}>data not found!</span>
 								</TableCell>
 							</TableRow>
@@ -199,9 +206,7 @@ export const MemberPanelList = (props: MemberPanelListType) => {
 																sx={{ ml: '2px', mr: '10px' }}
 															/>
 														) : (
-															<Avatar
-																sx={{ ml: '2px', mr: '10px', bgcolor: getAvatarColor(member._id) }}
-															>
+															<Avatar sx={{ ml: '2px', mr: '10px', bgcolor: getAvatarColor(member._id) }}>
 																{getInitials(member.memberNick)}
 															</Avatar>
 														)}
@@ -217,7 +222,10 @@ export const MemberPanelList = (props: MemberPanelListType) => {
 										<TableCell align="left">{member.memberPhone}</TableCell>
 
 										<TableCell align="center">
-											<Button onClick={(e: any) => menuIconClickHandler(e, index)} className={typeBadgeClass(member.memberType)}>
+											<Button
+												onClick={(e: any) => menuIconClickHandler(e, index)}
+												className={typeBadgeClass(member.memberType)}
+											>
 												{member.memberType}
 											</Button>
 
@@ -248,17 +256,20 @@ export const MemberPanelList = (props: MemberPanelListType) => {
 										</TableCell>
 
 										<TableCell align="center">
-											{(() => {
-												const flagCount = (member.memberWarnings ?? 0) + (member.memberBlocks ?? 0);
-												return flagCount === 0 ? (
-													<span className={'flags-none'}>None</span>
-												) : (
-													<span className={'flags-count'}>{`${flagCount} flag${flagCount > 1 ? 's' : ''}`}</span>
-												);
-											})()}
+											<span className={(member.memberWarnings ?? 0) > 0 ? 'risk-count' : 'muted-count'}>
+												{member.memberWarnings ?? 0}
+											</span>
 										</TableCell>
 										<TableCell align="center">
-											<Button onClick={(e: any) => menuIconClickHandler(e, member._id)} className={stateBadgeClass(member.memberStatus)}>
+											<span className={(member.memberBlocks ?? 0) > 0 ? 'risk-count' : 'muted-count'}>
+												{member.memberBlocks ?? 0}
+											</span>
+										</TableCell>
+										<TableCell align="center">
+											<Button
+												onClick={(e: any) => menuIconClickHandler(e, member._id)}
+												className={stateBadgeClass(member.memberStatus)}
+											>
 												{member.memberStatus}
 											</Button>
 

@@ -131,7 +131,7 @@ const AdminMenuList = (props: any) => {
 								justifyContent: 'center',
 							}}
 						>
-							<item.Icon size={20} color={clickMenu[0] === item.title ? '#fff' : '#8e8c83'} weight="fill" />
+							<item.Icon size={20} color={clickMenu[0] === item.title ? '#d85a30' : '#8e8c83'} weight="fill" />
 						</ListItemIcon>
 						<ListItemText>{item.title}</ListItemText>
 						{clickMenu.find((menu: string) => item.title === menu) ? <ExpandLess /> : <ExpandMore />}

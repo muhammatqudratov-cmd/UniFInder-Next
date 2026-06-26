@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import type { NextPage } from 'next';
 import withAdminLayout from '../../../libs/components/layout/LayoutAdmin';
 import { MemberPanelList } from '../../../libs/components/admin/users/MemberList';
-import { Box, InputAdornment, List, ListItem, Stack } from '@mui/material';
+import { Box, Button, InputAdornment, List, ListItem, Stack } from '@mui/material';
 import Typography from '@mui/material/Typography';
 import Divider from '@mui/material/Divider';
 import Select from '@mui/material/Select';
@@ -11,6 +11,7 @@ import { TabContext } from '@mui/lab';
 import OutlinedInput from '@mui/material/OutlinedInput';
 import TablePagination from '@mui/material/TablePagination';
 import CancelRoundedIcon from '@mui/icons-material/CancelRounded';
+import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import { MembersInquiry } from '../../../libs/types/member/member.input';
 import { Member } from '../../../libs/types/member/member';
 import { MemberStatus, MemberType } from '../../../libs/enums/member.enum';
@@ -161,11 +162,28 @@ const AdminUsers: NextPage = ({ initialInquiry, ...props }: any) => {
 		}
 	};
 
+	const statusCount = (status: MemberStatus) => members.filter((member) => member.memberStatus === status).length;
+
 	return (
 		<Box component={'div'} className={'content'}>
-			<Typography variant={'h2'} className={'tit'} sx={{ mb: '24px' }}>
-				Member List
-			</Typography>
+			<Stack className={'admin-breadcrumb'} direction={'row'}>
+				<Typography component={'span'}>Users</Typography>
+				<Typography component={'span'}>/</Typography>
+				<Typography component={'strong'}>List</Typography>
+			</Stack>
+			<Box component={'div'} className={'page-header'}>
+				<Box component={'div'}>
+					<Typography variant={'h2'} className={'tit'}>
+						Member List
+					</Typography>
+					<Typography component={'p'} className={'subtitle'}>
+						Manage every member, agent and admin across the platform.
+					</Typography>
+				</Box>
+				<Button className={'btn-add-member'} startIcon={<AddRoundedIcon />}>
+					Add member
+				</Button>
+			</Box>
 			<Box component={'div'} className={'table-wrap'}>
 				<Box component={'div'} sx={{ width: '100%', typography: 'body1' }}>
 					<TabContext value={value}>
@@ -176,28 +194,28 @@ const AdminUsers: NextPage = ({ initialInquiry, ...props }: any) => {
 									value="ALL"
 									className={value === 'ALL' ? 'li on' : 'li'}
 								>
-									All
+									All <span>{membersTotal}</span>
 								</ListItem>
 								<ListItem
 									onClick={(e: any) => tabChangeHandler(e, 'ACTIVE')}
 									value="ACTIVE"
 									className={value === 'ACTIVE' ? 'li on' : 'li'}
 								>
-									Active
+									Active <span>{statusCount(MemberStatus.ACTIVE)}</span>
 								</ListItem>
 								<ListItem
 									onClick={(e: any) => tabChangeHandler(e, 'BLOCK')}
 									value="BLOCK"
 									className={value === 'BLOCK' ? 'li on' : 'li'}
 								>
-									Blocked
+									Blocked <span>{statusCount(MemberStatus.BLOCK)}</span>
 								</ListItem>
 								<ListItem
 									onClick={(e: any) => tabChangeHandler(e, 'DELETE')}
 									value="DELETE"
 									className={value === 'DELETE' ? 'li on' : 'li'}
 								>
-									Deleted
+									Deleted <span>{statusCount(MemberStatus.DELETE)}</span>
 								</ListItem>
 							</List>
 							<Divider />
@@ -207,7 +225,7 @@ const AdminUsers: NextPage = ({ initialInquiry, ...props }: any) => {
 									onChange={(e: any) => textHandler(e.target.value)}
 									sx={{ width: '100%' }}
 									className={'search'}
-									placeholder="Search user name"
+									placeholder="Search by name, phone or ID"
 									onKeyDown={(event) => {
 										if (event.key == 'Enter') searchTextHandler();
 									}}
@@ -237,7 +255,7 @@ const AdminUsers: NextPage = ({ initialInquiry, ...props }: any) => {
 								/>
 								<Select sx={{ width: '160px', ml: '20px' }} value={searchType}>
 									<MenuItem value={'ALL'} onClick={() => searchTypeHandler('ALL')}>
-										All
+										All types
 									</MenuItem>
 									<MenuItem value={'USER'} onClick={() => searchTypeHandler('USER')}>
 										User

@@ -13,6 +13,8 @@ import IconButton from '@mui/material/IconButton';
 import Divider from '@mui/material/Divider';
 import Typography from '@mui/material/Typography';
 import Tooltip from '@mui/material/Tooltip';
+import NotificationsNoneRoundedIcon from '@mui/icons-material/NotificationsNoneRounded';
+import LogoutRoundedIcon from '@mui/icons-material/LogoutRounded';
 import { getJwtToken, logOut, updateUserInfo } from '../../auth';
 import { useReactiveVar } from '@apollo/client';
 import { userVar } from '../../../apollo/store';
@@ -65,6 +67,7 @@ const withAdminLayout = (Component: ComponentType) => {
 				<Box component={'div'} sx={{ display: 'flex' }}>
 					<AppBar
 						position="fixed"
+						className={'admin-appbar'}
 						sx={{
 							width: `calc(100% - ${drawerWidth}px)`,
 							ml: `${drawerWidth}px`,
@@ -73,6 +76,9 @@ const withAdminLayout = (Component: ComponentType) => {
 						}}
 					>
 						<Toolbar>
+							<IconButton className={'notification-btn'}>
+								<NotificationsNoneRoundedIcon />
+							</IconButton>
 							<Tooltip title="Open settings">
 								<IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
 									<Avatar
@@ -82,6 +88,10 @@ const withAdminLayout = (Component: ComponentType) => {
 									/>
 								</IconButton>
 							</Tooltip>
+							<Stack className={'appbar-user'}>
+								<Typography component={'strong'}>{user?.memberNick}</Typography>
+								<Typography component={'span'}>Administrator</Typography>
+							</Stack>
 							<Menu
 								sx={{ mt: '45px' }}
 								id="menu-appbar"
@@ -143,9 +153,35 @@ const withAdminLayout = (Component: ComponentType) => {
 						<Stack className={'aside-inner'}>
 							<Toolbar sx={{ flexDirection: 'column', alignItems: 'flexStart' }}>
 								<Stack className={'logo-box'}>
-									<img src={'/img/logo/logoText.svg'} alt={'logo'} />
+									<Box component={'div'} className={'logo-mark'}>
+										U
+									</Box>
+									<Box component={'div'}>
+										<Typography component={'strong'}>Membership</Typography>
+										<Typography component={'span'}>Console</Typography>
+									</Box>
 								</Stack>
 							</Toolbar>
+
+							<Stack
+								className="user admin-profile"
+								direction={'row'}
+								alignItems={'center'}
+								sx={{
+									bgcolor: openMenu ? 'rgba(217, 89, 57, 0.06)' : 'none',
+									borderRadius: '8px',
+									px: '10px',
+									py: '10px',
+								}}
+							>
+								<Avatar
+									src={user?.memberImage ? `${REACT_APP_API_URL}/${user?.memberImage}` : '/img/profile/defaultUser.svg'}
+								/>
+								<Typography variant={'body2'} p={1} ml={1}>
+									{user?.memberNick} <br />
+									<span>{user?.memberPhone}</span>
+								</Typography>
+							</Stack>
 
 							<Typography className={'aside-label'}>Management</Typography>
 
@@ -155,24 +191,9 @@ const withAdminLayout = (Component: ComponentType) => {
 
 							<Divider className={'aside-divider'} />
 
-							<Stack
-								className="user"
-								direction={'row'}
-								alignItems={'center'}
-								sx={{
-									bgcolor: openMenu ? 'rgba(255, 255, 255, 0.06)' : 'none',
-									borderRadius: '8px',
-									px: '24px',
-									py: '11px',
-								}}
-							>
-								<Avatar
-									src={user?.memberImage ? `${REACT_APP_API_URL}/${user?.memberImage}` : '/img/profile/defaultUser.svg'}
-								/>
-								<Typography variant={'body2'} p={1} ml={1}>
-									{user?.memberNick} <br />
-									{user?.memberPhone}
-								</Typography>
+							<Stack className="sign-out" direction={'row'} alignItems={'center'} onClick={logoutHandler}>
+								<LogoutRoundedIcon />
+								<Typography component={'span'}>Sign out</Typography>
 							</Stack>
 						</Stack>
 					</Drawer>
