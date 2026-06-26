@@ -1,0 +1,89 @@
+Context: precisely-diagnosed bug fix — binding the map to real per-university data that is already being fetched, not a redesign and not a new GraphQL field.
+
+## Bug
+On every university detail page, the "Address" map section always shows the exact same hardcoded location (Geumhogangbyeon-ro, Dong-gu, Daegu) and the exact same tooltip text, regardless of which university is being viewed.
+
+## Root cause, confirmed in `pages/university/detail.tsx`
+
+```tsx
+<Stack className={'address-config'}>
+	<Typography className={'title'}>Address</Typography>
+	<Stack className={'map-box'}>
+		<iframe
+			src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d25867.098915951767!2d128.68632810247993!3d35.86402299180927!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x35660bba427bf179%3A0x1fc02da732b9072f!2sGeumhogangbyeon-ro%2C%20Dong-gu%2C%20Daegu!5e0!3m2!1suz!2skr!4v1695537640704!5m2!1suz!2skr"
+			width="100%"
+			height="100%"
+			style={{ border: 0 }}
+			allowFullScreen={true}
+			loading="lazy"
+			referrerPolicy="no-referrer-when-downgrade"
+		></iframe>
+		<Stack className={'map-tooltip'}>
+			<Typography className={'street'}>Geumhogangbyeon-ro</Typography>
+			<Typography className={'city'}>Dong-gu, Daegu</Typography>
+		</Stack>
+		<Box component={'div'} className={'map-pin'}>
+			...
+		</Box>
+	</Stack>
+</Stack>
+```
+
+This `src` is a static Google Maps "embed" link (the `pb=...` parameter format) pointing at one specific, fixed coordinate — it was never wired up to `university?.universityAddress` or `university?.universityLocation`. Both fields are already fetched by the `GET_UNIVERSITY` query (confirmed in `apollo/user/query.ts`, lines 91-92: `universityLocation`, `universityAddress`) and already available on the `university` state object in this same file — they're just not used here. The tooltip text below the map is hardcoded the same way.
+
+## Fix — `pages/university/detail.tsx`
+
+Find:
+```tsx
+								<Stack className={'address-config'}>
+									<Typography className={'title'}>Address</Typography>
+									<Stack className={'map-box'}>
+										<iframe
+											src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d25867.098915951767!2d128.68632810247993!3d35.86402299180927!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x35660bba427bf179%3A0x1fc02da732b9072f!2sGeumhogangbyeon-ro%2C%20Dong-gu%2C%20Daegu!5e0!3m2!1suz!2skr!4v1695537640704!5m2!1suz!2skr"
+											width="100%"
+											height="100%"
+											style={{ border: 0 }}
+											allowFullScreen={true}
+											loading="lazy"
+											referrerPolicy="no-referrer-when-downgrade"
+										></iframe>
+										<Stack className={'map-tooltip'}>
+											<Typography className={'street'}>Geumhogangbyeon-ro</Typography>
+											<Typography className={'city'}>Dong-gu, Daegu</Typography>
+										</Stack>
+```
+
+Replace with:
+```tsx
+								<Stack className={'address-config'}>
+									<Typography className={'title'}>Address</Typography>
+									<Stack className={'map-box'}>
+										<iframe
+											src={`https://www.google.com/maps?q=${encodeURIComponent(
+												`${university?.universityAddress ?? ''}, ${university?.universityLocation ?? ''}`,
+											)}&output=embed`}
+											width="100%"
+											height="100%"
+											style={{ border: 0 }}
+											allowFullScreen={true}
+											loading="lazy"
+											referrerPolicy="no-referrer-when-downgrade"
+										></iframe>
+										<Stack className={'map-tooltip'}>
+											<Typography className={'street'}>{university?.universityAddress}</Typography>
+											<Typography className={'city'}>{university?.universityLocation}</Typography>
+										</Stack>
+```
+
+What this does: instead of one fixed `pb=...` coordinate string, the iframe now uses Google Maps' query-based embed format (`https://www.google.com/maps?q=<address>&output=embed`), which does NOT require an API key — Google geocodes the plain-text address server-side and centers/pins the map on it automatically. The address text comes directly from `university?.universityAddress` and `university?.universityLocation` (the same fields already shown elsewhere on this page, e.g. in the listing header), so each university's map now points at its own real address. The tooltip below the map is updated the same way, showing the real street address and city instead of the hardcoded Daegu values.
+
+Do not change anything else in this file — no other Stack, no GraphQL query/field, no `map-pin` SVG, no other section. Do not add any new dependency, API key, or backend geocoding call — the existing fields and Google's no-key embed query format are sufficient.
+
+---
+
+Verify after implementing:
+1. Open several different universities' detail pages (different cities/locations) — each one's map now centers on that specific university's own address, not always Daegu.
+2. The tooltip text under the map shows that same university's actual street address and city, matching what's shown elsewhere on the page (e.g. the location chip near the title).
+3. If a university happens to have an empty `universityAddress`, the map falls back to centering on just the city/location text — it doesn't throw an error or show a broken iframe.
+4. The map pin icon, tooltip card styling, and overall "Address" section layout are visually unchanged — only the iframe URL and the two text values are now dynamic.
+5. No other page or section is affected.
