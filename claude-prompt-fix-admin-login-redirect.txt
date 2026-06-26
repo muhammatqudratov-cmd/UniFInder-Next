@@ -1,0 +1,83 @@
+Context: precisely-diagnosed bug fix — adding a minimal, scoped redirect check after login, not a redesign and not a new auth flow.
+
+## Bug
+Logging in with an admin account does not navigate to the admin panel — it lands on the regular home page instead, exactly like a normal user login.
+
+## Root cause, confirmed in `pages/account/join.tsx`
+
+```tsx
+const doLogin = useCallback(async () => {
+	console.warn(input);
+	try {
+		await logIn(input.nick, input.password);
+		await router.push(`${router.query.referrer ?? '/'}`);
+	} catch (err: any) {
+		await sweetMixinErrorAlert(err.message);
+	}
+}, [input]);
+```
+
+After `logIn(...)` succeeds, this always redirects to `router.query.referrer ?? '/'` — it never checks what kind of member just logged in. `logIn` (in `libs/auth/index.ts`) already calls `updateUserInfo(jwtToken)` internally, which decodes the JWT and populates the `userVar` reactive var with `memberType` (confirmed in `libs/auth/index.ts`: `userVar({ _id: ..., memberType: claims.memberType ?? '', ... })`) — so by the time `logIn(...)` resolves, `userVar()` already holds the logged-in member's `memberType`, including `'ADMIN'` for an admin account. This value is simply never read here.
+
+Separately, `libs/components/layout/LayoutAdmin.tsx` already guards `/_admin/*` pages so only `memberType === MemberType.ADMIN` can view them — but that guard only protects pages once you're already on them; it does nothing to get an admin TO `/_admin` after login. The admin's own root page is `pages/_admin/index.tsx`.
+
+## Fix — `pages/account/join.tsx`
+
+Add these imports:
+
+Find:
+```tsx
+import { logIn, signUp, updateStorage, updateUserInfo } from '../../libs/auth';
+import { sweetMixinErrorAlert, sweetTopSmallSuccessAlert, sweetErrorHandling } from '../../libs/sweetAlert';
+```
+
+Replace with:
+```tsx
+import { logIn, signUp, updateStorage, updateUserInfo } from '../../libs/auth';
+import { sweetMixinErrorAlert, sweetTopSmallSuccessAlert, sweetErrorHandling } from '../../libs/sweetAlert';
+import { userVar } from '../../apollo/store';
+import { MemberType } from '../../libs/enums/member.enum';
+```
+
+Then find:
+```tsx
+	const doLogin = useCallback(async () => {
+		console.warn(input);
+		try {
+			await logIn(input.nick, input.password);
+			await router.push(`${router.query.referrer ?? '/'}`);
+		} catch (err: any) {
+			await sweetMixinErrorAlert(err.message);
+		}
+	}, [input]);
+```
+
+Replace with:
+```tsx
+	const doLogin = useCallback(async () => {
+		console.warn(input);
+		try {
+			await logIn(input.nick, input.password);
+			if (userVar()?.memberType === MemberType.ADMIN) {
+				await router.push('/_admin');
+			} else {
+				await router.push(`${router.query.referrer ?? '/'}`);
+			}
+		} catch (err: any) {
+			await sweetMixinErrorAlert(err.message);
+		}
+	}, [input]);
+```
+
+What this does: right after a successful login, it reads the now-populated `userVar()` reactive var. If the logged-in member's `memberType` is `'ADMIN'`, it navigates straight to `/_admin` instead of the regular referrer/home redirect. Every non-admin login (`'USER'` or `'AGENT'`) behaves exactly as before — unchanged.
+
+Do not change `logIn`, `updateUserInfo`, `LayoutAdmin.tsx`'s existing guard, `doSignUp`, the Telegram login handler, or any other file — only `doLogin` in this one file.
+
+---
+
+Verify after implementing:
+1. Log in with a regular user account — you're redirected to the home page (or the original `referrer` query param) exactly as before.
+2. Log in with an account whose `memberType` is `ADMIN` — you're redirected straight to `/_admin` instead of the home page.
+3. Once on `/_admin`, all existing admin pages and the `LayoutAdmin` guard continue to work exactly as before (non-admins still get redirected away if they somehow land there).
+4. Logging in with an `AGENT` account still goes to the regular home/referrer page, not `/_admin` — only `ADMIN` gets the special redirect.
+5. Sign-up flow (`doSignUp`) and Telegram login are unaffected.

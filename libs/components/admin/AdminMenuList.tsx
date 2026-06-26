@@ -80,22 +80,22 @@ const AdminMenuList = (props: any) => {
 	const menu_set = [
 		{
 			title: 'Users',
-			icon: <User size={20} color="#bdbdbd" weight="fill" />,
+			Icon: User,
 			on_click: () => subMenuChangeHandler('Users'),
 		},
 		{
 			title: 'Universities',
-			icon: <UserCircleGear size={20} color="#bdbdbd" weight="fill" />,
+			Icon: UserCircleGear,
 			on_click: () => subMenuChangeHandler('Universities'),
 		},
 		{
 			title: 'Community',
-			icon: <ChatsCircle size={20} color="#bdbdbd" weight="fill" />,
+			Icon: ChatsCircle,
 			on_click: () => subMenuChangeHandler('Community'),
 		},
 		{
 			title: 'Cs',
-			icon: <Headset size={20} color="#bdbdbd" weight="fill" />,
+			Icon: Headset,
 			on_click: () => subMenuChangeHandler('Cs'),
 		},
 	];
@@ -131,7 +131,7 @@ const AdminMenuList = (props: any) => {
 								justifyContent: 'center',
 							}}
 						>
-							{item.icon}
+							<item.Icon size={20} color={clickMenu[0] === item.title ? '#fff' : '#8e8c83'} weight="fill" />
 						</ListItemIcon>
 						<ListItemText>{item.title}</ListItemText>
 						{clickMenu.find((menu: string) => item.title === menu) ? <ExpandLess /> : <ExpandMore />}

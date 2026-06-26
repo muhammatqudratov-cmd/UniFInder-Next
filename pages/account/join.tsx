@@ -7,6 +7,8 @@ import { useRouter } from 'next/router';
 import { useMutation } from '@apollo/client';
 import { logIn, signUp, updateStorage, updateUserInfo } from '../../libs/auth';
 import { sweetMixinErrorAlert, sweetTopSmallSuccessAlert, sweetErrorHandling } from '../../libs/sweetAlert';
+import { userVar } from '../../apollo/store';
+import { MemberType } from '../../libs/enums/member.enum';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import TelegramLoginButton from '../../components/TelegramLoginButton';
 import { TELEGRAM_LOGIN } from '../../apollo/user/mutation';
@@ -77,7 +79,11 @@ const Join: NextPage = () => {
 		console.warn(input);
 		try {
 			await logIn(input.nick, input.password);
-			await router.push(`${router.query.referrer ?? '/'}`);
+			if (userVar()?.memberType === MemberType.ADMIN) {
+				await router.push('/_admin');
+			} else {
+				await router.push(`${router.query.referrer ?? '/'}`);
+			}
 		} catch (err: any) {
 			await sweetMixinErrorAlert(err.message);
 		}
@@ -181,19 +187,6 @@ const Join: NextPage = () => {
 												/>
 											}
 											label="User"
-										/>
-									</FormGroup>
-									<FormGroup>
-										<FormControlLabel
-											control={
-												<Checkbox
-													size="small"
-													name={'AGENT'}
-													onChange={checkUserTypeHandler}
-													checked={input?.type == 'AGENT'}
-												/>
-											}
-											label="Agent"
 										/>
 									</FormGroup>
 								</div>

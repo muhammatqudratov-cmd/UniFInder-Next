@@ -68,7 +68,7 @@ const withAdminLayout = (Component: ComponentType) => {
 						sx={{
 							width: `calc(100% - ${drawerWidth}px)`,
 							ml: `${drawerWidth}px`,
-							boxShadow: 'rgb(100 116 139 / 12%) 0px 1px 4px',
+							boxShadow: 'none',
 							background: 'none',
 						}}
 					>
@@ -140,17 +140,27 @@ const withAdminLayout = (Component: ComponentType) => {
 						anchor="left"
 						className="aside"
 					>
-						<Toolbar sx={{ flexDirection: 'column', alignItems: 'flexStart' }}>
-							<Stack className={'logo-box'}>
-								<img src={'/img/logo/logoText.svg'} alt={'logo'} />
-							</Stack>
+						<Stack className={'aside-inner'}>
+							<Toolbar sx={{ flexDirection: 'column', alignItems: 'flexStart' }}>
+								<Stack className={'logo-box'}>
+									<img src={'/img/logo/logoText.svg'} alt={'logo'} />
+								</Stack>
+							</Toolbar>
+
+							<Typography className={'aside-label'}>Management</Typography>
+
+							<Box component={'div'} className={'menu-scroll'}>
+								<MenuList />
+							</Box>
+
+							<Divider className={'aside-divider'} />
 
 							<Stack
 								className="user"
 								direction={'row'}
 								alignItems={'center'}
 								sx={{
-									bgcolor: openMenu ? 'rgba(255, 255, 255, 0.04)' : 'none',
+									bgcolor: openMenu ? 'rgba(255, 255, 255, 0.06)' : 'none',
 									borderRadius: '8px',
 									px: '24px',
 									py: '11px',
@@ -164,11 +174,7 @@ const withAdminLayout = (Component: ComponentType) => {
 									{user?.memberPhone}
 								</Typography>
 							</Stack>
-						</Toolbar>
-
-						<Divider />
-
-						<MenuList />
+						</Stack>
 					</Drawer>
 
 					<Box component={'div'} id="bunker" sx={{ flexGrow: 1 }}>

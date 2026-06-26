@@ -25,9 +25,8 @@ interface Data {
 	fullname: string;
 	phone: string;
 	type: string;
+	flags: string;
 	state: string;
-	warning: string;
-	block: string;
 }
 
 function descendingComparator<T>(a: T, b: T, orderBy: keyof T) {
@@ -81,16 +80,10 @@ const headCells: readonly HeadCell[] = [
 		label: 'MEMBER TYPE',
 	},
 	{
-		id: 'warning',
+		id: 'flags',
 		numeric: false,
 		disablePadding: false,
-		label: 'WARNING',
-	},
-	{
-		id: 'block',
-		numeric: false,
-		disablePadding: false,
-		label: 'BLOCK CRIMES',
+		label: 'FLAGS',
 	},
 	{
 		id: 'state',
@@ -137,6 +130,40 @@ interface MemberPanelListType {
 	updateMemberHandler: any;
 }
 
+const AVATAR_COLORS = ['#d85a30', '#5a8a52', '#2f6fae', '#8e6fae', '#c98a2b', '#3f7d7a'];
+
+const getInitials = (name?: string) => (name ? name.slice(0, 2).toUpperCase() : '?');
+
+const getAvatarColor = (id: string) => {
+	let hash = 0;
+	for (let i = 0; i < id.length; i++) hash = (hash + id.charCodeAt(i)) % AVATAR_COLORS.length;
+	return AVATAR_COLORS[hash];
+};
+
+const typeBadgeClass = (type: string) => {
+	switch (type) {
+		case 'ADMIN':
+			return 'badge type-admin';
+		case 'AGENT':
+			return 'badge type-agent';
+		default:
+			return 'badge type-user';
+	}
+};
+
+const stateBadgeClass = (status: string) => {
+	switch (status) {
+		case 'ACTIVE':
+			return 'badge success';
+		case 'BLOCK':
+			return 'badge error';
+		case 'DELETE':
+			return 'badge delete';
+		default:
+			return 'badge success';
+	}
+};
+
 export const MemberPanelList = (props: MemberPanelListType) => {
 	const { members, anchorEl, menuIconClickHandler, menuIconCloseHandler, updateMemberHandler } = props;
 
@@ -149,7 +176,7 @@ export const MemberPanelList = (props: MemberPanelListType) => {
 					<TableBody>
 						{members.length === 0 && (
 							<TableRow>
-								<TableCell align="center" colSpan={8}>
+								<TableCell align="center" colSpan={7}>
 									<span className={'no-data'}>data not found!</span>
 								</TableCell>
 							</TableRow>
@@ -157,9 +184,6 @@ export const MemberPanelList = (props: MemberPanelListType) => {
 
 						{members.length !== 0 &&
 							members.map((member: Member, index: number) => {
-								const member_image = member.memberImage
-									? `${REACT_APP_API_URL}/${member.memberImage}`
-									: '/img/profile/defaultUser.svg';
 								return (
 									<TableRow hover key={member?._id} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
 										<TableCell align="left">{member._id}</TableCell>
@@ -168,7 +192,19 @@ export const MemberPanelList = (props: MemberPanelListType) => {
 											<Stack direction={'row'}>
 												<Link href={`/member?memberId=${member._id}`}>
 													<div>
-														<Avatar alt="Remy Sharp" src={member_image} sx={{ ml: '2px', mr: '10px' }} />
+														{member.memberImage ? (
+															<Avatar
+																alt={member.memberNick}
+																src={`${REACT_APP_API_URL}/${member.memberImage}`}
+																sx={{ ml: '2px', mr: '10px' }}
+															/>
+														) : (
+															<Avatar
+																sx={{ ml: '2px', mr: '10px', bgcolor: getAvatarColor(member._id) }}
+															>
+																{getInitials(member.memberNick)}
+															</Avatar>
+														)}
 													</div>
 												</Link>
 												<Link href={`/member?memberId=${member._id}`}>
@@ -181,7 +217,7 @@ export const MemberPanelList = (props: MemberPanelListType) => {
 										<TableCell align="left">{member.memberPhone}</TableCell>
 
 										<TableCell align="center">
-											<Button onClick={(e: any) => menuIconClickHandler(e, index)} className={'badge success'}>
+											<Button onClick={(e: any) => menuIconClickHandler(e, index)} className={typeBadgeClass(member.memberType)}>
 												{member.memberType}
 											</Button>
 
@@ -211,10 +247,18 @@ export const MemberPanelList = (props: MemberPanelListType) => {
 											</Menu>
 										</TableCell>
 
-										<TableCell align="center">{member.memberWarnings}</TableCell>
-										<TableCell align="center">{member.memberBlocks}</TableCell>
 										<TableCell align="center">
-											<Button onClick={(e: any) => menuIconClickHandler(e, member._id)} className={'badge success'}>
+											{(() => {
+												const flagCount = (member.memberWarnings ?? 0) + (member.memberBlocks ?? 0);
+												return flagCount === 0 ? (
+													<span className={'flags-none'}>None</span>
+												) : (
+													<span className={'flags-count'}>{`${flagCount} flag${flagCount > 1 ? 's' : ''}`}</span>
+												);
+											})()}
+										</TableCell>
+										<TableCell align="center">
+											<Button onClick={(e: any) => menuIconClickHandler(e, member._id)} className={stateBadgeClass(member.memberStatus)}>
 												{member.memberStatus}
 											</Button>
 

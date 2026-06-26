@@ -1,0 +1,857 @@
+Context: visual/CSS redesign of the Admin "Member List" page (sidebar + header + table) to match a reference design ("Membership Console" dark-sidebar style). This is presentation-only: every data fetch, query, mutation, state variable, handler, and route stays exactly as-is. The only behavioral-looking changes are pure presentational mappings computed from fields that are already fetched (e.g. choosing a badge color from `member.memberType`/`member.memberStatus`, or deriving avatar initials from `member.memberNick`) — no new GraphQL calls, no new backend logic, no renamed business fields.
+
+Two elements visible in the reference design are intentionally NOT included, because building them would require inventing data or behavior that doesn't exist in this codebase:
+- The "+ Add member" button (no create-member mutation/flow exists anywhere in the project).
+- The "Total Members / Active / Flagged" stat cards at the top (those require aggregate counts across all members regardless of the current tab filter, which is not fetched by the existing `GET_ALL_MEMBERS_BY_ADMIN` query — only the currently selected tab's filtered total is available via `metaCounter`).
+If wanted later, both would need a new dedicated query/mutation — out of scope here.
+
+=====================================================================
+FILE 1 — libs/components/layout/LayoutAdmin.tsx
+=====================================================================
+Goal: turn the sidebar into a dark column with the logo/nav at top and the logged-in user's mini-card pinned at the bottom (currently the user card sits right under the logo). No data binding changes — `user?.memberNick`, `user?.memberPhone`, `user?.memberImage`, `openMenu` all stay identical, only their position in the JSX moves.
+
+Find:
+```tsx
+					<Drawer
+						sx={{
+							width: drawerWidth,
+							flexShrink: 0,
+							'& .MuiDrawer-paper': {
+								width: drawerWidth,
+								boxSizing: 'border-box',
+							},
+						}}
+						variant="permanent"
+						anchor="left"
+						className="aside"
+					>
+						<Toolbar sx={{ flexDirection: 'column', alignItems: 'flexStart' }}>
+							<Stack className={'logo-box'}>
+								<img src={'/img/logo/logoText.svg'} alt={'logo'} />
+							</Stack>
+
+							<Stack
+								className="user"
+								direction={'row'}
+								alignItems={'center'}
+								sx={{
+									bgcolor: openMenu ? 'rgba(255, 255, 255, 0.04)' : 'none',
+									borderRadius: '8px',
+									px: '24px',
+									py: '11px',
+								}}
+							>
+								<Avatar
+									src={user?.memberImage ? `${REACT_APP_API_URL}/${user?.memberImage}` : '/img/profile/defaultUser.svg'}
+								/>
+								<Typography variant={'body2'} p={1} ml={1}>
+									{user?.memberNick} <br />
+									{user?.memberPhone}
+								</Typography>
+							</Stack>
+						</Toolbar>
+
+						<Divider />
+
+						<MenuList />
+					</Drawer>
+```
+
+Replace with:
+```tsx
+					<Drawer
+						sx={{
+							width: drawerWidth,
+							flexShrink: 0,
+							'& .MuiDrawer-paper': {
+								width: drawerWidth,
+								boxSizing: 'border-box',
+							},
+						}}
+						variant="permanent"
+						anchor="left"
+						className="aside"
+					>
+						<Stack className={'aside-inner'}>
+							<Toolbar sx={{ flexDirection: 'column', alignItems: 'flexStart' }}>
+								<Stack className={'logo-box'}>
+									<img src={'/img/logo/logoText.svg'} alt={'logo'} />
+								</Stack>
+							</Toolbar>
+
+							<Typography className={'aside-label'}>Management</Typography>
+
+							<Box component={'div'} className={'menu-scroll'}>
+								<MenuList />
+							</Box>
+
+							<Divider className={'aside-divider'} />
+
+							<Stack
+								className="user"
+								direction={'row'}
+								alignItems={'center'}
+								sx={{
+									bgcolor: openMenu ? 'rgba(255, 255, 255, 0.06)' : 'none',
+									borderRadius: '8px',
+									px: '24px',
+									py: '11px',
+								}}
+							>
+								<Avatar
+									src={user?.memberImage ? `${REACT_APP_API_URL}/${user?.memberImage}` : '/img/profile/defaultUser.svg'}
+								/>
+								<Typography variant={'body2'} p={1} ml={1}>
+									{user?.memberNick} <br />
+									{user?.memberPhone}
+								</Typography>
+							</Stack>
+						</Stack>
+					</Drawer>
+```
+
+Also restyle the AppBar background so it blends with the page instead of a separate white bar. Find:
+```tsx
+					<AppBar
+						position="fixed"
+						sx={{
+							width: `calc(100% - ${drawerWidth}px)`,
+							ml: `${drawerWidth}px`,
+							boxShadow: 'rgb(100 116 139 / 12%) 0px 1px 4px',
+							background: 'none',
+						}}
+					>
+```
+Replace with:
+```tsx
+					<AppBar
+						position="fixed"
+						sx={{
+							width: `calc(100% - ${drawerWidth}px)`,
+							ml: `${drawerWidth}px`,
+							boxShadow: 'none',
+							background: 'none',
+						}}
+					>
+```
+
+Do not change any hook, state, `useEffect`, `logoutHandler`, `handleOpenUserMenu`, the admin-role redirect guard, or any import other than what's listed (`Box` is already imported in this file — confirm it's there; if not already imported, add `import Box from '@mui/material/Box';` near the other MUI imports).
+
+=====================================================================
+FILE 2 — libs/components/admin/AdminMenuList.tsx
+=====================================================================
+Goal: make the active nav icon turn white (it's currently hardcoded gray `#bdbdbd` regardless of active state). No click handlers, state, or routing logic changes — only how the icon's `color` prop is computed.
+
+Find:
+```tsx
+	const menu_set = [
+		{
+			title: 'Users',
+			icon: <User size={20} color="#bdbdbd" weight="fill" />,
+			on_click: () => subMenuChangeHandler('Users'),
+		},
+		{
+			title: 'Universities',
+			icon: <UserCircleGear size={20} color="#bdbdbd" weight="fill" />,
+			on_click: () => subMenuChangeHandler('Universities'),
+		},
+		{
+			title: 'Community',
+			icon: <ChatsCircle size={20} color="#bdbdbd" weight="fill" />,
+			on_click: () => subMenuChangeHandler('Community'),
+		},
+		{
+			title: 'Cs',
+			icon: <Headset size={20} color="#bdbdbd" weight="fill" />,
+			on_click: () => subMenuChangeHandler('Cs'),
+		},
+	];
+```
+
+Replace with:
+```tsx
+	const menu_set = [
+		{
+			title: 'Users',
+			Icon: User,
+			on_click: () => subMenuChangeHandler('Users'),
+		},
+		{
+			title: 'Universities',
+			Icon: UserCircleGear,
+			on_click: () => subMenuChangeHandler('Universities'),
+		},
+		{
+			title: 'Community',
+			Icon: ChatsCircle,
+			on_click: () => subMenuChangeHandler('Community'),
+		},
+		{
+			title: 'Cs',
+			Icon: Headset,
+			on_click: () => subMenuChangeHandler('Cs'),
+		},
+	];
+```
+
+Find:
+```tsx
+						<ListItemIcon
+							sx={{
+								minWidth: 0,
+								mr: openMenu ? 3 : 'auto',
+								justifyContent: 'center',
+							}}
+						>
+							{item.icon}
+						</ListItemIcon>
+```
+
+Replace with:
+```tsx
+						<ListItemIcon
+							sx={{
+								minWidth: 0,
+								mr: openMenu ? 3 : 'auto',
+								justifyContent: 'center',
+							}}
+						>
+							<item.Icon size={20} color={clickMenu[0] === item.title ? '#fff' : '#8e8c83'} weight="fill" />
+						</ListItemIcon>
+```
+
+Everything else in this file (`useEffect`, `subMenuChangeHandler`, `sub_menu_set`, the `Collapse`/expand-arrow behavior, the `Link`/`ListItemButton` sub-menu rendering) stays exactly as-is.
+
+=====================================================================
+FILE 3 — libs/components/admin/users/MemberList.tsx
+=====================================================================
+Goal: (a) show a colored initials avatar when a member has no uploaded photo, instead of the generic default-user icon; (b) color the MEMBER TYPE and STATE badges according to the member's actual `memberType`/`memberStatus` instead of always using the same green "success" class for every row; (c) merge the WARNING and BLOCK CRIMES columns into a single FLAGS column, computed from the same two fields that are already fetched (`memberWarnings`, `memberBlocks`). None of this touches `updateMemberHandler`, the `Menu`/`MenuItem` role-and-status-change dropdowns, or any GraphQL call.
+
+Find:
+```tsx
+interface Data {
+	id: string;
+	nickname: string;
+	fullname: string;
+	phone: string;
+	type: string;
+	state: string;
+	warning: string;
+	block: string;
+}
+```
+
+Replace with:
+```tsx
+interface Data {
+	id: string;
+	nickname: string;
+	fullname: string;
+	phone: string;
+	type: string;
+	flags: string;
+	state: string;
+}
+```
+
+Find:
+```tsx
+	{
+		id: 'warning',
+		numeric: false,
+		disablePadding: false,
+		label: 'WARNING',
+	},
+	{
+		id: 'block',
+		numeric: false,
+		disablePadding: false,
+		label: 'BLOCK CRIMES',
+	},
+```
+
+Replace with:
+```tsx
+	{
+		id: 'flags',
+		numeric: false,
+		disablePadding: false,
+		label: 'FLAGS',
+	},
+```
+
+Find:
+```tsx
+export const MemberPanelList = (props: MemberPanelListType) => {
+	const { members, anchorEl, menuIconClickHandler, menuIconCloseHandler, updateMemberHandler } = props;
+
+	return (
+```
+
+Replace with:
+```tsx
+const AVATAR_COLORS = ['#d85a30', '#5a8a52', '#2f6fae', '#8e6fae', '#c98a2b', '#3f7d7a'];
+
+const getInitials = (name?: string) => (name ? name.slice(0, 2).toUpperCase() : '?');
+
+const getAvatarColor = (id: string) => {
+	let hash = 0;
+	for (let i = 0; i < id.length; i++) hash = (hash + id.charCodeAt(i)) % AVATAR_COLORS.length;
+	return AVATAR_COLORS[hash];
+};
+
+const typeBadgeClass = (type: string) => {
+	switch (type) {
+		case 'ADMIN':
+			return 'badge type-admin';
+		case 'AGENT':
+			return 'badge type-agent';
+		default:
+			return 'badge type-user';
+	}
+};
+
+const stateBadgeClass = (status: string) => {
+	switch (status) {
+		case 'ACTIVE':
+			return 'badge success';
+		case 'BLOCK':
+			return 'badge error';
+		case 'DELETE':
+			return 'badge delete';
+		default:
+			return 'badge success';
+	}
+};
+
+export const MemberPanelList = (props: MemberPanelListType) => {
+	const { members, anchorEl, menuIconClickHandler, menuIconCloseHandler, updateMemberHandler } = props;
+
+	return (
+```
+
+Find:
+```tsx
+							members.map((member: Member, index: number) => {
+								const member_image = member.memberImage
+									? `${REACT_APP_API_URL}/${member.memberImage}`
+									: '/img/profile/defaultUser.svg';
+								return (
+									<TableRow hover key={member?._id} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
+										<TableCell align="left">{member._id}</TableCell>
+
+										<TableCell align="left" className={'name'}>
+											<Stack direction={'row'}>
+												<Link href={`/member?memberId=${member._id}`}>
+													<div>
+														<Avatar alt="Remy Sharp" src={member_image} sx={{ ml: '2px', mr: '10px' }} />
+													</div>
+												</Link>
+												<Link href={`/member?memberId=${member._id}`}>
+													<div>{member.memberNick}</div>
+												</Link>
+											</Stack>
+										</TableCell>
+```
+
+Replace with:
+```tsx
+							members.map((member: Member, index: number) => {
+								return (
+									<TableRow hover key={member?._id} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
+										<TableCell align="left">{member._id}</TableCell>
+
+										<TableCell align="left" className={'name'}>
+											<Stack direction={'row'}>
+												<Link href={`/member?memberId=${member._id}`}>
+													<div>
+														{member.memberImage ? (
+															<Avatar
+																alt={member.memberNick}
+																src={`${REACT_APP_API_URL}/${member.memberImage}`}
+																sx={{ ml: '2px', mr: '10px' }}
+															/>
+														) : (
+															<Avatar
+																sx={{ ml: '2px', mr: '10px', bgcolor: getAvatarColor(member._id) }}
+															>
+																{getInitials(member.memberNick)}
+															</Avatar>
+														)}
+													</div>
+												</Link>
+												<Link href={`/member?memberId=${member._id}`}>
+													<div>{member.memberNick}</div>
+												</Link>
+											</Stack>
+										</TableCell>
+```
+
+Find:
+```tsx
+										<TableCell align="center">
+											<Button onClick={(e: any) => menuIconClickHandler(e, index)} className={'badge success'}>
+												{member.memberType}
+											</Button>
+```
+
+Replace with:
+```tsx
+										<TableCell align="center">
+											<Button onClick={(e: any) => menuIconClickHandler(e, index)} className={typeBadgeClass(member.memberType)}>
+												{member.memberType}
+											</Button>
+```
+
+Find:
+```tsx
+										<TableCell align="center">{member.memberWarnings}</TableCell>
+										<TableCell align="center">{member.memberBlocks}</TableCell>
+										<TableCell align="center">
+											<Button onClick={(e: any) => menuIconClickHandler(e, member._id)} className={'badge success'}>
+												{member.memberStatus}
+											</Button>
+```
+
+Replace with:
+```tsx
+										<TableCell align="center">
+											{(() => {
+												const flagCount = (member.memberWarnings ?? 0) + (member.memberBlocks ?? 0);
+												return flagCount === 0 ? (
+													<span className={'flags-none'}>None</span>
+												) : (
+													<span className={'flags-count'}>{`${flagCount} flag${flagCount > 1 ? 's' : ''}`}</span>
+												);
+											})()}
+										</TableCell>
+										<TableCell align="center">
+											<Button onClick={(e: any) => menuIconClickHandler(e, member._id)} className={stateBadgeClass(member.memberStatus)}>
+												{member.memberStatus}
+											</Button>
+```
+
+Do not change the two `Menu`/`MenuItem` dropdowns below those buttons, `updateMemberHandler`, `menuIconCloseHandler`, the `colSpan={8}` "no-data" row (leave the colSpan number as-is — it still matches the new 8-column layout: MB ID, name, full name, phone, type, flags, state — wait, count carefully: that is 7. Update `colSpan={8}` to `colSpan={7}` since the table now has 7 columns total after merging warning+block into one flags column), or any other part of this file.
+
+Find:
+```tsx
+							<TableRow>
+								<TableCell align="center" colSpan={8}>
+									<span className={'no-data'}>data not found!</span>
+								</TableCell>
+							</TableRow>
+```
+
+Replace with:
+```tsx
+							<TableRow>
+								<TableCell align="center" colSpan={7}>
+									<span className={'no-data'}>data not found!</span>
+								</TableCell>
+							</TableRow>
+```
+
+=====================================================================
+FILE 4 — scss/pc/admin/admin.scss
+=====================================================================
+Goal: dark sidebar, pill-style tabs, rounded search input, colored type/state badges, flags column styling. Every selector below is additive or a targeted replacement of an existing rule — no unrelated rule is touched.
+
+Find:
+```scss
+  .MuiAppBar-root {
+    height: 64px;
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+    padding: 0 24px;
+    position: fixed;
+    left: auto;
+    box-shadow: none;
+    background: #fff;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+    .settings-icon-admin {
+      margin-right: 15px;
+      color: #7b809a;
+      cursor: pointer;
+    }
+  }
+  .aside {
+    .logo-box {
+      display: flex;
+      flex-direction: row;
+      padding: 16px 0;
+      img {
+        width: 90px;
+        height: 90px;
+      }
+    }
+    .user {
+      background: #f5f5f5;
+    }
+    hr {
+      margin: 24px 0;
+    }
+    .MuiListItemIcon-root {
+      margin-right: 16px;
+    }
+  }
+```
+
+Replace with:
+```scss
+  .MuiAppBar-root {
+    height: 64px;
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+    padding: 0 24px;
+    position: fixed;
+    left: auto;
+    box-shadow: none;
+    background: #e8e0d5;
+    border-bottom: none;
+    .settings-icon-admin {
+      margin-right: 15px;
+      color: #7b809a;
+      cursor: pointer;
+    }
+  }
+  .aside {
+    background: #1c1b18;
+    color: #fff;
+    .aside-inner {
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+    .logo-box {
+      display: flex;
+      flex-direction: row;
+      padding: 16px 0 16px 24px;
+      background: #fff;
+      border-radius: 8px;
+      margin: 0 16px;
+      width: fit-content;
+      img {
+        width: 90px;
+        height: 90px;
+      }
+    }
+    .aside-label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      color: #8e8c83;
+      text-transform: uppercase;
+      padding: 16px 24px 4px;
+    }
+    .menu-scroll {
+      flex: 1 1 auto;
+      overflow-y: auto;
+      padding-top: 4px;
+    }
+    .aside-divider {
+      border-color: rgba(255, 255, 255, 0.08);
+      margin: 0 24px;
+    }
+    .user {
+      margin: 16px;
+      color: #fff;
+      p,
+      span,
+      br {
+        color: #fff;
+      }
+    }
+    hr {
+      margin: 24px 0;
+    }
+    .MuiListItemIcon-root {
+      margin-right: 16px;
+    }
+  }
+```
+
+Find:
+```scss
+  .menu-list {
+    padding: 8px 24px 8px 32px;
+    li {
+      padding: 8px 16px 8px 28px;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+    li.on {
+      font-weight: 600;
+      background: #FDF4F4;
+      color: #F54D56;
+      span {
+        color: #212121;
+      }
+    }
+  }
+```
+
+Replace with:
+```scss
+  .menu_wrap {
+    padding: 0 16px;
+    margin-bottom: 4px;
+    .menu {
+      border-radius: 8px;
+      color: #cfcdc4;
+      .MuiListItemText-root span {
+        font-size: 14px;
+        color: inherit;
+      }
+      .MuiSvgIcon-root {
+        color: #8e8c83;
+      }
+    }
+    .menu.on {
+      background: #d85a30;
+      color: #fff;
+      .MuiListItemText-root span {
+        color: #fff;
+      }
+      .MuiSvgIcon-root {
+        color: #fff;
+      }
+    }
+  }
+  .menu-list {
+    padding: 8px 24px 8px 32px;
+    li {
+      padding: 8px 16px 8px 28px;
+      border-radius: 4px;
+      font-size: 14px;
+      color: #cfcdc4;
+    }
+    li.on {
+      font-weight: 600;
+      background: rgba(216, 90, 48, 0.16);
+      color: #d85a30;
+      span {
+        color: #d85a30;
+      }
+    }
+  }
+```
+
+Find:
+```scss
+    .table-wrap {
+      background: #fff;
+      border-radius: 4px;
+      box-shadow: rgb(145 158 171 / 20%) 0px 0px 2px 0px, rgb(145 158 171 / 12%) 0px 12px 24px -4px;
+      .tab-menu {
+        display: flex;
+        flex-direction: row;
+        padding: 0 24px;
+        li {
+          width: auto;
+          height: 48px;
+          cursor: pointer;
+          padding: 12px 16px;
+          color: #bdbdbd;
+          font-size: 14px;
+        }
+        li.on {
+          font-weight: 500;
+          color: #e92c28;
+          border-bottom: 2px solid #e92c28;
+        }
+      }
+```
+
+Replace with:
+```scss
+    .table-wrap {
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: rgb(145 158 171 / 12%) 0px 0px 2px 0px, rgb(145 158 171 / 10%) 0px 12px 24px -4px;
+      .tab-menu {
+        display: flex;
+        flex-direction: row;
+        padding: 16px 24px 0;
+        li {
+          width: auto;
+          height: 36px;
+          cursor: pointer;
+          padding: 8px 16px;
+          color: #8e8c83;
+          font-size: 14px;
+          border-radius: 18px;
+          background: #f5f3ef;
+          margin-right: 8px;
+        }
+        li.on {
+          font-weight: 600;
+          color: #fff;
+          background: #1c1b18;
+          border-bottom: none;
+        }
+      }
+```
+
+Find:
+```scss
+      thead {
+        tr {
+          background: #fafafa;
+        }
+        th {
+          font-weight: bold;
+          color: #374151;
+          font-size: 14px;
+          border-bottom: 1px solid #eee;
+        }
+        th:last-child {
+          padding-right: 24px;
+        }
+        th:first-child {
+          padding-left: 24px;
+        }
+      }
+```
+
+Replace with:
+```scss
+      thead {
+        tr {
+          background: transparent;
+        }
+        th {
+          font-weight: 600;
+          color: #8e8c83;
+          font-size: 11px;
+          letter-spacing: 0.04em;
+          text-transform: uppercase;
+          border-bottom: 1px solid #eee;
+        }
+        th:last-child {
+          padding-right: 24px;
+        }
+        th:first-child {
+          padding-left: 24px;
+        }
+      }
+```
+
+Find:
+```scss
+    .badge {
+      padding: 3px 8px;
+      font-weight: 500;
+      font-size: 12px;
+      border-radius: 4px;
+    }
+```
+
+Replace with:
+```scss
+    .badge {
+      padding: 3px 8px;
+      font-weight: 500;
+      font-size: 12px;
+      border-radius: 4px;
+    }
+    .type-admin {
+      color: #b72136;
+      background: rgba(183, 33, 54, 0.1);
+    }
+    .type-agent {
+      color: #57564f;
+      background: #f0eee8;
+    }
+    .type-user {
+      color: #2f6fae;
+      background: rgba(47, 111, 174, 0.1);
+    }
+    .flags-none {
+      color: #8e8c83;
+      font-size: 14px;
+    }
+    .flags-count {
+      color: #b72136;
+      font-size: 14px;
+      font-weight: 600;
+    }
+```
+
+Find:
+```scss
+    .search-area {
+      display: flex;
+      flex-direction: row;
+      justify-content: flex-end;
+      img {
+        cursor: pointer;
+      }
+      .MuiOutlinedInput-root {
+        height: 48px;
+        background: #fff;
+        font-size: 14px;
+      }
+      .MuiTableCell-root {
+        padding: 12px 20px;
+        border-bottom: 1px solid #eee;
+      }
+      .MuiToolbar-root {
+        align-items: center;
+      }
+    }
+```
+
+Replace with:
+```scss
+    .search-area {
+      display: flex;
+      flex-direction: row;
+      justify-content: flex-end;
+      img {
+        cursor: pointer;
+      }
+      .MuiOutlinedInput-root {
+        height: 48px;
+        background: #fff;
+        font-size: 14px;
+        border-radius: 24px;
+      }
+      .MuiTableCell-root {
+        padding: 12px 20px;
+        border-bottom: 1px solid #eee;
+      }
+      .MuiToolbar-root {
+        align-items: center;
+      }
+    }
+```
+
+Add this new block at the very end of the file (after the closing brace of `.right-dashboard-settings`, as a new top-level rule):
+```scss
+
+.MuiTablePagination-root {
+  .MuiTablePagination-actions button {
+    border: 1px solid #eee;
+    border-radius: 50%;
+    margin: 0 4px;
+  }
+}
+```
+
+Do not change any other selector in this file (status colors like `.success`/`.warning`/`.error`/`.block`/`.delete`, the `.detail`, `.content-area`, `.user-area`, `.btn-*` blocks, or `.right-dashboard-settings`) — they're already correct and unrelated to this redesign.
+
+---
+
+Verify after implementing:
+1. The admin sidebar is now dark (#1c1b18) with a white logo chip at top, a small "MANAGEMENT" label, the nav icons/labels in light gray, and the active section (e.g. "Users") highlighted as a solid coral (#d85a30) pill with a white icon — the logged-in admin's avatar/name/phone now sits at the bottom of the sidebar instead of right under the logo.
+2. Clicking each sidebar item still expands/collapses its sub-menu and navigates exactly as before — only the colors moved, not the behavior.
+3. On `/_admin/users`, the four tabs (All/Active/Blocked/Deleted) now render as rounded pill buttons, with the active tab shown as a solid dark pill — clicking each still filters the table exactly as before (verify network calls still fire via `getMembersRefetch`).
+4. The search input and member-type dropdown are still fully functional (typing + Enter, the X-clear icon, the search icon click, and the type filter) — only the input's corners are now rounded.
+5. In the table: members without an uploaded photo now show a colored circle with their initials instead of the generic gray default-user icon; members with a real photo are unaffected.
+6. The MEMBER TYPE badge color now differs by actual type (ADMIN red-ish, AGENT gray, USER blue) instead of every row showing the same green badge — clicking it still opens the same role-change dropdown menu and `updateMemberHandler` still works identically.
+7. The STATE badge color now differs by actual status (ACTIVE green, BLOCK red, DELETE gray) instead of always green — clicking it still opens the same status-change dropdown and still calls `updateMemberHandler` identically.
+8. The WARNING and BLOCK CRIMES columns are now combined into a single FLAGS column reading "None" when both counts are zero, or "N flag(s)" otherwise — the underlying `memberWarnings`/`memberBlocks` values and all other table data are unchanged.
+9. Pagination (rows-per-page, page navigation) still works exactly as before — only the arrow buttons are now circular.
+10. No GraphQL query/mutation, route, or admin-role guard was changed — confirm `/_admin/universities`, `/_admin/community`, and `/_admin/cs/*` still render correctly under the same restyled sidebar/topbar (they reuse `LayoutAdmin.tsx` and `admin.scss`, so they inherit this redesign automatically).

@@ -1,0 +1,102 @@
+Context: precisely-scoped UI removal, not a redesign. On the sign-up form, remove the "Agent" registration-type option — agent status is assigned by the admin directly in the database, not chosen by the user at sign-up.
+
+## Confirmed in `pages/account/join.tsx`
+
+```tsx
+<Box className={'register'}>
+	{!loginView && (
+		<div className={'type-option'}>
+			<span className={'text'}>I want to be registered as:</span>
+			<div>
+				<FormGroup>
+					<FormControlLabel
+						control={
+							<Checkbox
+								size="small"
+								name={'USER'}
+								onChange={checkUserTypeHandler}
+								checked={input?.type == 'USER'}
+							/>
+						}
+						label="User"
+					/>
+				</FormGroup>
+				<FormGroup>
+					<FormControlLabel
+						control={
+							<Checkbox
+								size="small"
+								name={'AGENT'}
+								onChange={checkUserTypeHandler}
+								checked={input?.type == 'AGENT'}
+							/>
+						}
+						label="Agent"
+					/>
+				</FormGroup>
+			</div>
+		</div>
+	)}
+```
+
+`input.type` already defaults to `'USER'` (`const [input, setInput] = useState({ nick: '', password: '', phone: '', type: 'USER' });`), and `checkUserTypeHandler` resets `type` back to `'USER'` whenever a checkbox is unchecked. Removing the "Agent" checkbox simply means a new sign-up can never set `type` to `'AGENT'` from this form — it always stays `'USER'`, which is correct since agent accounts should only be created/promoted by an admin directly in the database, not self-selected at sign-up.
+
+## Fix — `pages/account/join.tsx`
+
+Find:
+```tsx
+				<FormGroup>
+					<FormControlLabel
+						control={
+							<Checkbox
+								size="small"
+								name={'USER'}
+								onChange={checkUserTypeHandler}
+								checked={input?.type == 'USER'}
+							/>
+						}
+						label="User"
+					/>
+				</FormGroup>
+				<FormGroup>
+					<FormControlLabel
+						control={
+							<Checkbox
+								size="small"
+								name={'AGENT'}
+								onChange={checkUserTypeHandler}
+								checked={input?.type == 'AGENT'}
+							/>
+						}
+						label="Agent"
+					/>
+				</FormGroup>
+```
+
+Replace with:
+```tsx
+				<FormGroup>
+					<FormControlLabel
+						control={
+							<Checkbox
+								size="small"
+								name={'USER'}
+								onChange={checkUserTypeHandler}
+								checked={input?.type == 'USER'}
+							/>
+						}
+						label="User"
+					/>
+				</FormGroup>
+```
+
+Do not change `checkUserTypeHandler`, `input`'s default state, `doSignUp`, the `signUp(...)` call, the "I want to be registered as:" label, the "User" checkbox, or any other file (no backend/resolver/mutation change — admin-side agent assignment is untouched).
+
+---
+
+Verify after implementing:
+1. On the sign-up form, only the "User" checkbox is shown under "I want to be registered as:" — the "Agent" option is gone.
+2. Signing up still works and creates the account with `memberType: 'USER'`, exactly as before.
+3. There is no way to select "Agent" anywhere on this form.
+4. Admin's existing ability to designate a member as an agent directly in the database/admin panel is completely unaffected — this change only removes the user-facing self-selection option.
+5. Login flow, Telegram login, and all other parts of this page are unaffected.

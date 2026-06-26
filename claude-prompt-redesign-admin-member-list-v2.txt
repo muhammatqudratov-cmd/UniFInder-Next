@@ -1,0 +1,1040 @@
+Context: follow-up to the previous admin redesign prompt (already applied — confirmed by screenshot: dark sidebar, pill tabs, colored avatars/badges, FLAGS column are all in place). This second pass closes the remaining visual gaps against the reference design: page header + subtitle + "Add member" button, the three stat cards (Total Members / Active / Flagged), the tab-track + search bar laid out in one row, reordered table columns (MEMBER / MB ID / PHONE / TYPE / FLAGS / STATE) with the full name folded under the nickname, an outlined "USER" badge, a status dot on STATE badges, a warning icon on the FLAGS text, and a simplified pagination row. Still presentation-only except for one explicitly-scoped, fully-grounded addition described below (the 3 stat numbers) — no existing query, mutation, route, or handler is removed or altered in behavior.
+
+Two deliberate, explained deviations from the reference image (kept on purpose, not oversights):
+1. The sidebar logo stays the project's real logo (`/img/logo/logoText.svg`) instead of the reference's generic "Membership Console" placeholder text/icon — that name isn't this app's actual brand, and the previous prompt already gave it a clean white chip background that fits the dark sidebar.
+2. The member-type filter `<Select>` (All/User/Agent/Admin) is kept, just placed next to the search box — the reference image doesn't show it, but removing it would delete a working filter (`searchTypeHandler`) with no other way to reach it.
+
+Stat cards data — grounded, no invented backend: "Total Members" and "Active" are each one extra lightweight call to the SAME already-existing `GET_ALL_MEMBERS_BY_ADMIN` query (just with `limit: 1` and a different `search` filter) — no new query, no backend file touched. "Flagged" is computed client-side by fetching the same query with a generous `limit` and counting how many of the returned members have `memberWarnings + memberBlocks > 0` — again, the same existing query, just called a third time with different variables. If the real member count ever exceeds the chosen limit, "Flagged" would undercount — call this out to the user as a known limit of this approach (no aggregate "flagged count" field exists in the schema to query directly).
+
+=====================================================================
+FILE 1 — pages/_admin/users/index.tsx
+=====================================================================
+
+Add new icon imports. Find:
+```tsx
+import CancelRoundedIcon from '@mui/icons-material/CancelRounded';
+```
+Replace with:
+```tsx
+import CancelRoundedIcon from '@mui/icons-material/CancelRounded';
+import AddRoundedIcon from '@mui/icons-material/AddRounded';
+import Tooltip from '@mui/material/Tooltip';
+```
+
+Add the three extra read-only queries right after the existing `getMembersRefetch` query block. Find:
+```tsx
+	const {
+		loading: getMembersLoading,
+		data: getMembersData,
+		error: getMembersError,
+		refetch: getMembersRefetch,
+	} = useQuery(GET_ALL_MEMBERS_BY_ADMIN, {
+		fetchPolicy: 'network-only',
+		variables: {
+			input: membersInquiry,
+		},
+		notifyOnNetworkStatusChange: true,
+		onCompleted: (data: T) => {
+			setMembers(data?.getAllMembersByAdmin?.list);
+			setMembersTotal(data?.getAllMembersByAdmin?.metaCounter[0]?.total);
+		},
+	});
+```
+Replace with:
+```tsx
+	const {
+		loading: getMembersLoading,
+		data: getMembersData,
+		error: getMembersError,
+		refetch: getMembersRefetch,
+	} = useQuery(GET_ALL_MEMBERS_BY_ADMIN, {
+		fetchPolicy: 'network-only',
+		variables: {
+			input: membersInquiry,
+		},
+		notifyOnNetworkStatusChange: true,
+		onCompleted: (data: T) => {
+			setMembers(data?.getAllMembersByAdmin?.list);
+			setMembersTotal(data?.getAllMembersByAdmin?.metaCounter[0]?.total);
+		},
+	});
+
+	/** STAT CARDS — reuse the same GET_ALL_MEMBERS_BY_ADMIN query with different filters, no new backend query **/
+	const { data: totalCountData } = useQuery(GET_ALL_MEMBERS_BY_ADMIN, {
+		fetchPolicy: 'network-only',
+		variables: { input: { page: 1, limit: 1, sort: 'createdAt', search: {} } },
+	});
+	const { data: activeCountData } = useQuery(GET_ALL_MEMBERS_BY_ADMIN, {
+		fetchPolicy: 'network-only',
+		variables: { input: { page: 1, limit: 1, sort: 'createdAt', search: { memberStatus: MemberStatus.ACTIVE } } },
+	});
+	const { data: flaggedListData } = useQuery(GET_ALL_MEMBERS_BY_ADMIN, {
+		fetchPolicy: 'network-only',
+		variables: { input: { page: 1, limit: 1000, sort: 'createdAt', search: {} } },
+	});
+
+	const totalMembersCount = totalCountData?.getAllMembersByAdmin?.metaCounter[0]?.total ?? 0;
+	const activeMembersCount = activeCountData?.getAllMembersByAdmin?.metaCounter[0]?.total ?? 0;
+	const flaggedMembersCount = (flaggedListData?.getAllMembersByAdmin?.list ?? []).filter(
+		(m: any) => (m?.memberWarnings ?? 0) + (m?.memberBlocks ?? 0) > 0,
+	).length;
+```
+
+Now replace the whole render section (header through the search/select toolbar) plus the pagination at the bottom. Find:
+```tsx
+	return (
+		<Box component={'div'} className={'content'}>
+			<Typography variant={'h2'} className={'tit'} sx={{ mb: '24px' }}>
+				Member List
+			</Typography>
+			<Box component={'div'} className={'table-wrap'}>
+				<Box component={'div'} sx={{ width: '100%', typography: 'body1' }}>
+					<TabContext value={value}>
+						<Box component={'div'}>
+							<List className={'tab-menu'}>
+								<ListItem
+									onClick={(e: any) => tabChangeHandler(e, 'ALL')}
+									value="ALL"
+									className={value === 'ALL' ? 'li on' : 'li'}
+								>
+									All
+								</ListItem>
+								<ListItem
+									onClick={(e: any) => tabChangeHandler(e, 'ACTIVE')}
+									value="ACTIVE"
+									className={value === 'ACTIVE' ? 'li on' : 'li'}
+								>
+									Active
+								</ListItem>
+								<ListItem
+									onClick={(e: any) => tabChangeHandler(e, 'BLOCK')}
+									value="BLOCK"
+									className={value === 'BLOCK' ? 'li on' : 'li'}
+								>
+									Blocked
+								</ListItem>
+								<ListItem
+									onClick={(e: any) => tabChangeHandler(e, 'DELETE')}
+									value="DELETE"
+									className={value === 'DELETE' ? 'li on' : 'li'}
+								>
+									Deleted
+								</ListItem>
+							</List>
+							<Divider />
+							<Stack className={'search-area'} sx={{ m: '24px' }}>
+								<OutlinedInput
+									value={searchText}
+									onChange={(e: any) => textHandler(e.target.value)}
+									sx={{ width: '100%' }}
+									className={'search'}
+									placeholder="Search user name"
+									onKeyDown={(event) => {
+										if (event.key == 'Enter') searchTextHandler();
+									}}
+									endAdornment={
+										<>
+											{searchText && (
+												<CancelRoundedIcon
+													style={{ cursor: 'pointer' }}
+													onClick={async () => {
+														setSearchText('');
+														setMembersInquiry({
+															...membersInquiry,
+															search: {
+																...membersInquiry.search,
+																text: '',
+															},
+														});
+														await getMembersRefetch({ input: membersInquiry });
+													}}
+												/>
+											)}
+											<InputAdornment position="end" onClick={() => searchTextHandler()}>
+												<img src="/img/icons/search_icon.png" alt={'searchIcon'} />
+											</InputAdornment>
+										</>
+									}
+								/>
+								<Select sx={{ width: '160px', ml: '20px' }} value={searchType}>
+									<MenuItem value={'ALL'} onClick={() => searchTypeHandler('ALL')}>
+										All
+									</MenuItem>
+									<MenuItem value={'USER'} onClick={() => searchTypeHandler('USER')}>
+										User
+									</MenuItem>
+									<MenuItem value={'AGENT'} onClick={() => searchTypeHandler('AGENT')}>
+										Agent
+									</MenuItem>
+									<MenuItem value={'ADMIN'} onClick={() => searchTypeHandler('ADMIN')}>
+										Admin
+									</MenuItem>
+								</Select>
+							</Stack>
+							<Divider />
+						</Box>
+						<MemberPanelList
+							members={members}
+							anchorEl={anchorEl}
+							menuIconClickHandler={menuIconClickHandler}
+							menuIconCloseHandler={menuIconCloseHandler}
+							updateMemberHandler={updateMemberHandler}
+						/>
+
+						<TablePagination
+							rowsPerPageOptions={[10, 20, 40, 60]}
+							component="div"
+							count={membersTotal}
+							rowsPerPage={membersInquiry?.limit}
+							page={membersInquiry?.page - 1}
+							onPageChange={changePageHandler}
+							onRowsPerPageChange={changeRowsPerPageHandler}
+						/>
+					</TabContext>
+				</Box>
+			</Box>
+		</Box>
+	);
+};
+```
+
+Replace with:
+```tsx
+	return (
+		<Box component={'div'} className={'content'}>
+			<Stack className={'page-header'}>
+				<Stack>
+					<Typography variant={'h2'} className={'tit'}>
+						Member List
+					</Typography>
+					<Typography className={'subtitle'}>Everyone across the platform at a glance.</Typography>
+				</Stack>
+				<Tooltip title="Member creation is managed directly in the database">
+					<span>
+						<Button disabled className={'btn-add-member'} startIcon={<AddRoundedIcon />}>
+							Add member
+						</Button>
+					</span>
+				</Tooltip>
+			</Stack>
+
+			<Stack className={'stat-cards'}>
+				<Stack className={'stat-card'}>
+					<Stack direction={'row'} justifyContent={'space-between'} alignItems={'flex-start'}>
+						<Typography className={'stat-label'}>Total Members</Typography>
+						<span className={'stat-icon total'} />
+					</Stack>
+					<Typography className={'stat-value'}>{totalMembersCount}</Typography>
+				</Stack>
+				<Stack className={'stat-card'}>
+					<Stack direction={'row'} justifyContent={'space-between'} alignItems={'flex-start'}>
+						<Typography className={'stat-label'}>Active</Typography>
+						<span className={'stat-icon active'} />
+					</Stack>
+					<Typography className={'stat-value'}>{activeMembersCount}</Typography>
+				</Stack>
+				<Stack className={'stat-card'}>
+					<Stack direction={'row'} justifyContent={'space-between'} alignItems={'flex-start'}>
+						<Typography className={'stat-label'}>Flagged</Typography>
+						<span className={'stat-icon flagged'} />
+					</Stack>
+					<Typography className={'stat-value'}>{flaggedMembersCount}</Typography>
+				</Stack>
+			</Stack>
+
+			<Box component={'div'} className={'table-wrap'}>
+				<Box component={'div'} sx={{ width: '100%', typography: 'body1' }}>
+					<TabContext value={value}>
+						<Box component={'div'} className={'list-toolbar'}>
+							<List className={'tab-menu'}>
+								<ListItem
+									onClick={(e: any) => tabChangeHandler(e, 'ALL')}
+									value="ALL"
+									className={value === 'ALL' ? 'li on' : 'li'}
+								>
+									All
+								</ListItem>
+								<ListItem
+									onClick={(e: any) => tabChangeHandler(e, 'ACTIVE')}
+									value="ACTIVE"
+									className={value === 'ACTIVE' ? 'li on' : 'li'}
+								>
+									Active
+								</ListItem>
+								<ListItem
+									onClick={(e: any) => tabChangeHandler(e, 'BLOCK')}
+									value="BLOCK"
+									className={value === 'BLOCK' ? 'li on' : 'li'}
+								>
+									Blocked
+								</ListItem>
+								<ListItem
+									onClick={(e: any) => tabChangeHandler(e, 'DELETE')}
+									value="DELETE"
+									className={value === 'DELETE' ? 'li on' : 'li'}
+								>
+									Deleted
+								</ListItem>
+							</List>
+							<Stack className={'search-area'}>
+								<OutlinedInput
+									value={searchText}
+									onChange={(e: any) => textHandler(e.target.value)}
+									className={'search'}
+									placeholder="Search members"
+									onKeyDown={(event) => {
+										if (event.key == 'Enter') searchTextHandler();
+									}}
+									startAdornment={
+										<InputAdornment position="start" onClick={() => searchTextHandler()}>
+											<img src="/img/icons/search_icon.png" alt={'searchIcon'} style={{ cursor: 'pointer' }} />
+										</InputAdornment>
+									}
+									endAdornment={
+										searchText && (
+											<CancelRoundedIcon
+												style={{ cursor: 'pointer' }}
+												onClick={async () => {
+													setSearchText('');
+													setMembersInquiry({
+														...membersInquiry,
+														search: {
+															...membersInquiry.search,
+															text: '',
+														},
+													});
+													await getMembersRefetch({ input: membersInquiry });
+												}}
+											/>
+										)
+									}
+								/>
+								<Select sx={{ width: '160px', ml: '12px' }} value={searchType}>
+									<MenuItem value={'ALL'} onClick={() => searchTypeHandler('ALL')}>
+										All
+									</MenuItem>
+									<MenuItem value={'USER'} onClick={() => searchTypeHandler('USER')}>
+										User
+									</MenuItem>
+									<MenuItem value={'AGENT'} onClick={() => searchTypeHandler('AGENT')}>
+										Agent
+									</MenuItem>
+									<MenuItem value={'ADMIN'} onClick={() => searchTypeHandler('ADMIN')}>
+										Admin
+									</MenuItem>
+								</Select>
+							</Stack>
+						</Box>
+						<Divider />
+						<MemberPanelList
+							members={members}
+							anchorEl={anchorEl}
+							menuIconClickHandler={menuIconClickHandler}
+							menuIconCloseHandler={menuIconCloseHandler}
+							updateMemberHandler={updateMemberHandler}
+						/>
+
+						<TablePagination
+							rowsPerPageOptions={[10, 20, 40, 60]}
+							component="div"
+							count={membersTotal}
+							rowsPerPage={membersInquiry?.limit}
+							page={membersInquiry?.page - 1}
+							onPageChange={changePageHandler}
+							onRowsPerPageChange={changeRowsPerPageHandler}
+							sx={{
+								'.MuiTablePagination-selectLabel, .MuiTablePagination-select, .MuiTablePagination-input': {
+									display: 'none',
+								},
+							}}
+						/>
+					</TabContext>
+				</Box>
+			</Box>
+		</Box>
+	);
+};
+```
+
+Note: the "Add member" button is intentionally rendered `disabled` with an explanatory tooltip — it's visually present to match the reference, but does nothing, since there's no create-member mutation anywhere in this codebase. The rows-per-page dropdown is hidden via `sx` (not removed from the component), so `changeRowsPerPageHandler` and the `rowsPerPageOptions` prop still exist in code and nothing breaks if it's ever unhidden later.
+
+`Typography variant={'h2'} className={'tit'} sx={{ mb: '24px' }}` lost its `sx` margin because `.page-header` now provides the bottom margin via CSS — this is handled in the SCSS section below.
+
+=====================================================================
+FILE 2 — libs/components/admin/users/MemberList.tsx
+=====================================================================
+
+Add one icon import. Find:
+```tsx
+import { MemberStatus, MemberType } from '../../../enums/member.enum';
+```
+Replace with:
+```tsx
+import { MemberStatus, MemberType } from '../../../enums/member.enum';
+import WarningAmberRoundedIcon from '@mui/icons-material/WarningAmberRounded';
+```
+
+Drop `fullname` from the `Data` interface (it's now shown as a sub-line inside the MEMBER cell instead of its own column). Find:
+```tsx
+interface Data {
+	id: string;
+	nickname: string;
+	fullname: string;
+	phone: string;
+	type: string;
+	flags: string;
+	state: string;
+}
+```
+Replace with:
+```tsx
+interface Data {
+	id: string;
+	nickname: string;
+	phone: string;
+	type: string;
+	flags: string;
+	state: string;
+}
+```
+
+Reorder and relabel the head cells to MEMBER / MB ID / PHONE / TYPE / FLAGS / STATE. Find:
+```tsx
+const headCells: readonly HeadCell[] = [
+	{
+		id: 'id',
+		numeric: true,
+		disablePadding: false,
+		label: 'MB ID',
+	},
+	{
+		id: 'nickname',
+		numeric: true,
+		disablePadding: false,
+		label: 'NICK NAME',
+	},
+	{
+		id: 'fullname',
+		numeric: false,
+		disablePadding: false,
+		label: 'FULL NAME',
+	},
+	{
+		id: 'phone',
+		numeric: true,
+		disablePadding: false,
+		label: 'PHONE NUM',
+	},
+	{
+		id: 'type',
+		numeric: false,
+		disablePadding: false,
+		label: 'MEMBER TYPE',
+	},
+	{
+		id: 'flags',
+		numeric: false,
+		disablePadding: false,
+		label: 'FLAGS',
+	},
+	{
+		id: 'state',
+		numeric: false,
+		disablePadding: false,
+		label: 'STATE',
+	},
+];
+```
+Replace with:
+```tsx
+const headCells: readonly HeadCell[] = [
+	{
+		id: 'nickname',
+		numeric: true,
+		disablePadding: false,
+		label: 'MEMBER',
+	},
+	{
+		id: 'id',
+		numeric: true,
+		disablePadding: false,
+		label: 'MB ID',
+	},
+	{
+		id: 'phone',
+		numeric: true,
+		disablePadding: false,
+		label: 'PHONE',
+	},
+	{
+		id: 'type',
+		numeric: false,
+		disablePadding: false,
+		label: 'TYPE',
+	},
+	{
+		id: 'flags',
+		numeric: false,
+		disablePadding: false,
+		label: 'FLAGS',
+	},
+	{
+		id: 'state',
+		numeric: false,
+		disablePadding: false,
+		label: 'STATE',
+	},
+];
+```
+
+Update the "no data" colspan from 7 to 6 (one fewer column now that FULL NAME is folded into MEMBER). Find:
+```tsx
+						{members.length === 0 && (
+							<TableRow>
+								<TableCell align="center" colSpan={7}>
+									<span className={'no-data'}>data not found!</span>
+								</TableCell>
+							</TableRow>
+						)}
+```
+Replace with:
+```tsx
+						{members.length === 0 && (
+							<TableRow>
+								<TableCell align="center" colSpan={6}>
+									<span className={'no-data'}>data not found!</span>
+								</TableCell>
+							</TableRow>
+						)}
+```
+
+Reorder the whole row. Find:
+```tsx
+								return (
+									<TableRow hover key={member?._id} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
+										<TableCell align="left">{member._id}</TableCell>
+
+										<TableCell align="left" className={'name'}>
+											<Stack direction={'row'}>
+												<Link href={`/member?memberId=${member._id}`}>
+													<div>
+														{member.memberImage ? (
+															<Avatar
+																alt={member.memberNick}
+																src={`${REACT_APP_API_URL}/${member.memberImage}`}
+																sx={{ ml: '2px', mr: '10px' }}
+															/>
+														) : (
+															<Avatar
+																sx={{ ml: '2px', mr: '10px', bgcolor: getAvatarColor(member._id) }}
+															>
+																{getInitials(member.memberNick)}
+															</Avatar>
+														)}
+													</div>
+												</Link>
+												<Link href={`/member?memberId=${member._id}`}>
+													<div>{member.memberNick}</div>
+												</Link>
+											</Stack>
+										</TableCell>
+
+										<TableCell align="center">{member.memberFullName ?? '-'}</TableCell>
+										<TableCell align="left">{member.memberPhone}</TableCell>
+
+										<TableCell align="center">
+											<Button onClick={(e: any) => menuIconClickHandler(e, index)} className={typeBadgeClass(member.memberType)}>
+												{member.memberType}
+											</Button>
+
+											<Menu
+												className={'menu-modal'}
+												MenuListProps={{
+													'aria-labelledby': 'fade-button',
+												}}
+												anchorEl={anchorEl[index]}
+												open={Boolean(anchorEl[index])}
+												onClose={menuIconCloseHandler}
+												TransitionComponent={Fade}
+												sx={{ p: 1 }}
+											>
+												{Object.values(MemberType)
+													.filter((ele) => ele !== member?.memberType)
+													.map((type: string) => (
+														<MenuItem
+															onClick={() => updateMemberHandler({ _id: member._id, memberType: type })}
+															key={type}
+														>
+															<Typography variant={'subtitle1'} component={'span'}>
+																{type}
+															</Typography>
+														</MenuItem>
+													))}
+											</Menu>
+										</TableCell>
+
+										<TableCell align="center">
+											{(() => {
+												const flagCount = (member.memberWarnings ?? 0) + (member.memberBlocks ?? 0);
+												return flagCount === 0 ? (
+													<span className={'flags-none'}>None</span>
+												) : (
+													<span className={'flags-count'}>{`${flagCount} flag${flagCount > 1 ? 's' : ''}`}</span>
+												);
+											})()}
+										</TableCell>
+										<TableCell align="center">
+											<Button onClick={(e: any) => menuIconClickHandler(e, member._id)} className={stateBadgeClass(member.memberStatus)}>
+												{member.memberStatus}
+											</Button>
+
+											<Menu
+												className={'menu-modal'}
+												MenuListProps={{
+													'aria-labelledby': 'fade-button',
+												}}
+												anchorEl={anchorEl[member._id]}
+												open={Boolean(anchorEl[member._id])}
+												onClose={menuIconCloseHandler}
+												TransitionComponent={Fade}
+												sx={{ p: 1 }}
+											>
+												{Object.values(MemberStatus)
+													.filter((ele: string) => ele !== member?.memberStatus)
+													.map((status: string) => (
+														<MenuItem
+															onClick={() => updateMemberHandler({ _id: member._id, memberStatus: status })}
+															key={status}
+														>
+															<Typography variant={'subtitle1'} component={'span'}>
+																{status}
+															</Typography>
+														</MenuItem>
+													))}
+											</Menu>
+										</TableCell>
+									</TableRow>
+								);
+```
+Replace with:
+```tsx
+								return (
+									<TableRow hover key={member?._id} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
+										<TableCell align="left" className={'name'}>
+											<Stack direction={'row'} alignItems={'center'}>
+												<Link href={`/member?memberId=${member._id}`}>
+													<div>
+														{member.memberImage ? (
+															<Avatar
+																alt={member.memberNick}
+																src={`${REACT_APP_API_URL}/${member.memberImage}`}
+																sx={{ ml: '2px', mr: '10px' }}
+															/>
+														) : (
+															<Avatar
+																sx={{ ml: '2px', mr: '10px', bgcolor: getAvatarColor(member._id) }}
+															>
+																{getInitials(member.memberNick)}
+															</Avatar>
+														)}
+													</div>
+												</Link>
+												<Stack>
+													<Link href={`/member?memberId=${member._id}`}>
+														<div>{member.memberNick}</div>
+													</Link>
+													{member.memberFullName && <span className={'sub-text'}>{member.memberFullName}</span>}
+												</Stack>
+											</Stack>
+										</TableCell>
+
+										<TableCell align="left" className={'mb-id'}>
+											{member._id}
+										</TableCell>
+										<TableCell align="left">{member.memberPhone}</TableCell>
+
+										<TableCell align="center">
+											<Button onClick={(e: any) => menuIconClickHandler(e, index)} className={typeBadgeClass(member.memberType)}>
+												{member.memberType}
+											</Button>
+
+											<Menu
+												className={'menu-modal'}
+												MenuListProps={{
+													'aria-labelledby': 'fade-button',
+												}}
+												anchorEl={anchorEl[index]}
+												open={Boolean(anchorEl[index])}
+												onClose={menuIconCloseHandler}
+												TransitionComponent={Fade}
+												sx={{ p: 1 }}
+											>
+												{Object.values(MemberType)
+													.filter((ele) => ele !== member?.memberType)
+													.map((type: string) => (
+														<MenuItem
+															onClick={() => updateMemberHandler({ _id: member._id, memberType: type })}
+															key={type}
+														>
+															<Typography variant={'subtitle1'} component={'span'}>
+																{type}
+															</Typography>
+														</MenuItem>
+													))}
+											</Menu>
+										</TableCell>
+
+										<TableCell align="center">
+											{(() => {
+												const flagCount = (member.memberWarnings ?? 0) + (member.memberBlocks ?? 0);
+												return flagCount === 0 ? (
+													<span className={'flags-none'}>None</span>
+												) : (
+													<span className={'flags-count'}>
+														<WarningAmberRoundedIcon fontSize={'inherit'} />
+														{`${flagCount} flag${flagCount > 1 ? 's' : ''}`}
+													</span>
+												);
+											})()}
+										</TableCell>
+										<TableCell align="center">
+											<Button onClick={(e: any) => menuIconClickHandler(e, member._id)} className={stateBadgeClass(member.memberStatus)}>
+												{member.memberStatus}
+											</Button>
+
+											<Menu
+												className={'menu-modal'}
+												MenuListProps={{
+													'aria-labelledby': 'fade-button',
+												}}
+												anchorEl={anchorEl[member._id]}
+												open={Boolean(anchorEl[member._id])}
+												onClose={menuIconCloseHandler}
+												TransitionComponent={Fade}
+												sx={{ p: 1 }}
+											>
+												{Object.values(MemberStatus)
+													.filter((ele: string) => ele !== member?.memberStatus)
+													.map((status: string) => (
+														<MenuItem
+															onClick={() => updateMemberHandler({ _id: member._id, memberStatus: status })}
+															key={status}
+														>
+															<Typography variant={'subtitle1'} component={'span'}>
+																{status}
+															</Typography>
+														</MenuItem>
+													))}
+											</Menu>
+										</TableCell>
+									</TableRow>
+								);
+```
+
+Do not change `typeBadgeClass`, `stateBadgeClass`, `getInitials`, `getAvatarColor`, `AVATAR_COLORS`, `updateMemberHandler`, or either `Menu`/`MenuItem` dropdown's logic — only cell order/labels/markup changed.
+
+=====================================================================
+FILE 3 — scss/pc/admin/admin.scss
+=====================================================================
+
+Add page-header and stat-cards styles. Find:
+```scss
+    .badge {
+      padding: 3px 8px;
+      font-weight: 500;
+      font-size: 12px;
+      border-radius: 4px;
+    }
+    .type-admin {
+      color: #b72136;
+      background: rgba(183, 33, 54, 0.1);
+    }
+    .type-agent {
+      color: #57564f;
+      background: #f0eee8;
+    }
+    .type-user {
+      color: #2f6fae;
+      background: rgba(47, 111, 174, 0.1);
+    }
+    .flags-none {
+      color: #8e8c83;
+      font-size: 14px;
+    }
+    .flags-count {
+      color: #b72136;
+      font-size: 14px;
+      font-weight: 600;
+    }
+```
+Replace with:
+```scss
+    .badge {
+      padding: 3px 8px;
+      font-weight: 500;
+      font-size: 12px;
+      border-radius: 4px;
+    }
+    .type-admin {
+      color: #b72136;
+      background: rgba(183, 33, 54, 0.1);
+    }
+    .type-agent {
+      color: #57564f;
+      background: #f0eee8;
+    }
+    .type-user {
+      color: #57564f;
+      background: #fff;
+      border: 1px solid #e0ddd3;
+    }
+    .flags-none {
+      color: #8e8c83;
+      font-size: 14px;
+    }
+    .flags-count {
+      color: #b72136;
+      font-size: 14px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      svg {
+        font-size: 16px;
+      }
+    }
+    .sub-text {
+      color: #8e8c83;
+      font-size: 12px;
+      margin-top: 2px;
+      display: block;
+    }
+    .mb-id {
+      color: #8e8c83;
+      font-size: 13px;
+      font-family: monospace;
+    }
+    .page-header {
+      display: flex;
+      flex-direction: row;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 24px;
+      .subtitle {
+        color: #8e8c83;
+        font-size: 14px;
+        margin-top: 4px;
+      }
+    }
+    .btn-add-member {
+      background: #d85a30;
+      color: #fff;
+      font-weight: 600;
+      border-radius: 24px;
+      padding: 10px 20px;
+      opacity: 0.6;
+      &:hover {
+        background: #d85a30;
+      }
+    }
+    .stat-cards {
+      display: flex;
+      flex-direction: row;
+      gap: 16px;
+      margin-bottom: 24px;
+      .stat-card {
+        flex: 1;
+        background: #fff;
+        border-radius: 16px;
+        padding: 20px 24px;
+        box-shadow: rgb(145 158 171 / 12%) 0px 0px 2px 0px, rgb(145 158 171 / 10%) 0px 12px 24px -4px;
+        .stat-label {
+          color: #8e8c83;
+          font-size: 13px;
+        }
+        .stat-value {
+          font-size: 28px;
+          font-weight: 700;
+          color: #1c1b18;
+          margin-top: 8px;
+        }
+        .stat-icon {
+          width: 28px;
+          height: 28px;
+          border-radius: 8px;
+          display: inline-block;
+        }
+        .stat-icon.total {
+          background: rgba(216, 90, 48, 0.12);
+        }
+        .stat-icon.active {
+          background: rgba(46, 163, 107, 0.12);
+        }
+        .stat-icon.flagged {
+          background: rgba(183, 33, 54, 0.12);
+        }
+      }
+    }
+```
+
+Add a status dot in front of the STATE badge text (`.success`/`.error`/`.delete` are only ever used by the STATE column's badge in this file). Find:
+```scss
+    .delete {
+      background: #757575;
+      color: #fff;
+      border-radius: 4px;
+    }
+```
+Replace with:
+```scss
+    .delete {
+      background: #757575;
+      color: #fff;
+      border-radius: 4px;
+    }
+    .badge.success,
+    .badge.error,
+    .badge.delete {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      &::before {
+        content: '';
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: currentColor;
+      }
+    }
+```
+
+Lay the tabs and search bar out in one row, and restyle the tab track to a light segmented control (white active pill on a light gray track, matching the reference, instead of the previous solid-dark active pill). Find:
+```scss
+      .tab-menu {
+        display: flex;
+        flex-direction: row;
+        padding: 16px 24px 0;
+        li {
+          width: auto;
+          height: 36px;
+          cursor: pointer;
+          padding: 8px 16px;
+          color: #8e8c83;
+          font-size: 14px;
+          border-radius: 18px;
+          background: #f5f3ef;
+          margin-right: 8px;
+        }
+        li.on {
+          font-weight: 600;
+          color: #fff;
+          background: #1c1b18;
+          border-bottom: none;
+        }
+      }
+```
+Replace with:
+```scss
+      .list-toolbar {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 16px;
+        padding: 20px 24px;
+      }
+      .tab-menu {
+        display: flex;
+        flex-direction: row;
+        padding: 4px;
+        background: #ece8e0;
+        border-radius: 22px;
+        width: fit-content;
+        li {
+          width: auto;
+          height: 32px;
+          cursor: pointer;
+          padding: 0 16px;
+          color: #8e8c83;
+          font-size: 14px;
+          border-radius: 18px;
+          background: transparent;
+          margin-right: 0;
+        }
+        li.on {
+          font-weight: 600;
+          color: #1c1b18;
+          background: #fff;
+          box-shadow: rgb(145 158 171 / 20%) 0px 1px 3px 0px;
+          border-bottom: none;
+        }
+      }
+```
+
+Update the search bar so it sits inline (no longer a full-width block with `justify-content: flex-end`) and matches the pill height/radius used elsewhere. Find:
+```scss
+    .search-area {
+      display: flex;
+      flex-direction: row;
+      justify-content: flex-end;
+      img {
+        cursor: pointer;
+      }
+      .MuiOutlinedInput-root {
+        height: 48px;
+        background: #fff;
+        font-size: 14px;
+        border-radius: 24px;
+      }
+      .MuiTableCell-root {
+        padding: 12px 20px;
+        border-bottom: 1px solid #eee;
+      }
+      .MuiToolbar-root {
+        align-items: center;
+      }
+    }
+```
+Replace with:
+```scss
+    .search-area {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      img {
+        cursor: pointer;
+        width: 16px;
+      }
+      .MuiOutlinedInput-root {
+        height: 44px;
+        width: 260px;
+        background: #fff;
+        font-size: 14px;
+        border-radius: 22px;
+      }
+      .MuiTableCell-root {
+        padding: 12px 20px;
+        border-bottom: 1px solid #eee;
+      }
+      .MuiToolbar-root {
+        align-items: center;
+      }
+    }
+```
+
+Do not change anything else in this file (sidebar rules from the previous prompt, `.menu_wrap`, `.menu-list`, `.flex-box`, `.edit-options`, `.right-dashboard-settings`, `.MuiTablePagination-root`, etc.) — they're already correct.
+
+---
+
+Verify after implementing:
+1. The page header now shows "Member List" with a gray subtitle "Everyone across the platform at a glance." and a coral, intentionally-disabled "+ Add member" button (hovering shows a tooltip explaining why) on the right.
+2. Three white stat cards appear above the table: Total Members, Active, Flagged — each showing a real number pulled from `GET_ALL_MEMBERS_BY_ADMIN` (open the Network tab and confirm exactly one extra request per card, all to the same existing query, no new endpoint).
+3. The All/Active/Blocked/Deleted tabs now render as a light segmented control (white active pill on a gray track) sitting in the same row as the search box and the member-type dropdown — clicking each tab still filters the table and still fires `getMembersRefetch` exactly as before.
+4. The search icon is now on the left side of the search box; typing + Enter, the X-clear button, and clicking the icon all still work exactly as before; the member-type dropdown still filters by USER/AGENT/ADMIN exactly as before.
+5. The table's first column is now "MEMBER" (avatar + nickname, with the member's full name as a small gray line underneath when present), followed by MB ID, PHONE, TYPE, FLAGS, STATE — six columns total, and the "no data" row spans all six.
+6. The USER type badge is now an outlined (white background, thin border) badge instead of a filled blue one; ADMIN/AGENT badges are unchanged from the previous pass.
+7. STATE badges (ACTIVE/BLOCK/DELETE) now show a small colored dot before the text.
+8. Non-zero FLAGS values now show a small warning-triangle icon before the "N flag(s)" text; "None" is unchanged.
+9. Pagination still shows "x–y of z" and the page-navigation arrows work exactly as before; the rows-per-page dropdown is now hidden (it still exists in the code/props, just not visibly rendered) — confirm changing page via the arrows still calls `changePageHandler` and updates the table.
+10. No GraphQL mutation, the admin-role guard, or any other admin route (`/_admin/universities`, `/_admin/community`, `/_admin/cs/*`) was touched — they keep using the same shared `admin.scss`/`LayoutAdmin.tsx`, so only this page's own JSX/SCSS additions are new.
