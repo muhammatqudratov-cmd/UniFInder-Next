@@ -1,0 +1,109 @@
+Context: when a UniFinder link is shared in Telegram (or any other messenger), the preview card currently shows wrong/unrelated info (a different ngrok-tunneled app's title, description and photo) because this project has zero Open Graph / Twitter Card meta tags anywhere — confirmed by searching the whole codebase for `og:title`, `og:description`, `og:image`: no matches exist. Messengers fall back to whatever they can scrape when these tags are missing, which is why an unrelated preview appeared. This prompt adds real Open Graph + Twitter Card tags grounded in content that already exists in this codebase — no new copy is invented, and no business logic is touched.
+
+Grounding for the values used below:
+- Site name / title: "UniFinder" — already used as the page `<title>` in `libs/components/layout/LayoutHome.tsx` (`<title>UniFinder</title>`, both mobile and desktop branches).
+- Description: built from the real hero subtitle text already in `libs/components/layout/LayoutHome.tsx` ("Compare top universities, connect with trusted agents, and plan your move — all in one calm, clear place.") — not invented copy.
+- Domain: `unifinder.uz`, the same domain already referenced in the existing SEO `description` meta tag in `pages/_document.tsx` ("Best Universities at Best prices on unifinder.uz"). If the site is actually deployed under a different domain, replace `https://unifinder.uz` in the snippet below with the real production URL before/after applying.
+- Image: `/img/banner/incheon.jpg`, a real campus photo already present in `public/img/banner/` (4608×3456) — depicts an actual university campus, unlike the other stock photos in that folder (e.g. `korea2.jpg` is a generic office building render, `university/bigImage.png` is a leftover living-room stock photo from the original real-estate template this project was adapted from). No new image is added.
+
+=====================================================================
+FILE — pages/_document.tsx
+=====================================================================
+
+Find:
+```tsx
+import { Html, Head, Main, NextScript } from 'next/document';
+
+export default function Document() {
+	return (
+		<Html lang="en">
+			<Head>
+				<meta name="robots" content="index,follow" />
+				<link rel="icon" type="image/svg+xml" href="/favicon.svg?v=2" />
+				<link rel="shortcut icon" href="/favicon.svg?v=2" />
+
+				{/* SEO */}
+				<meta name="keyword" content={', unifinder.uz, devex mern, mern nestjs fullstack'} />
+				<meta
+					name={'description'}
+					content={
+						'Buy and sell universities anywhere anytime in South Korea. Best Universities at Best prices on unifinder.uz | ' +
+						'Покупайте и продавайте недвижимость в любой точке Южной Кореи в любое время. Лучшая недвижимость по лучшим ценам на unifinder.uz | ' +
+						'대한민국 언제 어디서나 부동산을 사고팔 수 있습니다. UniFinder.uz에서 최적의 가격으로 최고의 부동산을 만나보세요'
+					}
+				/>
+			</Head>
+			<body>
+				<Main />
+				<NextScript />
+			</body>
+		</Html>
+	);
+}
+```
+
+Replace with:
+```tsx
+import { Html, Head, Main, NextScript } from 'next/document';
+
+const SITE_URL = 'https://unifinder.uz';
+const OG_TITLE = 'UniFinder — Find Your Campus in South Korea';
+const OG_DESCRIPTION =
+	'Compare top universities, connect with trusted agents, and plan your move — all in one calm, clear place.';
+const OG_IMAGE = `${SITE_URL}/img/banner/incheon.jpg`;
+
+export default function Document() {
+	return (
+		<Html lang="en">
+			<Head>
+				<meta name="robots" content="index,follow" />
+				<link rel="icon" type="image/svg+xml" href="/favicon.svg?v=2" />
+				<link rel="shortcut icon" href="/favicon.svg?v=2" />
+
+				{/* SEO */}
+				<meta name="keyword" content={', unifinder.uz, devex mern, mern nestjs fullstack'} />
+				<meta
+					name={'description'}
+					content={
+						'Buy and sell universities anywhere anytime in South Korea. Best Universities at Best prices on unifinder.uz | ' +
+						'Покупайте и продавайте недвижимость в любой точке Южной Кореи в любое время. Лучшая недвижимость по лучшим ценам на unifinder.uz | ' +
+						'대한민국 언제 어디서나 부동산을 사고팔 수 있습니다. UniFinder.uz에서 최적의 가격으로 최고의 부동산을 만나보세요'
+					}
+				/>
+
+				{/* Open Graph (Telegram, Facebook, WhatsApp, etc.) */}
+				<meta property="og:type" content="website" />
+				<meta property="og:site_name" content="UniFinder" />
+				<meta property="og:title" content={OG_TITLE} />
+				<meta property="og:description" content={OG_DESCRIPTION} />
+				<meta property="og:image" content={OG_IMAGE} />
+				<meta property="og:image:width" content="4608" />
+				<meta property="og:image:height" content="3456" />
+				<meta property="og:url" content={SITE_URL} />
+
+				{/* Twitter Card */}
+				<meta name="twitter:card" content="summary_large_image" />
+				<meta name="twitter:title" content={OG_TITLE} />
+				<meta name="twitter:description" content={OG_DESCRIPTION} />
+				<meta name="twitter:image" content={OG_IMAGE} />
+			</Head>
+			<body>
+				<Main />
+				<NextScript />
+			</body>
+		</Html>
+	);
+}
+```
+
+Important: replace `https://unifinder.uz` in the `SITE_URL` constant with the actual production domain if it differs — Open Graph crawlers require an absolute, publicly reachable URL for `og:image`; a relative path or an ngrok URL that changes on every restart will not work reliably.
+
+Do not change anything else in this file (the favicon links, `robots` tag, or the existing multilingual `description` meta) — only the new Open Graph/Twitter block is added.
+
+---
+
+Verify after implementing:
+1. Open the deployed site's page source and confirm `<meta property="og:title">`, `og:description`, `og:image`, and `og:url` are present with the values above.
+2. Paste the production link into Telegram (or use a tool like https://www.opengraph.xyz or Facebook's Sharing Debugger) and confirm the preview card now shows "UniFinder — Find Your Campus in South Korea", the campus-photo image, and the new description — not the old/unrelated KidsGarden preview.
+3. If Telegram still shows the old cached preview after this change, that's expected — Telegram caches previews per URL. Share a link with a new/changed query string (e.g. `?v=2`), or ask the user to forward the link to the @WebpageBot Telegram bot to force a re-scrape.
+4. Confirm no existing page's `<title>` or per-page `<Head>` content (e.g. in `LayoutHome.tsx`, `LayoutAdmin.tsx`) was altered — this change only touched `pages/_document.tsx`.
