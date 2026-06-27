@@ -18,15 +18,14 @@ import { Stack } from '@mui/material';
 import { Member } from '../../../types/member/member';
 import { REACT_APP_API_URL } from '../../../config';
 import { MemberStatus, MemberType } from '../../../enums/member.enum';
+import WarningAmberRoundedIcon from '@mui/icons-material/WarningAmberRounded';
 
 interface Data {
 	id: string;
 	nickname: string;
-	fullname: string;
 	phone: string;
 	type: string;
-	warnings: string;
-	blocks: string;
+	flags: string;
 	state: string;
 }
 
@@ -51,46 +50,34 @@ interface HeadCell {
 
 const headCells: readonly HeadCell[] = [
 	{
+		id: 'nickname',
+		numeric: true,
+		disablePadding: false,
+		label: 'MEMBER',
+	},
+	{
 		id: 'id',
 		numeric: true,
 		disablePadding: false,
 		label: 'MB ID',
 	},
 	{
-		id: 'nickname',
-		numeric: true,
-		disablePadding: false,
-		label: 'NICK NAME',
-	},
-	{
-		id: 'fullname',
-		numeric: false,
-		disablePadding: false,
-		label: 'FULL NAME',
-	},
-	{
 		id: 'phone',
 		numeric: true,
 		disablePadding: false,
-		label: 'PHONE NUM',
+		label: 'PHONE',
 	},
 	{
 		id: 'type',
 		numeric: false,
 		disablePadding: false,
-		label: 'MEMBER TYPE',
+		label: 'TYPE',
 	},
 	{
-		id: 'warnings',
+		id: 'flags',
 		numeric: false,
 		disablePadding: false,
-		label: 'WARNING',
-	},
-	{
-		id: 'blocks',
-		numeric: false,
-		disablePadding: false,
-		label: 'BLOCK CRIMES',
+		label: 'FLAGS',
 	},
 	{
 		id: 'state',
@@ -183,7 +170,7 @@ export const MemberPanelList = (props: MemberPanelListType) => {
 					<TableBody>
 						{members.length === 0 && (
 							<TableRow>
-								<TableCell align="center" colSpan={8}>
+								<TableCell align="center" colSpan={6}>
 									<span className={'no-data'}>data not found!</span>
 								</TableCell>
 							</TableRow>
@@ -193,10 +180,8 @@ export const MemberPanelList = (props: MemberPanelListType) => {
 							members.map((member: Member, index: number) => {
 								return (
 									<TableRow hover key={member?._id} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
-										<TableCell align="left">{member._id}</TableCell>
-
 										<TableCell align="left" className={'name'}>
-											<Stack direction={'row'}>
+											<Stack direction={'row'} alignItems={'center'}>
 												<Link href={`/member?memberId=${member._id}`}>
 													<div>
 														{member.memberImage ? (
@@ -212,13 +197,18 @@ export const MemberPanelList = (props: MemberPanelListType) => {
 														)}
 													</div>
 												</Link>
-												<Link href={`/member?memberId=${member._id}`}>
-													<div>{member.memberNick}</div>
-												</Link>
+												<Stack>
+													<Link href={`/member?memberId=${member._id}`}>
+														<div>{member.memberNick}</div>
+													</Link>
+													{member.memberFullName && <span className={'sub-text'}>{member.memberFullName}</span>}
+												</Stack>
 											</Stack>
 										</TableCell>
 
-										<TableCell align="center">{member.memberFullName ?? '-'}</TableCell>
+										<TableCell align="left" className={'mb-id'}>
+											{member._id}
+										</TableCell>
 										<TableCell align="left">{member.memberPhone}</TableCell>
 
 										<TableCell align="center">
@@ -256,15 +246,19 @@ export const MemberPanelList = (props: MemberPanelListType) => {
 										</TableCell>
 
 										<TableCell align="center">
-											<span className={(member.memberWarnings ?? 0) > 0 ? 'risk-count' : 'muted-count'}>
-												{member.memberWarnings ?? 0}
-											</span>
+											{(() => {
+												const flagCount = (member.memberWarnings ?? 0) + (member.memberBlocks ?? 0);
+												return flagCount === 0 ? (
+													<span className={'flags-none'}>None</span>
+												) : (
+													<span className={'flags-count'}>
+														<WarningAmberRoundedIcon fontSize={'inherit'} />
+														{`${flagCount} flag${flagCount > 1 ? 's' : ''}`}
+													</span>
+												);
+											})()}
 										</TableCell>
-										<TableCell align="center">
-											<span className={(member.memberBlocks ?? 0) > 0 ? 'risk-count' : 'muted-count'}>
-												{member.memberBlocks ?? 0}
-											</span>
-										</TableCell>
+
 										<TableCell align="center">
 											<Button
 												onClick={(e: any) => menuIconClickHandler(e, member._id)}

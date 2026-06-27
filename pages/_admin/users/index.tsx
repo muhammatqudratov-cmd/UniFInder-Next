@@ -12,6 +12,7 @@ import OutlinedInput from '@mui/material/OutlinedInput';
 import TablePagination from '@mui/material/TablePagination';
 import CancelRoundedIcon from '@mui/icons-material/CancelRounded';
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
+import Tooltip from '@mui/material/Tooltip';
 import { MembersInquiry } from '../../../libs/types/member/member.input';
 import { Member } from '../../../libs/types/member/member';
 import { MemberStatus, MemberType } from '../../../libs/enums/member.enum';
@@ -51,6 +52,26 @@ const AdminUsers: NextPage = ({ initialInquiry, ...props }: any) => {
 			setMembersTotal(data?.getAllMembersByAdmin?.metaCounter[0]?.total);
 		},
 	});
+
+	/** STAT CARDS — reuse GET_ALL_MEMBERS_BY_ADMIN with different filters, no new backend query **/
+	const { data: totalCountData } = useQuery(GET_ALL_MEMBERS_BY_ADMIN, {
+		fetchPolicy: 'network-only',
+		variables: { input: { page: 1, limit: 1, sort: 'createdAt', search: {} } },
+	});
+	const { data: activeCountData } = useQuery(GET_ALL_MEMBERS_BY_ADMIN, {
+		fetchPolicy: 'network-only',
+		variables: { input: { page: 1, limit: 1, sort: 'createdAt', search: { memberStatus: MemberStatus.ACTIVE } } },
+	});
+	const { data: flaggedListData } = useQuery(GET_ALL_MEMBERS_BY_ADMIN, {
+		fetchPolicy: 'network-only',
+		variables: { input: { page: 1, limit: 1000, sort: 'createdAt', search: {} } },
+	});
+
+	const totalMembersCount = totalCountData?.getAllMembersByAdmin?.metaCounter[0]?.total ?? 0;
+	const activeMembersCount = activeCountData?.getAllMembersByAdmin?.metaCounter[0]?.total ?? 0;
+	const flaggedMembersCount = (flaggedListData?.getAllMembersByAdmin?.list ?? []).filter(
+		(m: any) => (m?.memberWarnings ?? 0) + (m?.memberBlocks ?? 0) > 0,
+	).length;
 
 	/** LIFECYCLE **/
 	useEffect(() => {
@@ -180,14 +201,43 @@ const AdminUsers: NextPage = ({ initialInquiry, ...props }: any) => {
 						Manage every member, agent and admin across the platform.
 					</Typography>
 				</Box>
-				<Button className={'btn-add-member'} startIcon={<AddRoundedIcon />}>
-					Add member
-				</Button>
+				<Tooltip title="Member creation is managed directly in the database">
+					<span>
+						<Button disabled className={'btn-add-member'} startIcon={<AddRoundedIcon />}>
+							Add member
+						</Button>
+					</span>
+				</Tooltip>
 			</Box>
+
+			<Stack className={'stat-cards'}>
+				<Stack className={'stat-card'}>
+					<Stack direction={'row'} justifyContent={'space-between'} alignItems={'flex-start'}>
+						<Typography className={'stat-label'}>Total Members</Typography>
+						<span className={'stat-icon total'} />
+					</Stack>
+					<Typography className={'stat-value'}>{totalMembersCount}</Typography>
+				</Stack>
+				<Stack className={'stat-card'}>
+					<Stack direction={'row'} justifyContent={'space-between'} alignItems={'flex-start'}>
+						<Typography className={'stat-label'}>Active</Typography>
+						<span className={'stat-icon active'} />
+					</Stack>
+					<Typography className={'stat-value'}>{activeMembersCount}</Typography>
+				</Stack>
+				<Stack className={'stat-card'}>
+					<Stack direction={'row'} justifyContent={'space-between'} alignItems={'flex-start'}>
+						<Typography className={'stat-label'}>Flagged</Typography>
+						<span className={'stat-icon flagged'} />
+					</Stack>
+					<Typography className={'stat-value'}>{flaggedMembersCount}</Typography>
+				</Stack>
+			</Stack>
+
 			<Box component={'div'} className={'table-wrap'}>
 				<Box component={'div'} sx={{ width: '100%', typography: 'body1' }}>
 					<TabContext value={value}>
-						<Box component={'div'}>
+						<Box component={'div'} className={'list-toolbar'}>
 							<List className={'tab-menu'}>
 								<ListItem
 									onClick={(e: any) => tabChangeHandler(e, 'ALL')}
@@ -218,44 +268,42 @@ const AdminUsers: NextPage = ({ initialInquiry, ...props }: any) => {
 									Deleted <span>{statusCount(MemberStatus.DELETE)}</span>
 								</ListItem>
 							</List>
-							<Divider />
-							<Stack className={'search-area'} sx={{ m: '24px' }}>
+							<Stack className={'search-area'}>
 								<OutlinedInput
 									value={searchText}
 									onChange={(e: any) => textHandler(e.target.value)}
-									sx={{ width: '100%' }}
 									className={'search'}
-									placeholder="Search by name, phone or ID"
+									placeholder="Search members"
 									onKeyDown={(event) => {
 										if (event.key == 'Enter') searchTextHandler();
 									}}
+									startAdornment={
+										<InputAdornment position="start" onClick={() => searchTextHandler()}>
+											<img src="/img/icons/search_icon.png" alt={'searchIcon'} style={{ cursor: 'pointer' }} />
+										</InputAdornment>
+									}
 									endAdornment={
-										<>
-											{searchText && (
-												<CancelRoundedIcon
-													style={{ cursor: 'pointer' }}
-													onClick={async () => {
-														setSearchText('');
-														setMembersInquiry({
-															...membersInquiry,
-															search: {
-																...membersInquiry.search,
-																text: '',
-															},
-														});
-														await getMembersRefetch({ input: membersInquiry });
-													}}
-												/>
-											)}
-											<InputAdornment position="end" onClick={() => searchTextHandler()}>
-												<img src="/img/icons/search_icon.png" alt={'searchIcon'} />
-											</InputAdornment>
-										</>
+										searchText && (
+											<CancelRoundedIcon
+												style={{ cursor: 'pointer' }}
+												onClick={async () => {
+													setSearchText('');
+													setMembersInquiry({
+														...membersInquiry,
+														search: {
+															...membersInquiry.search,
+															text: '',
+														},
+													});
+													await getMembersRefetch({ input: membersInquiry });
+												}}
+											/>
+										)
 									}
 								/>
-								<Select sx={{ width: '160px', ml: '20px' }} value={searchType}>
+								<Select sx={{ width: '160px', ml: '12px' }} value={searchType}>
 									<MenuItem value={'ALL'} onClick={() => searchTypeHandler('ALL')}>
-										All types
+										All
 									</MenuItem>
 									<MenuItem value={'USER'} onClick={() => searchTypeHandler('USER')}>
 										User
@@ -268,8 +316,8 @@ const AdminUsers: NextPage = ({ initialInquiry, ...props }: any) => {
 									</MenuItem>
 								</Select>
 							</Stack>
-							<Divider />
 						</Box>
+						<Divider />
 						<MemberPanelList
 							members={members}
 							anchorEl={anchorEl}
@@ -286,6 +334,11 @@ const AdminUsers: NextPage = ({ initialInquiry, ...props }: any) => {
 							page={membersInquiry?.page - 1}
 							onPageChange={changePageHandler}
 							onRowsPerPageChange={changeRowsPerPageHandler}
+							sx={{
+								'.MuiTablePagination-selectLabel, .MuiTablePagination-select, .MuiTablePagination-input': {
+									display: 'none',
+								},
+							}}
 						/>
 					</TabContext>
 				</Box>
