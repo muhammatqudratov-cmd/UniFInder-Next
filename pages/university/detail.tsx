@@ -327,7 +327,7 @@ const UniversityDetail: NextPage = ({ initialComment, ...props }: any) => {
 									</Stack>
 									<Stack className={'option'}>
 										<Stack className={'svg-box'}>
-											<img src={'/img/icons/room.svg'} />
+											<img src={'/img/icons/room.svg'} alt="" />
 										</Stack>
 										<Stack className={'option-includes'}>
 											<Typography className={'title'}>Faculties</Typography>
@@ -550,6 +550,7 @@ const UniversityDetail: NextPage = ({ initialComment, ...props }: any) => {
 													? `${REACT_APP_API_URL}/${university?.memberData?.memberImage}`
 													: '/img/profile/defaultUser.svg'
 											}
+											alt={university?.memberData?.memberNick ?? 'Agent profile'}
 										/>
 										<Stack className={'name-phone-listings'}>
 											<Link href={`/member?memberId=${university?.memberData?._id}`}>

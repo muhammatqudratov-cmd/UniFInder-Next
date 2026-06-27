@@ -1,0 +1,104 @@
+Context: this is a pre-deploy cleanup pass. A full project audit was run (TypeScript `tsc --noEmit` = 0 errors, `next lint` = 0 errors / only warnings). This prompt fixes the only two warnings that represent a real, certain, zero-risk gap (missing `alt` attributes on `<img>` tags, which is an accessibility/SEO issue, not a logic change) and adds a documentation-only `.env.example` file so production environment variables are never missed again. No business logic, component structure, styling, or data flow is touched by this prompt — only the two attributes below are added and one new file is created.
+
+Do NOT touch any other ESLint warnings (e.g. `react-hooks/exhaustive-deps`, `@next/next/no-img-element`, `@next/next/link-passhref`) — those require either behavior changes (hook dependency changes can alter when data refetches) or a broader `<img>` → `next/image` migration that carries real layout/sizing risk. Both are out of scope for this prompt and were intentionally excluded.
+
+=====================================================================
+FILE 1 — pages/university/detail.tsx
+=====================================================================
+
+Fix A — missing `alt` on the decorative facility icon (line ~330):
+
+Find:
+```tsx
+									<Stack className={'option'}>
+										<Stack className={'svg-box'}>
+											<img src={'/img/icons/room.svg'} />
+										</Stack>
+```
+
+Replace with:
+```tsx
+									<Stack className={'option'}>
+										<Stack className={'svg-box'}>
+											<img src={'/img/icons/room.svg'} alt="" />
+										</Stack>
+```
+
+(Empty `alt=""` is correct here — this icon is purely decorative, identical to how other icons on this same page are already handled.)
+
+Fix B — missing `alt` on the agent/member profile image (line ~546):
+
+Find:
+```tsx
+									<Stack className={'image-info'}>
+										<img
+											className={'member-image'}
+											src={
+												university?.memberData?.memberImage
+													? `${REACT_APP_API_URL}/${university?.memberData?.memberImage}`
+													: '/img/profile/defaultUser.svg'
+											}
+										/>
+```
+
+Replace with:
+```tsx
+									<Stack className={'image-info'}>
+										<img
+											className={'member-image'}
+											src={
+												university?.memberData?.memberImage
+													? `${REACT_APP_API_URL}/${university?.memberData?.memberImage}`
+													: '/img/profile/defaultUser.svg'
+											}
+											alt={university?.memberData?.memberNick ?? 'Agent profile'}
+										/>
+```
+
+(`alt` uses the agent's real nickname field `memberData.memberNick`, already used elsewhere on this same page as display text — not invented copy. Falls back to "Agent profile" only when the nickname is not yet loaded.)
+
+=====================================================================
+FILE 2 — .env.example  (NEW FILE — create at project root, next to package.json)
+=====================================================================
+
+Create this file with exactly this content:
+
+```
+# Copy this file's variable NAMES into your hosting platform's Environment Variables
+# settings (e.g. Vercel Project Settings → Environment Variables) and fill in REAL
+# production values before deploying. Do not commit actual secrets to this file —
+# it only documents which variables the app requires; it contains no real values.
+
+# Backend REST API base URL (used by libs/config.ts, apollo/client.ts, several components)
+REACT_APP_API_URL=
+
+# Backend GraphQL endpoint (used by apollo/client.ts, Teditor.tsx, MyProfile.tsx)
+REACT_APP_API_GRAPHQL_URL=
+
+# Backend WebSocket endpoint for GraphQL subscriptions (used by apollo/client.ts)
+REACT_APP_API_WS=
+
+# Same GraphQL endpoint, exposed under a NEXT_PUBLIC_ name for pages/api/telegram.ts
+# and AddNewUniversity.tsx — keep this equal to REACT_APP_API_GRAPHQL_URL above.
+NEXT_PUBLIC_API_GRAPHQL_URL=
+
+# Telegram bot token (server-side only, used in pages/api/telegram.ts) — keep secret
+TELEGRAM_BOT_TOKEN=
+
+# Telegram bot public ID (used by components/TelegramLoginButton.tsx)
+NEXT_PUBLIC_TELEGRAM_BOT_ID=
+
+# Telegram bot username, no @ (used by components/TelegramLoginButton.tsx)
+NEXT_PUBLIC_TELEGRAM_BOT_NAME=
+```
+
+Why this file is needed: `.env.development` and `.env.local` (which currently hold the only copies of these 7 variables) are both excluded by `.gitignore`, so they are never uploaded to a git-based host. `.env.development` is also never read by Next.js in production builds at all (only `next dev` reads it). This `.env.example` is NOT gitignored, so it travels with the repo and serves as a permanent checklist of exactly which variables must be set in the hosting platform's dashboard with real production values — it does not replace that manual dashboard step, which only the project owner can perform (real backend URLs and the bot token must be entered there, not in this file).
+
+---
+
+Verify after implementing:
+1. `npx tsc --noEmit` still reports 0 errors (this prompt does not introduce any TypeScript change).
+2. `npx next lint` no longer reports the two `jsx-a11y/alt-text` warnings on `pages/university/detail.tsx` (previously at lines 330 and 546); all other previously-existing warnings are unchanged in count and content.
+3. Open `university/detail.tsx` in the browser and confirm both images still render identically (icon and agent photo) — only an `alt` attribute was added, nothing visual changed.
+4. Confirm `.env.example` exists at the project root, is NOT listed in `.gitignore`, and contains no real secret values (only variable names with empty values).
+5. Before the actual deploy, manually copy each variable name from `.env.example` into the hosting platform's Environment Variables settings (e.g. Vercel → Project → Settings → Environment Variables) with real production values — this step cannot be automated by this prompt and must be done once per environment (Production/Preview).
