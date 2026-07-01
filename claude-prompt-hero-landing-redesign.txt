@@ -1,0 +1,404 @@
+Context: Redesign libs/components/homepage/HeroSection.tsx to match a modern two-column
+landing page layout (reference: reelers.io style). The current design is a dark full-width
+canvas animation hero. Replace it entirely with a light, tall, two-column layout:
+  LEFT: text content + CTA buttons
+  RIGHT: colored visual panel with campus image + 4 floating UI cards
+  BOTTOM: partner/university logo strip
+
+All logic preserved: router.push('/university'). No other files touched.
+Canvas animation removed — new design is light (#f5f4ef background).
+
+Available banner images (use these exact paths):
+  /img/banner/korea2.jpg   → main campus photo (right panel)
+  /img/banner/incheon.jpg  → university thumbnail (bottom-right floating card)
+
+=====================================================================
+FILE — libs/components/homepage/HeroSection.tsx
+=====================================================================
+
+Replace the ENTIRE file content with:
+
+```tsx
+import React, { useEffect, useRef, useState } from 'react';
+import { useRouter } from 'next/router';
+
+const WORDS = ['Campus', 'University', 'Program', 'Scholarship', 'Future', 'Dream'];
+
+function useTyping() {
+  const [text, setText] = useState('');
+  const [wordIndex, setWordIndex] = useState(0);
+  const [deleting, setDeleting] = useState(false);
+  const charIndex = useRef(0);
+
+  useEffect(() => {
+    const word = WORDS[wordIndex];
+    let timeout: ReturnType<typeof setTimeout>;
+    if (!deleting) {
+      timeout = setTimeout(() => {
+        setText(word.slice(0, charIndex.current + 1));
+        charIndex.current++;
+        if (charIndex.current === word.length) {
+          setDeleting(true);
+          charIndex.current = word.length;
+        }
+      }, 90);
+    } else {
+      timeout = setTimeout(() => {
+        setText(word.slice(0, charIndex.current - 1));
+        charIndex.current--;
+        if (charIndex.current === 0) {
+          setDeleting(false);
+          setWordIndex((prev) => (prev + 1) % WORDS.length);
+        }
+      }, deleting && charIndex.current === word.length ? 1800 : 50);
+    }
+    return () => clearTimeout(timeout);
+  }, [text, deleting, wordIndex]);
+
+  return text;
+}
+
+export default function HeroSection() {
+  const router = useRouter();
+  const typedText = useTyping();
+  const [cursorVisible, setCursorVisible] = useState(true);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    const interval = setInterval(() => setCursorVisible((v) => !v), 500);
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    const t = setTimeout(() => setMounted(true), 80);
+    return () => clearTimeout(t);
+  }, []);
+
+  return (
+    <section style={{ background: '#f5f4ef', width: '100%', overflow: 'hidden' }}>
+      <style>{`
+        @keyframes heroFloatA {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-10px); }
+        }
+        @keyframes heroFloatB {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(9px); }
+        }
+        @keyframes heroSlideLeft {
+          from { opacity: 0; transform: translateX(-32px); }
+          to   { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes heroSlideRight {
+          from { opacity: 0; transform: translateX(32px); }
+          to   { opacity: 1; transform: translateX(0); }
+        }
+        .hero-btn-primary:hover {
+          transform: scale(1.035) !important;
+          box-shadow: 0 8px 28px rgba(0,0,0,0.22) !important;
+        }
+        .hero-btn-secondary:hover {
+          color: #1a3d8c !important;
+        }
+      `}</style>
+
+      {/* ── MAIN TWO-COLUMN ROW ── */}
+      <div style={{
+        maxWidth: '1300px',
+        margin: '0 auto',
+        padding: '64px 60px 0 60px',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '52px',
+        minHeight: '680px',
+      }}>
+
+        {/* ── LEFT: text content ── */}
+        <div style={{
+          flex: '0 0 460px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '22px',
+          animation: mounted ? 'heroSlideLeft 0.75s ease forwards' : 'none',
+          opacity: mounted ? undefined : 0,
+        }}>
+
+          {/* Badge */}
+          <div style={{
+            display: 'inline-flex', alignItems: 'center', gap: 8,
+            background: '#fff', border: '1px solid #e5e4de',
+            borderRadius: 50, padding: '6px 16px',
+            width: 'fit-content', fontSize: 13, fontWeight: 600, color: '#444',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+          }}>
+            <span style={{ fontSize: 15 }}>📍</span>
+            240+ Universities · South Korea
+          </div>
+
+          {/* Heading */}
+          <div style={{ lineHeight: 1.06 }}>
+            <div style={{ fontSize: 'clamp(36px,3.8vw,58px)', fontWeight: 800, color: '#111', letterSpacing: '-0.025em' }}>
+              Find Your
+            </div>
+            <div style={{
+              fontSize: 'clamp(46px,5.2vw,76px)',
+              fontWeight: 900, letterSpacing: '-0.035em',
+              color: '#1a3d8c',
+              minHeight: '1.12em',
+              display: 'flex', alignItems: 'baseline', gap: 4,
+            }}>
+              {typedText}
+              <span style={{ opacity: cursorVisible ? 1 : 0, fontWeight: 200, fontSize: '80%' }}>|</span>
+              <span style={{ fontSize: '55%', fontWeight: 900, color: '#1a3d8c', marginLeft: 2 }}>+</span>
+            </div>
+            <div style={{ fontSize: 'clamp(28px,3vw,46px)', fontWeight: 800, color: '#666', letterSpacing: '-0.02em' }}>
+              in South Korea
+            </div>
+          </div>
+
+          {/* Accent bar */}
+          <div style={{ width: 52, height: 4, background: '#1a3d8c', borderRadius: 2 }} />
+
+          {/* Description */}
+          <p style={{ margin: 0, fontSize: 16.5, color: '#555', lineHeight: 1.7, maxWidth: 400 }}>
+            Explore scholarships, campus life, and top-ranked programs — all tailored for international students.
+          </p>
+
+          {/* Social proof row */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+            {/* Avatar stack */}
+            <div style={{ display: 'flex' }}>
+              {[['#4a90d9','K'],['#e8856a','Y'],['#52b788','S']].map(([color, letter], i) => (
+                <div key={i} style={{
+                  width: 34, height: 34, borderRadius: '50%',
+                  background: color as string,
+                  border: '2.5px solid #f5f4ef',
+                  marginLeft: i === 0 ? 0 : -10,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  color: '#fff', fontSize: 12, fontWeight: 700,
+                }}>
+                  {letter}
+                </div>
+              ))}
+            </div>
+            <div style={{ width: 1, height: 28, background: '#ccc' }} />
+            <div>
+              <div style={{ fontSize: 13.5, fontWeight: 700, color: '#111', display: 'flex', alignItems: 'center', gap: 5 }}>
+                <span style={{ color: '#f5a623' }}>★</span> 4.9
+                <span style={{ color: '#888', fontWeight: 400 }}>/ 100% Satisfied</span>
+              </div>
+            </div>
+          </div>
+
+          {/* CTA buttons */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 22, marginTop: 6 }}>
+            <button
+              className="hero-btn-primary"
+              onClick={() => router.push('/university')}
+              style={{
+                background: '#111', color: '#fff',
+                border: 'none', borderRadius: 50,
+                padding: '14px 28px', fontSize: 15, fontWeight: 700,
+                cursor: 'pointer', letterSpacing: '-0.01em',
+                transition: 'transform 0.18s ease, box-shadow 0.18s ease',
+                boxShadow: '0 4px 16px rgba(0,0,0,0.18)',
+              }}
+            >
+              Explore Universities — Free
+            </button>
+            <button
+              className="hero-btn-secondary"
+              onClick={() => router.push('/university')}
+              style={{
+                background: 'transparent', color: '#333',
+                border: 'none', fontSize: 15, fontWeight: 600,
+                cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6,
+                transition: 'color 0.18s ease',
+              }}
+            >
+              View Programs <span style={{ fontSize: 18, lineHeight: 1 }}>↗</span>
+            </button>
+          </div>
+        </div>
+
+        {/* ── RIGHT: visual panel ── */}
+        <div style={{
+          flex: 1,
+          position: 'relative',
+          height: 580,
+          animation: mounted ? 'heroSlideRight 0.85s ease forwards' : 'none',
+          opacity: mounted ? undefined : 0,
+        }}>
+
+          {/* Blue gradient background card */}
+          <div style={{
+            position: 'absolute',
+            top: 0, bottom: 0,
+            left: 56, right: 0,
+            borderRadius: 28,
+            background: 'linear-gradient(135deg, #102d6e 0%, #1a3d8c 45%, #2563d4 80%, #4a8fe0 100%)',
+            overflow: 'hidden',
+          }}>
+            {/* Campus photo */}
+            <img
+              src="/img/banner/korea2.jpg"
+              alt="South Korea University Campus"
+              style={{
+                position: 'absolute',
+                right: 0, bottom: 0,
+                height: '92%', width: '72%',
+                objectFit: 'cover', objectPosition: 'center top',
+                borderTopLeftRadius: 20,
+              }}
+            />
+            {/* Left gradient fade */}
+            <div style={{
+              position: 'absolute', inset: 0,
+              background: 'linear-gradient(to right, rgba(16,45,110,0.88) 0%, rgba(16,45,110,0.3) 45%, transparent 75%)',
+            }} />
+            {/* Bottom gradient */}
+            <div style={{
+              position: 'absolute', inset: 0,
+              background: 'linear-gradient(to top, rgba(16,45,110,0.7) 0%, transparent 50%)',
+            }} />
+          </div>
+
+          {/* ── Floating card 1: top-right STAT ── */}
+          <div style={{
+            position: 'absolute', top: 28, right: -20,
+            background: '#fff', borderRadius: 18,
+            padding: '16px 22px',
+            boxShadow: '0 20px 60px rgba(0,0,0,0.13), 0 2px 8px rgba(0,0,0,0.06)',
+            minWidth: 162, zIndex: 4,
+            animation: 'heroFloatA 4s ease-in-out infinite',
+          }}>
+            <div style={{ fontSize: 10, fontWeight: 700, color: '#aaa', letterSpacing: '0.8px', marginBottom: 4 }}>— UP TO</div>
+            <div style={{ fontSize: 46, fontWeight: 900, color: '#111', lineHeight: 1, letterSpacing: '-0.04em' }}>60%</div>
+            <div style={{ fontSize: 12, color: '#666', marginTop: 5, lineHeight: 1.5 }}>Scholarship<br/>available</div>
+          </div>
+
+          {/* ── Floating card 2a: checkbox pill ── */}
+          <div style={{
+            position: 'absolute', top: '38%', left: 24,
+            background: '#fff', borderRadius: 50,
+            padding: '10px 18px',
+            boxShadow: '0 8px 30px rgba(0,0,0,0.11)',
+            display: 'flex', alignItems: 'center', gap: 10,
+            zIndex: 5,
+            animation: 'heroFloatB 3.6s ease-in-out infinite',
+          }}>
+            <div style={{
+              width: 24, height: 24, borderRadius: 7,
+              background: '#1a3d8c',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              flexShrink: 0,
+            }}>
+              <span style={{ color: '#fff', fontSize: 13, lineHeight: 1 }}>✓</span>
+            </div>
+            <span style={{ fontSize: 14, fontWeight: 600, color: '#111', whiteSpace: 'nowrap' }}>Is tuition affordable?</span>
+          </div>
+
+          {/* ── Floating card 2b: checkbox pill ── */}
+          <div style={{
+            position: 'absolute', top: 'calc(38% + 56px)', left: 24,
+            background: '#fff', borderRadius: 50,
+            padding: '10px 18px',
+            boxShadow: '0 8px 30px rgba(0,0,0,0.11)',
+            display: 'flex', alignItems: 'center', gap: 10,
+            zIndex: 5,
+            animation: 'heroFloatA 4.3s ease-in-out infinite 0.6s',
+          }}>
+            <div style={{
+              width: 24, height: 24, borderRadius: 7,
+              background: '#4a8fe0',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              flexShrink: 0,
+            }}>
+              <span style={{ color: '#fff', fontSize: 13, lineHeight: 1 }}>✓</span>
+            </div>
+            <span style={{ fontSize: 14, fontWeight: 600, color: '#111', whiteSpace: 'nowrap' }}>Scholarship available?</span>
+          </div>
+
+          {/* ── Floating card 3: bottom-right UNIVERSITY ── */}
+          <div style={{
+            position: 'absolute', bottom: 44, right: -20,
+            background: '#fff', borderRadius: 18,
+            padding: '14px 18px',
+            boxShadow: '0 20px 60px rgba(0,0,0,0.15), 0 2px 8px rgba(0,0,0,0.06)',
+            display: 'flex', alignItems: 'center', gap: 14,
+            minWidth: 230, zIndex: 4,
+            animation: 'heroFloatB 3.9s ease-in-out infinite 0.4s',
+          }}>
+            <div style={{
+              width: 54, height: 54, borderRadius: 13,
+              overflow: 'hidden', flexShrink: 0,
+              background: '#e8f0fe',
+            }}>
+              <img src="/img/banner/incheon.jpg" alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            </div>
+            <div>
+              <div style={{ fontSize: 13.5, fontWeight: 700, color: '#111', lineHeight: 1.3 }}>Seoul National<br/>University</div>
+              <div style={{ fontSize: 12, color: '#888', marginTop: 4 }}>From $3,500/year</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 3 }}>
+                <span style={{ color: '#f5a623', fontSize: 13 }}>★</span>
+                <span style={{ fontSize: 12.5, fontWeight: 700, color: '#111' }}>4.9</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+        {/* ── END RIGHT ── */}
+
+      </div>
+      {/* ── END MAIN ROW ── */}
+
+      {/* ── BOTTOM LOGO STRIP ── */}
+      <div style={{
+        maxWidth: '1300px',
+        margin: '48px auto 0',
+        padding: '28px 60px 48px',
+        borderTop: '1px solid #e5e4de',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: 32,
+      }}>
+        <span style={{ fontSize: 11.5, fontWeight: 600, color: '#aaa', letterSpacing: '0.5px', whiteSpace: 'nowrap', textTransform: 'uppercase' }}>
+          Trusted by students from
+        </span>
+        {[
+          { name: 'KAIST', style: {} },
+          { name: 'Yonsei', style: { fontStyle: 'italic' } },
+          { name: 'POSTECH', style: {} },
+          { name: 'SNU', style: {} },
+          { name: 'Ewha', style: { fontStyle: 'italic' } },
+        ].map(({ name, style }) => (
+          <div key={name} style={{
+            fontSize: 20, fontWeight: 800,
+            color: '#c8c8c0', letterSpacing: '-0.025em',
+            ...style,
+          }}>
+            {name}
+          </div>
+        ))}
+      </div>
+      {/* ── END LOGO STRIP ── */}
+
+    </section>
+  );
+}
+```
+
+---
+
+Verify after implementing:
+1. `npx tsc --noEmit` → 0 errors.
+2. Homepage hero section shows light (#f5f4ef) background — dark canvas animation is gone.
+3. Two-column layout: left text + right blue panel with campus photo.
+4. Typing animation cycles: Campus → University → Program → Scholarship → Future → Dream.
+5. Four floating cards animate continuously (heroFloatA / heroFloatB keyframes).
+6. "Explore Universities" button → navigates to /university.
+7. "View Programs ↗" button → navigates to /university.
+8. Bottom logo strip shows: KAIST / Yonsei / POSTECH / SNU / Ewha.
+9. On load, left column slides in from left and right panel slides in from right.
+10. Overall section height is ~760px+ (minHeight: 680px content + ~110px logo strip).
