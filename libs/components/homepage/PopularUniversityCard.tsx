@@ -1,13 +1,9 @@
 import React from 'react';
-import { Stack, Box, Divider, Typography } from '@mui/material';
-import IconButton from '@mui/material/IconButton';
-import useDeviceDetect from '../../hooks/useDeviceDetect';
+import LocalOfferIcon from '@mui/icons-material/LocalOffer';
+import AspectRatioIcon from '@mui/icons-material/AspectRatio';
 import { University } from '../../types/university/university';
-import RemoveRedEyeIcon from '@mui/icons-material/RemoveRedEye';
 import { REACT_APP_API_URL, topUniversityRank } from '../../config';
 import { useRouter } from 'next/router';
-import { useReactiveVar } from '@apollo/client';
-import { userVar } from '../../../apollo/store';
 
 interface PopularUniversityCardProps {
 	university: University;
@@ -15,134 +11,63 @@ interface PopularUniversityCardProps {
 
 const PopularUniversityCard = (props: PopularUniversityCardProps) => {
 	const { university } = props;
-	const device = useDeviceDetect();
 	const router = useRouter();
-	const user = useReactiveVar(userVar);
 
-	/** HANDLERS **/
 	const pushDetailHandler = async (universityId: string) => {
 		await router.push({ pathname: `/university/detail`, query: { id: universityId } });
 	};
 
-	if (device === 'mobile') {
-		return (
-			<Stack className="popular-card-box">
-				<Box
-					component={'div'}
-					className={'card-img'}
-					style={{ backgroundImage: `url(${REACT_APP_API_URL}/${university?.universityImages[0]})` }}
-					onClick={() => {
-						pushDetailHandler(university._id);
-					}}
-				>
-					{university && university?.universityRank >= topUniversityRank ? (
-						<div className={'status'}>
-							<img src="/img/icons/electricity.svg" alt="" />
-							<span>top</span>
-						</div>
-					) : (
-						''
-					)}
+	return (
+		<div
+			onClick={() => pushDetailHandler(university._id)}
+			style={{ position: 'relative', borderRadius: '24px', overflow: 'hidden', height: '340px', cursor: 'pointer', background: '#1a1a2e', width: '100%' }}
+		>
+			{university.universityImages?.[0] ? (
+				<img
+					src={`${REACT_APP_API_URL}/${university.universityImages[0]}`}
+					alt={university.universityName}
+					style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
+				/>
+			) : (
+				<div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, #2d2d44, #1a1a2e)' }} />
+			)}
 
-					<div className={'price'}>${university.universityTuition}</div>
-				</Box>
-				<Box component={'div'} className={'info'}>
-					<strong
-						className={'title'}
-						onClick={() => {
-							pushDetailHandler(university._id);
-						}}
-					>
-						{university.universityName}
-					</strong>
-					<p className={'desc'}>{university.universityAddress}</p>
-					<div className={'options'}>
-						<div>
-							<img src="/img/icons/bed.svg" alt="" />
-							<span>{university?.universityCapacity} bed</span>
-						</div>
-						<div>
-							<img src="/img/icons/room.svg" alt="" />
-							<span>{university?.universityFaculties} rooms</span>
-						</div>
-						<div>
-							<img src="/img/icons/expand.svg" alt="" />
-							<span>{university?.universityCampusSize} m2</span>
-						</div>
-					</div>
-					<Divider sx={{ mt: '15px', mb: '17px' }} />
-					<div className={'bott'}>
-						<p>{university?.universityDormitory ? 'rent' : 'sale'}</p>
-						<div className="view-like-box">
-							<IconButton color={'default'}>
-								<RemoveRedEyeIcon />
-							</IconButton>
-							<Typography className="view-cnt">{university?.universityViews}</Typography>
-						</div>
-					</div>
-				</Box>
-			</Stack>
-		);
-	} else {
-		return (
-			<Stack className="popular-card-box">
-				<Box
-					component={'div'}
-					className={'card-img'}
-					style={{ backgroundImage: `url(${REACT_APP_API_URL}/${university?.universityImages[0]})` }}
-					onClick={() => {
-						pushDetailHandler(university._id);
-					}}
-				>
-					{university && university?.universityRank >= topUniversityRank ? (
-						<div className={'status'}>
-							<img src="/img/icons/electricity.svg" alt="" />
-							<span>top</span>
-						</div>
-					) : (
-						''
-					)}
+			<div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.45) 50%, transparent 100%)' }} />
 
-					<div className={'price'}>${university.universityTuition}</div>
-				</Box>
-				<Box component={'div'} className={'info'}>
-					<strong
-						className={'title'}
-						onClick={() => {
-							pushDetailHandler(university._id);
-						}}
-					>
-						{university.universityName}
-					</strong>
-					<p className={'desc'}>{university.universityAddress}</p>
-					<div className={'options'}>
-						<div>
-							<img src="/img/icons/bed.svg" alt="" />
-							<span>{university?.universityCapacity} bed</span>
-						</div>
-						<div>
-							<img src="/img/icons/room.svg" alt="" />
-							<span>{university?.universityFaculties} rooms</span>
-						</div>
-						<div>
-							<img src="/img/icons/expand.svg" alt="" />
-							<span>{university?.universityCampusSize} m2</span>
-						</div>
-					</div>
-					<Divider sx={{ mt: '15px', mb: '17px' }} />
-					<div className={'bott'}>
-						<p>{university?.universityDormitory ? 'rent' : 'sale'}</p>
-						<div className="view-like-box">
-							<IconButton color={'default'}>
-								<RemoveRedEyeIcon />
-							</IconButton>
-							<Typography className="view-cnt">{university?.universityViews}</Typography>
-						</div>
-					</div>
-				</Box>
-			</Stack>
-		);
-	}
+			{/* Top badge — shown only for top-ranked universities */}
+			{university && university?.universityRank >= topUniversityRank && (
+				<span style={{ position: 'absolute', top: 14, left: 14, background: 'rgba(255,255,255,0.22)', backdropFilter: 'blur(8px)', borderRadius: '20px', padding: '4px 12px', color: '#fff', fontSize: 12, fontWeight: 600, zIndex: 2 }}>
+					⭐ Top
+				</span>
+			)}
+
+			<div style={{ position: 'absolute', bottom: 62, left: 16, right: 16, zIndex: 2 }}>
+				<h3 style={{ margin: 0, color: '#fff', fontSize: 20, fontWeight: 700, lineHeight: 1.2 }}>
+					{university.universityName}
+				</h3>
+				<p style={{ margin: '4px 0 8px', color: 'rgba(255,255,255,0.72)', fontSize: 12 }}>
+					{university.universityAddress}
+				</p>
+				<div style={{ display: 'flex', gap: 12, color: '#fff', fontSize: 12 }}>
+					<span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+						<LocalOfferIcon style={{ fontSize: 13, opacity: 0.85 }} />
+						from ${university.universityTuition?.toLocaleString()}
+					</span>
+					<span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+						<AspectRatioIcon style={{ fontSize: 13, opacity: 0.85 }} />
+						{university.universityCampusSize} m²
+					</span>
+				</div>
+			</div>
+
+			<button
+				onClick={(e) => { e.stopPropagation(); pushDetailHandler(university._id); }}
+				style={{ position: 'absolute', bottom: 14, left: 14, right: 14, height: 40, borderRadius: '50px', background: '#fff', border: 'none', color: '#1a1a1a', fontSize: 13, fontWeight: 600, cursor: 'pointer', zIndex: 2 }}
+			>
+				View Details
+			</button>
+		</div>
+	);
 };
 
 export default PopularUniversityCard;

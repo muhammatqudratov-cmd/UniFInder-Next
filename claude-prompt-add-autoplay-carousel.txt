@@ -1,0 +1,144 @@
+Context: convert the desktop card grids in TopUniversities and PopularUniversities from a static grid into an auto-sliding Swiper carousel that:
+- Shows exactly 4 cards at a time
+- Automatically slides left every 2 seconds
+- Loops infinitely (when the last card passes, the first reappears seamlessly)
+- Has a smooth 600ms slide transition
+
+Swiper, SwiperSlide, and Autoplay are ALREADY imported in both files (confirmed in the existing import section) — no new imports are needed.
+
+No card content, no business logic, no Apollo queries, no click handlers, no like logic, and no prop types are changed. Only the outer container (`top-cards-grid` / `popular-cards-grid` div) is replaced with a Swiper, and each card is wrapped in a SwiperSlide.
+
+=====================================================================
+FILE 1 — libs/components/homepage/TopUniversities.tsx
+=====================================================================
+
+Change A — replace the grid opening with Swiper (also moves `key` from inner div to SwiperSlide):
+
+Find:
+```tsx
+				<div className="top-cards-grid">
+					{topUniversities.map((university: University, index: number) => (
+						<div
+							key={university._id}
+							className="top-uni-card"
+```
+
+Replace with:
+```tsx
+				<Swiper
+					className="top-cards-grid"
+					slidesPerView={4}
+					spaceBetween={20}
+					loop={true}
+					speed={600}
+					modules={[Autoplay]}
+					autoplay={{ delay: 2000, disableOnInteraction: false }}
+					style={{ width: '100%' }}
+				>
+					{topUniversities.map((university: University, index: number) => (
+						<SwiperSlide key={university._id} style={{ height: 'auto' }}>
+						<div
+							className="top-uni-card"
+```
+
+Change B — close SwiperSlide and Swiper instead of the old grid div:
+
+Find:
+```tsx
+						</div>
+					))}
+				</div>
+			</div>
+		);
+	}
+};
+
+TopUniversities.defaultProps
+```
+
+Replace with:
+```tsx
+						</div>
+						</SwiperSlide>
+					))}
+				</Swiper>
+			</div>
+		);
+	}
+};
+
+TopUniversities.defaultProps
+```
+
+=====================================================================
+FILE 2 — libs/components/homepage/PopularUniversities.tsx
+=====================================================================
+
+Change A — replace the grid opening with Swiper:
+
+Find:
+```tsx
+				<div className="popular-cards-grid">
+					{popularUniversities.map((university: University, index: number) => (
+						<div
+							key={university._id}
+							className="popular-uni-card"
+```
+
+Replace with:
+```tsx
+				<Swiper
+					className="popular-cards-grid"
+					slidesPerView={4}
+					spaceBetween={20}
+					loop={true}
+					speed={600}
+					modules={[Autoplay]}
+					autoplay={{ delay: 2000, disableOnInteraction: false }}
+					style={{ width: '100%' }}
+				>
+					{popularUniversities.map((university: University, index: number) => (
+						<SwiperSlide key={university._id} style={{ height: 'auto' }}>
+						<div
+							className="popular-uni-card"
+```
+
+Change B — close SwiperSlide and Swiper:
+
+Find:
+```tsx
+						</div>
+					))}
+				</div>
+			</div>
+		);
+	}
+};
+
+PopularUniversities.defaultProps
+```
+
+Replace with:
+```tsx
+						</div>
+						</SwiperSlide>
+					))}
+				</Swiper>
+			</div>
+		);
+	}
+};
+
+PopularUniversities.defaultProps
+```
+
+---
+
+Verify after implementing:
+1. Open the homepage — Top Universities and Popular Universities sections each show exactly 4 cards side by side.
+2. Wait 2 seconds — cards slide left automatically, the next card enters smoothly from the right.
+3. Wait until the last card passes — the carousel loops seamlessly back to the first card with no blank gap or jump.
+4. Hover over a card — autoplay pauses (Swiper's default behavior with `disableOnInteraction: false` means it resumes after interaction; if you prefer pause-on-hover, add `pauseOnMouseEnter: true` to the autoplay config).
+5. Click "View Details" or the heart icon — navigation/like works exactly as before (no regression).
+6. `npx tsc --noEmit` reports 0 errors.
+7. The Trend Universities section is NOT changed by this prompt — it already had its own layout and is not a grid.

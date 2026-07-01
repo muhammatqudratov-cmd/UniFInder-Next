@@ -1,0 +1,103 @@
+Context: when commenting on a community board article, the user sees this raw error popup:
+"Variable \"$input\" got invalid value \"6a2e45d48e365bfb0dea909c\"; Expected type \"CommentsInquiry\" to be an object."
+
+Root cause (confirmed by reading the exact source): in `pages/community/detail.tsx`, the `GET_COMMENTS` query (`apollo/user/query.ts` line 468: `query GetComments($input: CommentsInquiry!)`) always expects its `$input` variable to be a `CommentsInquiry` object — confirmed by the correct working call two lines later in the same component: `await getCommentsRefetch({ input: searchFilter });` (line 200). But in `creteCommentHandler`, right after successfully creating a comment, the refetch is called with the raw article ID string instead of that object: `await getCommentsRefetch({ input: articleId });` (line 160). GraphQL then rejects the string where it expects a `CommentsInquiry` object, producing the exact technical error the user saw. This is a one-line copy-paste mistake — `searchFilter` (already declared and already used correctly elsewhere in this same file) was meant to be passed here too.
+
+This prompt has two parts: (A) the actual bug fix, and (B) a small, additive, app-wide safety net so that if any other unexpected/technical backend error ever surfaces in the future, the user sees a friendly message instead of raw GraphQL text — exactly matching the existing pattern this app already uses for known errors (the `Messages` object in `libs/config.ts`, e.g. `Messages.error1 = 'Something went wrong!'`). Part B does not change any business logic, only what text is shown inside the existing error popup, and only for messages that look like raw technical/GraphQL errors — all existing custom messages (e.g. "User has been blocked!", "Please check your password again", "Your session has expired. Please log in again.") are left untouched because they don't match the technical-error pattern.
+
+=====================================================================
+PART A — FILE: pages/community/detail.tsx
+=====================================================================
+
+Find:
+```tsx
+			await createComment({
+				variables: {
+					input: commentInput,
+				},
+			});
+			await getCommentsRefetch({ input: articleId });
+			setComment('');
+```
+
+Replace with:
+```tsx
+			await createComment({
+				variables: {
+					input: commentInput,
+				},
+			});
+			await getCommentsRefetch({ input: searchFilter });
+			setComment('');
+```
+
+Do not change anything else in `creteCommentHandler` — only this one refetch call is corrected, matching the already-correct pattern used in `updateButtonHandler` a few lines below (line 200: `await getCommentsRefetch({ input: searchFilter });`).
+
+=====================================================================
+PART B — FILE: libs/sweetAlert.ts
+=====================================================================
+
+Find:
+```ts
+import Swal from 'sweetalert2';
+import 'animate.css';
+import { Messages } from './config';
+```
+
+Replace with:
+```ts
+import Swal from 'sweetalert2';
+import 'animate.css';
+import { Messages } from './config';
+
+/**
+ * Raw GraphQL/Apollo validation and execution errors are not meant for end users
+ * (e.g. `Variable "$input" got invalid value ...; Expected type "X" to be an object.`).
+ * If a caught error message looks like this kind of technical/internal text, fall back
+ * to the existing generic friendly message (Messages.error1) instead of showing it as-is.
+ * Custom, human-written messages thrown elsewhere in the app (e.g. "User has been blocked!")
+ * do not match this pattern and are shown unchanged.
+ */
+const toFriendlyErrorMessage = (msg?: string): string => {
+	if (!msg) return Messages.error1;
+	const looksTechnical = /variable\s+"\$|^graphql error|cannot query field|expected type|^response not successful/i.test(
+		msg,
+	);
+	return looksTechnical ? Messages.error1 : msg;
+};
+```
+
+Then find:
+```ts
+export const sweetMixinErrorAlert = async (msg: string, duration: number = 3000) => {
+	await Swal.fire({
+		icon: 'error',
+		title: msg,
+		showConfirmButton: false,
+		timer: duration,
+	});
+};
+```
+
+Replace with:
+```ts
+export const sweetMixinErrorAlert = async (msg: string, duration: number = 3000) => {
+	await Swal.fire({
+		icon: 'error',
+		title: toFriendlyErrorMessage(msg),
+		showConfirmButton: false,
+		timer: duration,
+	});
+};
+```
+
+Do not change `sweetErrorAlert`, `sweetErrorHandling`, `sweetErrorHandlingForAdmin`, or any other function in this file — only `sweetMixinErrorAlert` is updated, since it's the function used across the user-facing pages (community, university, agent, mypage, account, member) where this kind of technical error could otherwise leak through. Admin-facing error handling (`sweetErrorHandlingForAdmin`) is intentionally left showing raw messages, since admins benefit from seeing the real technical detail when debugging.
+
+---
+
+Verify after implementing:
+1. Go to a community board article, post a comment. Confirm the comment is created successfully AND the comment list refreshes without any error popup appearing.
+2. `npx tsc --noEmit` still reports 0 errors.
+3. Temporarily trigger a real backend-thrown error (e.g. try commenting while logged out, which throws `Messages.error2 = 'Please login first!'`) and confirm that message still displays correctly and unchanged — confirming Part B's fallback only intercepts technical GraphQL-shaped messages, not normal app errors.
+4. Confirm other pages using `sweetMixinErrorAlert` (university/detail.tsx, agent/index.tsx, account/join.tsx, etc.) still show their existing custom error messages (e.g. "User has been blocked!") unchanged.
+5. If you ever see a generic "Something went wrong!" popup where you expected a specific message, check the browser console — the real underlying technical message is still being thrown/logged, it's just not shown raw to the end user anymore.

@@ -1,0 +1,663 @@
+Context: redesign the university card visual style in TrendUniversities, TopUniversities, and PopularUniversities sections to match a modern full-bleed photo-card design:
+- Full-bleed university photo covering the entire card
+- Rounded corners (24px)
+- Dark gradient overlay rising from the bottom (~70% height)
+- Heart/like button: top-right, semi-transparent frosted circle
+- University name: large bold white text, bottom-left, over the gradient
+- Subtitle: university address, lighter white text below the name
+- Info row: tuition price (with label icon) + campus size (with expand icon), white text
+- White pill "View Details" button pinned at card bottom (16px from edges)
+
+ALL data bindings, click handlers, like logic, Apollo queries, router.push calls, and component interfaces remain unchanged — only JSX markup and inline styles are changed. No SCSS file is touched. No prop types change.
+
+Desktop cards are rendered inline inside the parent components. Mobile cards use separate Card files.
+New MUI icons needed: `LocalOfferIcon` (for tuition), `AspectRatioIcon` (for campus size) — both are in @mui/icons-material which is already installed.
+
+=====================================================================
+FILE 1 — libs/components/homepage/TrendUniversities.tsx
+=====================================================================
+
+CHANGE A — add two icon imports (insert after the existing VisibilityIcon import line):
+
+Find:
+```tsx
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import { useRouter } from 'next/router';
+```
+
+Replace with:
+```tsx
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import LocalOfferIcon from '@mui/icons-material/LocalOffer';
+import AspectRatioIcon from '@mui/icons-material/AspectRatio';
+import { useRouter } from 'next/router';
+```
+
+CHANGE B — replace the desktop inline card markup:
+
+Find:
+```tsx
+								<div
+									key={university._id}
+									className="trend-uni-card"
+									onClick={() => router.push({ pathname: '/university/detail', query: { id: university._id } })}
+								>
+									<div className="trend-card-image">
+										{university.universityImages?.[0] ? (
+											<img
+												src={`${REACT_APP_API_URL}/${university.universityImages[0]}`}
+												alt={university.universityName}
+												style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+											/>
+										) : (
+											<div className={`trend-card-gradient ${grad}`}></div>
+										)}
+										<span className="trend-card-badge">{university.universityType}</span>
+										<button
+											className={`trend-card-heart${university?.meLiked && university?.meLiked[0]?.myFavorite ? ' liked' : ''}`}
+											onClick={(e) => { e.stopPropagation(); likeUniversityHandler(user, university._id); }}
+										>
+											{university?.meLiked && university?.meLiked[0]?.myFavorite
+												? <FavoriteIcon style={{ fontSize: 16, color: '#E8856A' }} />
+												: <FavoriteBorderIcon style={{ fontSize: 16, color: '#8E8C83' }} />
+											}
+										</button>
+									</div>
+									<div className="trend-card-body">
+										<h3>{university.universityName}</h3>
+										<div className="trend-card-location"><LocationOnIcon style={{ fontSize: 14 }} /> {university.universityLocation}</div>
+										<div className="trend-card-footer">
+											<div className="trend-card-rating">
+												<span className="star"><VisibilityIcon style={{ fontSize: 14 }} /></span>
+												<span className="count">{university.universityViews || '—'}</span>
+											</div>
+											<div className="trend-card-likes"><FavoriteBorderIcon style={{ fontSize: 13 }} /> {university.universityLikes || '—'}</div>
+										</div>
+									</div>
+								</div>
+```
+
+Replace with:
+```tsx
+								<div
+									key={university._id}
+									className="trend-uni-card"
+									onClick={() => router.push({ pathname: '/university/detail', query: { id: university._id } })}
+									style={{ position: 'relative', borderRadius: '24px', overflow: 'hidden', height: '380px', cursor: 'pointer', background: '#1a1a2e' }}
+								>
+									{/* Full-bleed photo */}
+									{university.universityImages?.[0] ? (
+										<img
+											src={`${REACT_APP_API_URL}/${university.universityImages[0]}`}
+											alt={university.universityName}
+											style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
+										/>
+									) : (
+										<div className={`trend-card-gradient ${grad}`} style={{ position: 'absolute', inset: 0 }} />
+									)}
+
+									{/* Gradient overlay */}
+									<div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.45) 50%, transparent 100%)' }} />
+
+									{/* Heart button — top right */}
+									<button
+										onClick={(e) => { e.stopPropagation(); likeUniversityHandler(user, university._id); }}
+										style={{ position: 'absolute', top: 14, right: 14, width: 38, height: 38, borderRadius: '50%', background: 'rgba(255,255,255,0.22)', backdropFilter: 'blur(8px)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 2 }}
+									>
+										{university?.meLiked && university?.meLiked[0]?.myFavorite
+											? <FavoriteIcon style={{ fontSize: 18, color: '#ff6b6b' }} />
+											: <FavoriteBorderIcon style={{ fontSize: 18, color: '#fff' }} />
+										}
+									</button>
+
+									{/* Text content — bottom, above button */}
+									<div style={{ position: 'absolute', bottom: 68, left: 18, right: 18, zIndex: 2 }}>
+										<h3 style={{ margin: 0, color: '#fff', fontSize: 22, fontWeight: 700, lineHeight: 1.2, textShadow: '0 1px 4px rgba(0,0,0,0.4)' }}>
+											{university.universityName}
+										</h3>
+										<p style={{ margin: '4px 0 10px', color: 'rgba(255,255,255,0.72)', fontSize: 13, fontWeight: 400 }}>
+											{university.universityAddress || university.universityLocation}
+										</p>
+										<div style={{ display: 'flex', alignItems: 'center', gap: 14, color: '#fff', fontSize: 13 }}>
+											<span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+												<LocalOfferIcon style={{ fontSize: 14, opacity: 0.85 }} />
+												from ${university.universityTuition?.toLocaleString()}
+											</span>
+											<span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+												<AspectRatioIcon style={{ fontSize: 14, opacity: 0.85 }} />
+												{university.universityCampusSize} m²
+											</span>
+										</div>
+									</div>
+
+									{/* CTA pill button */}
+									<button
+										onClick={(e) => { e.stopPropagation(); router.push({ pathname: '/university/detail', query: { id: university._id } }); }}
+										style={{ position: 'absolute', bottom: 16, left: 16, right: 16, height: 44, borderRadius: '50px', background: '#fff', border: 'none', color: '#1a1a1a', fontSize: 14, fontWeight: 600, cursor: 'pointer', zIndex: 2, letterSpacing: '0.01em' }}
+									>
+										View Details
+									</button>
+								</div>
+```
+
+=====================================================================
+FILE 2 — libs/components/homepage/TopUniversities.tsx
+=====================================================================
+
+CHANGE A — add two icon imports:
+
+Find:
+```tsx
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import { useRouter } from 'next/router';
+```
+
+Replace with:
+```tsx
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import LocalOfferIcon from '@mui/icons-material/LocalOffer';
+import AspectRatioIcon from '@mui/icons-material/AspectRatio';
+import { useRouter } from 'next/router';
+```
+
+CHANGE B — replace the desktop inline card markup:
+
+Find:
+```tsx
+					{topUniversities.map((university: University, index: number) => (
+						<div
+							key={university._id}
+							className="top-uni-card"
+							onClick={() => router.push({ pathname: '/university/detail', query: { id: university._id } })}
+						>
+							<div className="top-card-image">
+								{university.universityImages?.[0] ? (
+									<img
+										src={`${REACT_APP_API_URL}/${university.universityImages[0]}`}
+										alt={university.universityName}
+									/>
+								) : (
+									<div style={{ width: '100%', height: '100%', background: 'linear-gradient(135deg, #f4f3ef, #e8e0d5)' }} />
+								)}
+								<span className="top-card-badge">{university.universityType}</span>
+								<button
+									className={`top-card-heart${university?.meLiked?.[0]?.myFavorite ? ' liked' : ''}`}
+									onClick={(e) => { e.stopPropagation(); likeUniversityHandler(user, university._id); }}
+								>
+									{university?.meLiked?.[0]?.myFavorite
+										? <FavoriteIcon style={{ fontSize: 16, color: '#E8856A' }} />
+										: <FavoriteBorderIcon style={{ fontSize: 16, color: '#8E8C83' }} />
+									}
+								</button>
+							</div>
+							<div className="top-card-body">
+								<h3>{university.universityName}</h3>
+								<div className="top-card-location"><LocationOnIcon style={{ fontSize: 14 }} /> {university.universityLocation}</div>
+								<div className="top-card-footer">
+									<div className="top-card-rating">
+										<span className="star"><VisibilityIcon style={{ fontSize: 14 }} /></span>
+										<span className="count">{university.universityViews || '—'}</span>
+									</div>
+									<div className="top-card-likes"><FavoriteBorderIcon style={{ fontSize: 13 }} /> {university.universityLikes || '—'}</div>
+								</div>
+							</div>
+						</div>
+					))}
+```
+
+Replace with:
+```tsx
+					{topUniversities.map((university: University, index: number) => (
+						<div
+							key={university._id}
+							className="top-uni-card"
+							onClick={() => router.push({ pathname: '/university/detail', query: { id: university._id } })}
+							style={{ position: 'relative', borderRadius: '24px', overflow: 'hidden', height: '380px', cursor: 'pointer', background: '#1a1a2e' }}
+						>
+							{/* Full-bleed photo */}
+							{university.universityImages?.[0] ? (
+								<img
+									src={`${REACT_APP_API_URL}/${university.universityImages[0]}`}
+									alt={university.universityName}
+									style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
+								/>
+							) : (
+								<div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, #2d2d44, #1a1a2e)' }} />
+							)}
+
+							{/* Gradient overlay */}
+							<div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.45) 50%, transparent 100%)' }} />
+
+							{/* Heart button — top right */}
+							<button
+								onClick={(e) => { e.stopPropagation(); likeUniversityHandler(user, university._id); }}
+								style={{ position: 'absolute', top: 14, right: 14, width: 38, height: 38, borderRadius: '50%', background: 'rgba(255,255,255,0.22)', backdropFilter: 'blur(8px)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 2 }}
+							>
+								{university?.meLiked?.[0]?.myFavorite
+									? <FavoriteIcon style={{ fontSize: 18, color: '#ff6b6b' }} />
+									: <FavoriteBorderIcon style={{ fontSize: 18, color: '#fff' }} />
+								}
+							</button>
+
+							{/* Text content */}
+							<div style={{ position: 'absolute', bottom: 68, left: 18, right: 18, zIndex: 2 }}>
+								<h3 style={{ margin: 0, color: '#fff', fontSize: 22, fontWeight: 700, lineHeight: 1.2, textShadow: '0 1px 4px rgba(0,0,0,0.4)' }}>
+									{university.universityName}
+								</h3>
+								<p style={{ margin: '4px 0 10px', color: 'rgba(255,255,255,0.72)', fontSize: 13, fontWeight: 400 }}>
+									{university.universityAddress || university.universityLocation}
+								</p>
+								<div style={{ display: 'flex', alignItems: 'center', gap: 14, color: '#fff', fontSize: 13 }}>
+									<span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+										<LocalOfferIcon style={{ fontSize: 14, opacity: 0.85 }} />
+										from ${university.universityTuition?.toLocaleString()}
+									</span>
+									<span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+										<AspectRatioIcon style={{ fontSize: 14, opacity: 0.85 }} />
+										{university.universityCampusSize} m²
+									</span>
+								</div>
+							</div>
+
+							{/* CTA pill button */}
+							<button
+								onClick={(e) => { e.stopPropagation(); router.push({ pathname: '/university/detail', query: { id: university._id } }); }}
+								style={{ position: 'absolute', bottom: 16, left: 16, right: 16, height: 44, borderRadius: '50px', background: '#fff', border: 'none', color: '#1a1a1a', fontSize: 14, fontWeight: 600, cursor: 'pointer', zIndex: 2, letterSpacing: '0.01em' }}
+							>
+								View Details
+							</button>
+						</div>
+					))}
+```
+
+=====================================================================
+FILE 3 — libs/components/homepage/PopularUniversities.tsx
+=====================================================================
+
+CHANGE A — add two icon imports:
+
+Find:
+```tsx
+import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
+import { useRouter } from 'next/router';
+```
+
+Replace with:
+```tsx
+import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
+import LocalOfferIcon from '@mui/icons-material/LocalOffer';
+import AspectRatioIcon from '@mui/icons-material/AspectRatio';
+import { useRouter } from 'next/router';
+```
+
+CHANGE B — replace the desktop inline card markup:
+
+Find:
+```tsx
+				{popularUniversities.map((university: University, index: number) => (
+						<div
+							key={university._id}
+							className="popular-uni-card"
+							onClick={() => router.push({ pathname: '/university/detail', query: { id: university._id } })}
+						>
+							<div className="popular-card-image">
+								{university.universityImages?.[0] ? (
+									<img
+										src={`${REACT_APP_API_URL}/${university.universityImages[0]}`}
+										alt={university.universityName}
+									/>
+								) : (
+									<div style={{ width: '100%', height: '100%', background: 'linear-gradient(135deg, #f0ede8, #e8e0d5)' }} />
+								)}
+								<span className="popular-card-badge">{university.universityType}</span>
+							</div>
+							<div className="popular-card-body">
+								<h3>{university.universityName}</h3>
+								<div className="popular-card-location"><LocationOnIcon style={{ fontSize: 14 }} /> {university.universityLocation}</div>
+								<div className="popular-card-footer">
+									<div className="popular-card-rating">
+										<span className="star"><VisibilityIcon style={{ fontSize: 14 }} /></span>
+										<span className="count">{university.universityViews || '—'}</span>
+									</div>
+									<div className="popular-card-likes"><FavoriteBorderIcon style={{ fontSize: 13 }} /> {university.universityLikes || '—'}</div>
+								</div>
+							</div>
+						</div>
+					))}
+```
+
+Replace with:
+```tsx
+				{popularUniversities.map((university: University, index: number) => (
+						<div
+							key={university._id}
+							className="popular-uni-card"
+							onClick={() => router.push({ pathname: '/university/detail', query: { id: university._id } })}
+							style={{ position: 'relative', borderRadius: '24px', overflow: 'hidden', height: '380px', cursor: 'pointer', background: '#1a1a2e' }}
+						>
+							{/* Full-bleed photo */}
+							{university.universityImages?.[0] ? (
+								<img
+									src={`${REACT_APP_API_URL}/${university.universityImages[0]}`}
+									alt={university.universityName}
+									style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
+								/>
+							) : (
+								<div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, #2d2d44, #1a1a2e)' }} />
+							)}
+
+							{/* Gradient overlay */}
+							<div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.45) 50%, transparent 100%)' }} />
+
+							{/* Type badge — top left */}
+							{university.universityType && (
+								<span style={{ position: 'absolute', top: 14, left: 14, background: 'rgba(255,255,255,0.22)', backdropFilter: 'blur(8px)', borderRadius: '20px', padding: '4px 12px', color: '#fff', fontSize: 12, fontWeight: 500, zIndex: 2 }}>
+									{university.universityType}
+								</span>
+							)}
+
+							{/* Text content */}
+							<div style={{ position: 'absolute', bottom: 68, left: 18, right: 18, zIndex: 2 }}>
+								<h3 style={{ margin: 0, color: '#fff', fontSize: 22, fontWeight: 700, lineHeight: 1.2, textShadow: '0 1px 4px rgba(0,0,0,0.4)' }}>
+									{university.universityName}
+								</h3>
+								<p style={{ margin: '4px 0 10px', color: 'rgba(255,255,255,0.72)', fontSize: 13, fontWeight: 400 }}>
+									{university.universityAddress || university.universityLocation}
+								</p>
+								<div style={{ display: 'flex', alignItems: 'center', gap: 14, color: '#fff', fontSize: 13 }}>
+									<span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+										<LocalOfferIcon style={{ fontSize: 14, opacity: 0.85 }} />
+										from ${university.universityTuition?.toLocaleString()}
+									</span>
+									<span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+										<AspectRatioIcon style={{ fontSize: 14, opacity: 0.85 }} />
+										{university.universityCampusSize} m²
+									</span>
+								</div>
+							</div>
+
+							{/* CTA pill button */}
+							<button
+								onClick={(e) => { e.stopPropagation(); router.push({ pathname: '/university/detail', query: { id: university._id } }); }}
+								style={{ position: 'absolute', bottom: 16, left: 16, right: 16, height: 44, borderRadius: '50px', background: '#fff', border: 'none', color: '#1a1a1a', fontSize: 14, fontWeight: 600, cursor: 'pointer', zIndex: 2, letterSpacing: '0.01em' }}
+							>
+								View Details
+							</button>
+						</div>
+					))}
+```
+
+=====================================================================
+FILE 4 — libs/components/homepage/TrendUniversityCard.tsx  (mobile Swiper)
+=====================================================================
+
+Replace the ENTIRE file content with:
+
+```tsx
+import React from 'react';
+import { Stack } from '@mui/material';
+import FavoriteIcon from '@mui/icons-material/Favorite';
+import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
+import LocalOfferIcon from '@mui/icons-material/LocalOffer';
+import AspectRatioIcon from '@mui/icons-material/AspectRatio';
+import { University } from '../../types/university/university';
+import { REACT_APP_API_URL } from '../../config';
+import { useRouter } from 'next/router';
+import { useReactiveVar } from '@apollo/client';
+import { userVar } from '../../../apollo/store';
+
+interface TrendUniversityCardProps {
+	university: University;
+	likeUniversityHandler: any;
+}
+
+const TrendUniversityCard = (props: TrendUniversityCardProps) => {
+	const { university, likeUniversityHandler } = props;
+	const router = useRouter();
+	const user = useReactiveVar(userVar);
+
+	const pushDetailHandler = async (universityId: string) => {
+		await router.push({ pathname: `/university/detail`, query: { id: universityId } });
+	};
+
+	return (
+		<div
+			onClick={() => pushDetailHandler(university._id)}
+			style={{ position: 'relative', borderRadius: '24px', overflow: 'hidden', height: '340px', cursor: 'pointer', background: '#1a1a2e', width: '100%' }}
+		>
+			{university.universityImages?.[0] ? (
+				<img
+					src={`${REACT_APP_API_URL}/${university.universityImages[0]}`}
+					alt={university.universityName}
+					style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
+				/>
+			) : (
+				<div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, #2d2d44, #1a1a2e)' }} />
+			)}
+
+			<div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.45) 50%, transparent 100%)' }} />
+
+			<button
+				onClick={(e) => { e.stopPropagation(); likeUniversityHandler(user, university._id); }}
+				style={{ position: 'absolute', top: 14, right: 14, width: 36, height: 36, borderRadius: '50%', background: 'rgba(255,255,255,0.22)', backdropFilter: 'blur(8px)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 2 }}
+			>
+				{university?.meLiked && university?.meLiked[0]?.myFavorite
+					? <FavoriteIcon style={{ fontSize: 17, color: '#ff6b6b' }} />
+					: <FavoriteBorderIcon style={{ fontSize: 17, color: '#fff' }} />
+				}
+			</button>
+
+			<div style={{ position: 'absolute', bottom: 62, left: 16, right: 16, zIndex: 2 }}>
+				<h3 style={{ margin: 0, color: '#fff', fontSize: 20, fontWeight: 700, lineHeight: 1.2 }}>
+					{university.universityName}
+				</h3>
+				<p style={{ margin: '4px 0 8px', color: 'rgba(255,255,255,0.72)', fontSize: 12 }}>
+					{university.universityAddress}
+				</p>
+				<div style={{ display: 'flex', gap: 12, color: '#fff', fontSize: 12 }}>
+					<span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+						<LocalOfferIcon style={{ fontSize: 13, opacity: 0.85 }} />
+						from ${university.universityTuition?.toLocaleString()}
+					</span>
+					<span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+						<AspectRatioIcon style={{ fontSize: 13, opacity: 0.85 }} />
+						{university.universityCampusSize} m²
+					</span>
+				</div>
+			</div>
+
+			<button
+				onClick={(e) => { e.stopPropagation(); pushDetailHandler(university._id); }}
+				style={{ position: 'absolute', bottom: 14, left: 14, right: 14, height: 40, borderRadius: '50px', background: '#fff', border: 'none', color: '#1a1a1a', fontSize: 13, fontWeight: 600, cursor: 'pointer', zIndex: 2 }}
+			>
+				View Details
+			</button>
+		</div>
+	);
+};
+
+export default TrendUniversityCard;
+```
+
+=====================================================================
+FILE 5 — libs/components/homepage/TopUniversityCard.tsx  (mobile Swiper)
+=====================================================================
+
+Replace the ENTIRE file content with:
+
+```tsx
+import React from 'react';
+import FavoriteIcon from '@mui/icons-material/Favorite';
+import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
+import LocalOfferIcon from '@mui/icons-material/LocalOffer';
+import AspectRatioIcon from '@mui/icons-material/AspectRatio';
+import { University } from '../../types/university/university';
+import { REACT_APP_API_URL } from '../../config';
+import { useRouter } from 'next/router';
+import { useReactiveVar } from '@apollo/client';
+import { userVar } from '../../../apollo/store';
+
+interface TopUniversityCardProps {
+	university: University;
+	likeUniversityHandler: any;
+}
+
+const TopUniversityCard = (props: TopUniversityCardProps) => {
+	const { university, likeUniversityHandler } = props;
+	const router = useRouter();
+	const user = useReactiveVar(userVar);
+
+	const pushDetailHandler = async (universityId: string) => {
+		await router.push({ pathname: `/university/detail`, query: { id: universityId } });
+	};
+
+	return (
+		<div
+			onClick={() => pushDetailHandler(university._id)}
+			style={{ position: 'relative', borderRadius: '24px', overflow: 'hidden', height: '340px', cursor: 'pointer', background: '#1a1a2e', width: '100%' }}
+		>
+			{university.universityImages?.[0] ? (
+				<img
+					src={`${REACT_APP_API_URL}/${university.universityImages[0]}`}
+					alt={university.universityName}
+					style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
+				/>
+			) : (
+				<div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, #2d2d44, #1a1a2e)' }} />
+			)}
+
+			<div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.45) 50%, transparent 100%)' }} />
+
+			<button
+				onClick={(e) => { e.stopPropagation(); likeUniversityHandler(user, university._id); }}
+				style={{ position: 'absolute', top: 14, right: 14, width: 36, height: 36, borderRadius: '50%', background: 'rgba(255,255,255,0.22)', backdropFilter: 'blur(8px)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 2 }}
+			>
+				{university?.meLiked && university?.meLiked[0]?.myFavorite
+					? <FavoriteIcon style={{ fontSize: 17, color: '#ff6b6b' }} />
+					: <FavoriteBorderIcon style={{ fontSize: 17, color: '#fff' }} />
+				}
+			</button>
+
+			<div style={{ position: 'absolute', bottom: 62, left: 16, right: 16, zIndex: 2 }}>
+				<h3 style={{ margin: 0, color: '#fff', fontSize: 20, fontWeight: 700, lineHeight: 1.2 }}>
+					{university.universityName}
+				</h3>
+				<p style={{ margin: '4px 0 8px', color: 'rgba(255,255,255,0.72)', fontSize: 12 }}>
+					{university.universityAddress}
+				</p>
+				<div style={{ display: 'flex', gap: 12, color: '#fff', fontSize: 12 }}>
+					<span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+						<LocalOfferIcon style={{ fontSize: 13, opacity: 0.85 }} />
+						from ${university.universityTuition?.toLocaleString()}
+					</span>
+					<span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+						<AspectRatioIcon style={{ fontSize: 13, opacity: 0.85 }} />
+						{university.universityCampusSize} m²
+					</span>
+				</div>
+			</div>
+
+			<button
+				onClick={(e) => { e.stopPropagation(); pushDetailHandler(university._id); }}
+				style={{ position: 'absolute', bottom: 14, left: 14, right: 14, height: 40, borderRadius: '50px', background: '#fff', border: 'none', color: '#1a1a1a', fontSize: 13, fontWeight: 600, cursor: 'pointer', zIndex: 2 }}
+			>
+				View Details
+			</button>
+		</div>
+	);
+};
+
+export default TopUniversityCard;
+```
+
+=====================================================================
+FILE 6 — libs/components/homepage/PopularUniversityCard.tsx  (mobile Swiper)
+=====================================================================
+
+Replace the ENTIRE file content with:
+
+```tsx
+import React from 'react';
+import LocalOfferIcon from '@mui/icons-material/LocalOffer';
+import AspectRatioIcon from '@mui/icons-material/AspectRatio';
+import { University } from '../../types/university/university';
+import { REACT_APP_API_URL, topUniversityRank } from '../../config';
+import { useRouter } from 'next/router';
+
+interface PopularUniversityCardProps {
+	university: University;
+}
+
+const PopularUniversityCard = (props: PopularUniversityCardProps) => {
+	const { university } = props;
+	const router = useRouter();
+
+	const pushDetailHandler = async (universityId: string) => {
+		await router.push({ pathname: `/university/detail`, query: { id: universityId } });
+	};
+
+	return (
+		<div
+			onClick={() => pushDetailHandler(university._id)}
+			style={{ position: 'relative', borderRadius: '24px', overflow: 'hidden', height: '340px', cursor: 'pointer', background: '#1a1a2e', width: '100%' }}
+		>
+			{university.universityImages?.[0] ? (
+				<img
+					src={`${REACT_APP_API_URL}/${university.universityImages[0]}`}
+					alt={university.universityName}
+					style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
+				/>
+			) : (
+				<div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, #2d2d44, #1a1a2e)' }} />
+			)}
+
+			<div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.45) 50%, transparent 100%)' }} />
+
+			{/* Top badge — shown only for top-ranked universities */}
+			{university && university?.universityRank >= topUniversityRank && (
+				<span style={{ position: 'absolute', top: 14, left: 14, background: 'rgba(255,255,255,0.22)', backdropFilter: 'blur(8px)', borderRadius: '20px', padding: '4px 12px', color: '#fff', fontSize: 12, fontWeight: 600, zIndex: 2 }}>
+					⭐ Top
+				</span>
+			)}
+
+			<div style={{ position: 'absolute', bottom: 62, left: 16, right: 16, zIndex: 2 }}>
+				<h3 style={{ margin: 0, color: '#fff', fontSize: 20, fontWeight: 700, lineHeight: 1.2 }}>
+					{university.universityName}
+				</h3>
+				<p style={{ margin: '4px 0 8px', color: 'rgba(255,255,255,0.72)', fontSize: 12 }}>
+					{university.universityAddress}
+				</p>
+				<div style={{ display: 'flex', gap: 12, color: '#fff', fontSize: 12 }}>
+					<span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+						<LocalOfferIcon style={{ fontSize: 13, opacity: 0.85 }} />
+						from ${university.universityTuition?.toLocaleString()}
+					</span>
+					<span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+						<AspectRatioIcon style={{ fontSize: 13, opacity: 0.85 }} />
+						{university.universityCampusSize} m²
+					</span>
+				</div>
+			</div>
+
+			<button
+				onClick={(e) => { e.stopPropagation(); pushDetailHandler(university._id); }}
+				style={{ position: 'absolute', bottom: 14, left: 14, right: 14, height: 40, borderRadius: '50px', background: '#fff', border: 'none', color: '#1a1a1a', fontSize: 13, fontWeight: 600, cursor: 'pointer', zIndex: 2 }}
+			>
+				View Details
+			</button>
+		</div>
+	);
+};
+
+export default PopularUniversityCard;
+```
+
+---
+
+Verify after implementing:
+1. `npx tsc --noEmit` reports 0 errors — LocalOfferIcon and AspectRatioIcon are valid MUI exports, all data fields used (universityName, universityAddress, universityTuition, universityCampusSize, universityImages, meLiked, universityRank) already exist on the University type.
+2. Open homepage in the browser. All three sections (Trend, Top, Popular) should show portrait cards with full-bleed photo, dark gradient, white text, frosted heart button, and white pill "View Details" button.
+3. Click a "View Details" button — navigates to `/university/detail?id=...`. Click outside the button on the card — also navigates. Click the heart — only toggles like, does NOT navigate (e.stopPropagation is applied).
+4. If a university has no image, the card shows a dark gradient placeholder instead of a broken image — confirm this renders correctly.
+5. Mobile: open on a narrow viewport — same new card style appears in the Swiper slider.
+6. No SCSS files were touched, so the grid layout (column count, gap, card width defined by .trend-cards-grid / .top-cards-grid / .popular-cards-grid in SCSS) is unchanged.
