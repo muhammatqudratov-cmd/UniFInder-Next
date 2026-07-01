@@ -3,7 +3,6 @@ import { useRouter } from 'next/router';
 import { Stack } from '@mui/material';
 import StarIcon from '@mui/icons-material/Star';
 import IosShareIcon from '@mui/icons-material/IosShare';
-import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder';
 import useDeviceDetect from '../../hooks/useDeviceDetect';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay } from 'swiper';
@@ -72,6 +71,26 @@ const TopAgents = (props: TopAgentsProps) => {
 		const avatarColors = ['av-coral', 'av-lav', 'av-sage'];
 		return (
 			<div className="top-agents">
+				<style>{`
+					.agents-grid .agent-card {
+						transition: transform 0.32s cubic-bezier(0.4, 0, 0.2, 1),
+									filter 0.32s cubic-bezier(0.4, 0, 0.2, 1),
+									box-shadow 0.32s cubic-bezier(0.4, 0, 0.2, 1),
+									opacity 0.32s ease;
+					}
+					.agents-grid:has(.agent-card:hover) .agent-card:not(:hover) {
+						filter: blur(3px);
+						transform: scale(0.96);
+						opacity: 0.68;
+					}
+					.agents-grid .agent-card:hover {
+						transform: scale(1.048);
+						box-shadow: 0 28px 60px rgba(100,160,210,0.36);
+						position: relative;
+						z-index: 2;
+					}
+				`}</style>
+
 				<div className="agents-section-header">
 					<div>
 						<h2>Top Agents</h2>
@@ -82,8 +101,11 @@ const TopAgents = (props: TopAgentsProps) => {
 					</span>
 				</div>
 
-				<div className="agents-grid">
-					{topAgents.map((agent: Member, index: number) => (
+				<div
+					className="agents-grid"
+					style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px', width: '100%' }}
+				>
+					{topAgents.slice(0, 4).map((agent: Member, index: number) => (
 						<div
 							key={agent._id}
 							className="agent-card"
@@ -102,14 +124,6 @@ const TopAgents = (props: TopAgentsProps) => {
 								minHeight: '360px',
 							}}
 						>
-							{/* Share icon — top right */}
-							<button
-								onClick={(e) => { e.stopPropagation(); router.push({ pathname: '/agent/detail', query: { agentId: agent._id } }); }}
-								style={{ position: 'absolute', top: 16, right: 16, background: 'none', border: 'none', cursor: 'pointer', color: '#888', padding: 4 }}
-							>
-								<IosShareIcon style={{ fontSize: 20 }} />
-							</button>
-
 							{/* Circular avatar with blue ring */}
 							<div style={{ width: 72, height: 72, borderRadius: '50%', border: '3px solid #a8d4ef', overflow: 'hidden', background: '#d0e8f5', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 26, fontWeight: 700, color: '#2a6496', flexShrink: 0 }}>
 								{agent.memberImage
@@ -159,18 +173,12 @@ const TopAgents = (props: TopAgentsProps) => {
 							</div>
 
 							{/* Bottom action row */}
-							<div style={{ display: 'flex', gap: 10, alignItems: 'center', marginTop: 4 }}>
+							<div style={{ display: 'flex', marginTop: 4 }}>
 								<button
 									onClick={(e) => { e.stopPropagation(); router.push({ pathname: '/agent/detail', query: { agentId: agent._id } }); }}
 									style={{ flex: 1, height: 46, borderRadius: '50px', background: 'rgba(255,255,255,0.8)', border: '1px solid rgba(0,0,0,0.1)', fontSize: 14, fontWeight: 600, color: '#111', cursor: 'pointer', backdropFilter: 'blur(8px)' }}
 								>
 									Get in touch
-								</button>
-								<button
-									onClick={(e) => { e.stopPropagation(); }}
-									style={{ width: 46, height: 46, borderRadius: '50%', background: '#fff', border: '1px solid rgba(0,0,0,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 }}
-								>
-									<BookmarkBorderIcon style={{ fontSize: 20, color: '#333' }} />
 								</button>
 							</div>
 						</div>
@@ -184,7 +192,7 @@ const TopAgents = (props: TopAgentsProps) => {
 TopAgents.defaultProps = {
 	initialInput: {
 		page: 1,
-		limit: 8,
+		limit: 4,
 		sort: 'memberRank',
 		direction: 'DESC',
 		search: {},

@@ -1,0 +1,137 @@
+Context: replace the autoplay Swiper carousel in Top Agents desktop with a static 4-column grid.
+Add a CSS hover effect: when the user hovers over any card, that card scales up smoothly;
+all other cards simultaneously blur and dim. No animation plays automatically.
+
+Current state: TopAgents.tsx desktop uses <Swiper> with autoplay + bounce animation state.
+After this change: static grid, pure CSS hover, no React state for animation.
+
+No business logic, Apollo queries, router.push handlers, or TypeScript types change.
+No SCSS files are touched (all CSS is in the inline <style> tag already present in the file).
+
+=====================================================================
+FILE — libs/components/homepage/TopAgents.tsx
+=====================================================================
+
+CHANGE A — remove the unused `popping` state:
+
+Find:
+```tsx
+	const [topAgents, setTopAgents] = useState<Member[]>([]);
+	const [popping, setPopping] = useState<boolean>(false);
+```
+
+Replace with:
+```tsx
+	const [topAgents, setTopAgents] = useState<Member[]>([]);
+```
+
+---
+
+CHANGE B — replace bounce keyframe CSS with hover interaction CSS:
+
+Find:
+```tsx
+				<style>{`
+					@keyframes agentCardBounce {
+						0%   { transform: translateY(0) scale(1); box-shadow: 0 8px 32px rgba(100,160,210,0.12); }
+						22%  { transform: translateY(-10px) scale(1.032); box-shadow: 0 28px 56px rgba(100,160,210,0.34); filter: brightness(1.04); }
+						48%  { transform: translateY(3px) scale(0.988); box-shadow: 0 6px 24px rgba(100,160,210,0.10); }
+						72%  { transform: translateY(-5px) scale(1.012); box-shadow: 0 18px 40px rgba(100,160,210,0.22); }
+						100% { transform: translateY(0) scale(1); box-shadow: 0 8px 32px rgba(100,160,210,0.12); }
+					}
+					.agent-card-pop {
+						animation: agentCardBounce 0.65s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+					}
+				`}</style>
+```
+
+Replace with:
+```tsx
+				<style>{`
+					.agents-grid .agent-card {
+						transition: transform 0.32s cubic-bezier(0.4, 0, 0.2, 1),
+						            filter 0.32s cubic-bezier(0.4, 0, 0.2, 1),
+						            box-shadow 0.32s cubic-bezier(0.4, 0, 0.2, 1),
+						            opacity 0.32s ease;
+					}
+					.agents-grid:has(.agent-card:hover) .agent-card:not(:hover) {
+						filter: blur(3px);
+						transform: scale(0.96);
+						opacity: 0.68;
+					}
+					.agents-grid .agent-card:hover {
+						transform: scale(1.048);
+						box-shadow: 0 28px 60px rgba(100,160,210,0.36);
+						position: relative;
+						z-index: 2;
+					}
+				`}</style>
+```
+
+---
+
+CHANGE C — replace Swiper + SwiperSlide opening with plain div grid:
+
+Find:
+```tsx
+				<Swiper
+					className="agents-grid"
+					slidesPerView={4}
+					spaceBetween={20}
+					loop={true}
+					speed={500}
+					modules={[Autoplay]}
+					autoplay={{ delay: 3000, disableOnInteraction: false, pauseOnMouseEnter: false }}
+					style={{ width: '100%' }}
+					onSlideChangeTransitionEnd={() => {
+						setPopping(true);
+						setTimeout(() => setPopping(false), 700);
+					}}
+				>
+					{topAgents.map((agent: Member, index: number) => (
+						<SwiperSlide key={agent._id} style={{ height: 'auto' }}>
+						<div
+							className={`agent-card${popping ? ' agent-card-pop' : ''}`}
+```
+
+Replace with:
+```tsx
+				<div
+					className="agents-grid"
+					style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px', width: '100%' }}
+				>
+					{topAgents.map((agent: Member, index: number) => (
+						<div
+							key={agent._id}
+							className="agent-card"
+```
+
+---
+
+CHANGE D — replace SwiperSlide + Swiper closing tags with plain div closing:
+
+Find:
+```tsx
+						</div>
+					</SwiperSlide>
+					))}
+				</Swiper>
+			</div>
+```
+
+Replace with:
+```tsx
+						</div>
+					))}
+				</div>
+			</div>
+```
+
+---
+
+Verify after implementing:
+1. `npx tsc --noEmit` → 0 errors. (`popping` state removed, no more references to it; `Swiper`/`SwiperSlide`/`Autoplay` imports may now be unused in desktop branch — TypeScript won't error on unused imports, only on unused variables.)
+2. Open homepage → Top Agents: exactly 4 cards visible in a 2×2... no, in a 1×4 row. No auto-sliding.
+3. Hover over any card → that card scales up (~4.8%) and its shadow deepens; the other 3 cards blur (blur 3px) and dim (opacity 0.68). Effect is smooth (0.32s transition).
+4. Move mouse off all cards → all cards return to normal simultaneously.
+5. Click "Get in touch" or the card → navigates to `/agent/detail?agentId=...` unchanged.

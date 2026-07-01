@@ -1,0 +1,143 @@
+Context: apply 5 targeted fixes to the Top Agents desktop card in TopAgents.tsx:
+1. Remove the top-right share (IosShare) button from every card
+2. Show only 4 agents (change limit from 8 to 4)
+3. Bookmark button: clicking it marks the agent as saved (icon fills black), shows
+   "Agent Saved" success alert, then navigates to /mypage?category=myFavorites
+4. Bookmark icon: outline (BookmarkBorderIcon) by default → filled black (BookmarkIcon)
+   after clicking that specific card's bookmark
+5. Success alert style: use the existing sweetTopSmallSuccessAlert helper (same as TopUniversities)
+
+No SCSS files touched. No GraphQL mutations added (saved state is local UI-only,
+navigates user to their favorites page to see real saved items).
+
+=====================================================================
+FILE — libs/components/homepage/TopAgents.tsx
+=====================================================================
+
+CHANGE A — add BookmarkIcon (filled) import after the existing BookmarkBorderIcon import:
+
+Find:
+```tsx
+import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder';
+import useDeviceDetect from '../../hooks/useDeviceDetect';
+```
+
+Replace with:
+```tsx
+import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder';
+import BookmarkIcon from '@mui/icons-material/Bookmark';
+import useDeviceDetect from '../../hooks/useDeviceDetect';
+```
+
+---
+
+CHANGE B — add sweetTopSmallSuccessAlert import after the existing Apollo query import:
+
+Find:
+```tsx
+import { GET_AGENTS } from '../../../apollo/user/query';
+```
+
+Replace with:
+```tsx
+import { GET_AGENTS } from '../../../apollo/user/query';
+import { sweetTopSmallSuccessAlert } from '../../sweetAlert';
+```
+
+---
+
+CHANGE C — add savedAgents state to track which cards have been bookmarked:
+
+Find:
+```tsx
+	const [topAgents, setTopAgents] = useState<Member[]>([]);
+```
+
+Replace with:
+```tsx
+	const [topAgents, setTopAgents] = useState<Member[]>([]);
+	const [savedAgents, setSavedAgents] = useState<Set<string>>(new Set());
+```
+
+---
+
+CHANGE D — remove the share icon button (top-right of each card):
+
+Find:
+```tsx
+							{/* Share icon — top right */}
+							<button
+								onClick={(e) => { e.stopPropagation(); router.push({ pathname: '/agent/detail', query: { agentId: agent._id } }); }}
+								style={{ position: 'absolute', top: 16, right: 16, background: 'none', border: 'none', cursor: 'pointer', color: '#888', padding: 4 }}
+							>
+								<IosShareIcon style={{ fontSize: 20 }} />
+							</button>
+```
+
+Replace with:
+```tsx
+```
+
+(Delete entirely — no replacement)
+
+---
+
+CHANGE E — update the bookmark button: toggle saved state, show alert, navigate to My Favorites; show filled icon when saved:
+
+Find:
+```tsx
+								<button
+									onClick={(e) => { e.stopPropagation(); }}
+									style={{ width: 46, height: 46, borderRadius: '50%', background: '#fff', border: '1px solid rgba(0,0,0,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 }}
+								>
+									<BookmarkBorderIcon style={{ fontSize: 20, color: '#333' }} />
+								</button>
+```
+
+Replace with:
+```tsx
+								<button
+									onClick={async (e) => {
+										e.stopPropagation();
+										setSavedAgents((prev) => {
+											const next = new Set(prev);
+											next.add(agent._id);
+											return next;
+										});
+										await sweetTopSmallSuccessAlert('Agent Saved', 1200);
+										router.push({ pathname: '/mypage', query: { category: 'myFavorites' } });
+									}}
+									style={{ width: 46, height: 46, borderRadius: '50%', background: '#fff', border: '1px solid rgba(0,0,0,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 }}
+								>
+									{savedAgents.has(agent._id)
+										? <BookmarkIcon style={{ fontSize: 20, color: '#111' }} />
+										: <BookmarkBorderIcon style={{ fontSize: 20, color: '#555' }} />
+									}
+								</button>
+```
+
+---
+
+CHANGE F — show only 4 agents (change limit from 8 to 4 in defaultProps):
+
+Find:
+```tsx
+		limit: 8,
+		sort: 'memberRank',
+```
+
+Replace with:
+```tsx
+		limit: 4,
+		sort: 'memberRank',
+```
+
+---
+
+Verify after implementing:
+1. `npx tsc --noEmit` → 0 errors. `BookmarkIcon` is a valid @mui/icons-material export. `savedAgents` is `Set<string>`, `.has(agent._id)` where `_id` is `string` — valid. `sweetTopSmallSuccessAlert` returns `Promise<void>` — valid with `await`.
+2. Homepage Top Agents → exactly 4 cards visible, no share icon in the top-right corner of any card.
+3. Click bookmark button on any card → icon immediately changes to filled black BookmarkIcon, green "Agent Saved" toast appears for ~1.2 s, then navigates to /mypage?category=myFavorites.
+4. If user navigates back → that card's bookmark shows filled icon for the rest of the session (state is in-memory, resets on page reload — this is intentional, real persistence requires a mutation).
+5. "Get in touch" button still navigates to /agent/detail?agentId=... (unchanged).
+6. Hover effect (blur other cards) still works (CSS unchanged).

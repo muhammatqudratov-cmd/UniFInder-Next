@@ -1,0 +1,145 @@
+Context: add an autoplay Swiper carousel to the Top Agents desktop section, and add a bounce animation that fires on every card whenever the carousel finishes a slide transition.
+
+Current state: TopAgents.tsx desktop renders agent cards inside a plain `<div className="agents-grid">`.
+Already imported in the file: `Swiper`, `SwiperSlide`, `Autoplay` from swiper — no new imports needed.
+`useState` is already imported from React.
+
+Behaviour requested:
+- Show 4 agent cards at a time side by side
+- Auto-slide left every 3 seconds, loops infinitely
+- When the slide transition finishes, ALL 4 visible cards bounce (translateY + scale pop)
+  to signal that new agents are on display and attract attention
+
+No business logic, Apollo queries, router.push handlers, or TypeScript types change.
+No SCSS files are touched (all animation is done with an inline <style> tag + className toggle).
+
+=====================================================================
+FILE — libs/components/homepage/TopAgents.tsx
+=====================================================================
+
+CHANGE A — add `popping` state right after the existing `topAgents` state:
+
+Find:
+```tsx
+	const [topAgents, setTopAgents] = useState<Member[]>([]);
+```
+
+Replace with:
+```tsx
+	const [topAgents, setTopAgents] = useState<Member[]>([]);
+	const [popping, setPopping] = useState<boolean>(false);
+```
+
+---
+
+CHANGE B — add <style> tag, replace agents-grid div with Swiper, wrap card div in SwiperSlide, and add pop class to card:
+
+Find:
+```tsx
+		const avatarColors = ['av-coral', 'av-lav', 'av-sage'];
+		return (
+			<div className="top-agents">
+				<div className="agents-section-header">
+					<div>
+						<h2>Top Agents</h2>
+						<p>Our top agents are always ready to serve you</p>
+					</div>
+					<span className="agents-see-all" onClick={() => router.push('/agent')}>
+						See All Agents →
+					</span>
+				</div>
+
+				<div className="agents-grid">
+					{topAgents.map((agent: Member, index: number) => (
+						<div
+							key={agent._id}
+							className="agent-card"
+```
+
+Replace with:
+```tsx
+		const avatarColors = ['av-coral', 'av-lav', 'av-sage'];
+		return (
+			<div className="top-agents">
+				<style>{`
+					@keyframes agentCardBounce {
+						0%   { transform: translateY(0) scale(1); box-shadow: 0 8px 32px rgba(100,160,210,0.12); }
+						22%  { transform: translateY(-10px) scale(1.032); box-shadow: 0 28px 56px rgba(100,160,210,0.34); filter: brightness(1.04); }
+						48%  { transform: translateY(3px) scale(0.988); box-shadow: 0 6px 24px rgba(100,160,210,0.10); }
+						72%  { transform: translateY(-5px) scale(1.012); box-shadow: 0 18px 40px rgba(100,160,210,0.22); }
+						100% { transform: translateY(0) scale(1); box-shadow: 0 8px 32px rgba(100,160,210,0.12); }
+					}
+					.agent-card-pop {
+						animation: agentCardBounce 0.65s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+					}
+				`}</style>
+
+				<div className="agents-section-header">
+					<div>
+						<h2>Top Agents</h2>
+						<p>Our top agents are always ready to serve you</p>
+					</div>
+					<span className="agents-see-all" onClick={() => router.push('/agent')}>
+						See All Agents →
+					</span>
+				</div>
+
+				<Swiper
+					className="agents-grid"
+					slidesPerView={4}
+					spaceBetween={20}
+					loop={true}
+					speed={500}
+					modules={[Autoplay]}
+					autoplay={{ delay: 3000, disableOnInteraction: false, pauseOnMouseEnter: false }}
+					style={{ width: '100%' }}
+					onSlideChangeTransitionEnd={() => {
+						setPopping(true);
+						setTimeout(() => setPopping(false), 700);
+					}}
+				>
+					{topAgents.map((agent: Member, index: number) => (
+						<SwiperSlide key={agent._id} style={{ height: 'auto' }}>
+						<div
+							className={`agent-card${popping ? ' agent-card-pop' : ''}`}
+```
+
+---
+
+CHANGE C — close SwiperSlide and Swiper instead of the plain agents-grid div:
+
+Find:
+```tsx
+					))}
+				</div>
+			</div>
+		);
+	}
+};
+
+TopAgents.defaultProps
+```
+
+Replace with:
+```tsx
+					</SwiperSlide>
+					))}
+				</Swiper>
+			</div>
+		);
+	}
+};
+
+TopAgents.defaultProps
+```
+
+---
+
+Verify after implementing:
+1. `npx tsc --noEmit` → 0 errors. (`popping` is `boolean`, `setPopping` is `Dispatch<SetStateAction<boolean>>` — both valid. `SwiperSlide`, `Swiper`, `Autoplay` were already imported.)
+2. Open homepage → Top Agents section shows exactly 4 agent cards side by side.
+3. Wait 3 seconds → cards slide left automatically, next agent enters from the right in ~0.5 s.
+4. Immediately after slide finishes → all 4 visible cards bounce upward and spring back (translateY + scale animation, ~0.65 s).
+5. Animation repeats every 3 seconds with each new slide.
+6. Clicking "Get in touch" on any card navigates to `/agent/detail?agentId=...` — no regression.
+7. Carousel loops: after the last agent the first one reappears seamlessly.
