@@ -108,10 +108,19 @@ const TopUniversities = (props: TopUniversitiesProps) => {
 					</div>
 				</div>
 
-				<div className="top-cards-grid">
+				<Swiper
+					className="top-cards-grid"
+					slidesPerView={4}
+					spaceBetween={20}
+					loop={true}
+					speed={600}
+					modules={[Autoplay]}
+					autoplay={{ delay: 2000, disableOnInteraction: false }}
+					style={{ width: '100%' }}
+				>
 					{topUniversities.map((university: University, index: number) => (
+						<SwiperSlide key={university._id} style={{ height: 'auto' }}>
 						<div
-							key={university._id}
 							className="top-uni-card"
 							onClick={() => router.push({ pathname: '/university/detail', query: { id: university._id } })}
 							style={{ position: 'relative', borderRadius: '24px', overflow: 'hidden', height: '380px', cursor: 'pointer', background: '#1a1a2e' }}
@@ -169,8 +178,9 @@ const TopUniversities = (props: TopUniversitiesProps) => {
 								View Details
 							</button>
 						</div>
+						</SwiperSlide>
 					))}
-				</div>
+				</Swiper>
 			</div>
 		);
 	}
