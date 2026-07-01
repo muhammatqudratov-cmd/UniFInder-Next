@@ -1,0 +1,41 @@
+Context: TopAgents.tsx throws a runtime error:
+  "TypeError: Cannot read properties of undefined (reading 'autoplay')"
+  at webpack-internal:/node_modules/swiper/modules/autoplay/autoplay.js (47:1)
+
+Root cause: The mobile Swiper in TopAgents.tsx imports Autoplay and passes it in
+`modules={[Autoplay]}`, but there is no `autoplay={{ ... }}` prop on the Swiper element.
+Swiper's Autoplay module reads `swiper.params.autoplay` on init — when the prop is absent
+it is `undefined`, causing the crash.
+
+Fix: remove Autoplay from the import AND from the modules array in the mobile Swiper.
+The mobile swiper does not need autoplay — it is a simple drag-to-scroll list.
+
+=====================================================================
+FILE — libs/components/homepage/TopAgents.tsx
+=====================================================================
+
+TWO targeted edits only — do NOT touch any other line:
+
+Edit 1 — remove Autoplay from the import line.
+
+Find:
+  import { Autoplay } from 'swiper';
+
+Replace with:
+  // Autoplay removed — mobile swiper does not use it
+
+Edit 2 — remove Autoplay from the Swiper modules prop.
+
+Find:
+  modules={[Autoplay]}
+
+Replace with:
+  modules={[]}
+
+---
+
+Verify after implementing:
+1. `npx tsc --noEmit` → 0 errors.
+2. Hard-refresh the browser — the "Unhandled Runtime Error" overlay is gone.
+3. Homepage loads on desktop → Top Agents 4-card grid visible, no console errors.
+4. Resize to mobile width → Top Agents Swiper is drag-scrollable, no crash.

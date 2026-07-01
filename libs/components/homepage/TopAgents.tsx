@@ -5,7 +5,7 @@ import StarIcon from '@mui/icons-material/Star';
 import IosShareIcon from '@mui/icons-material/IosShare';
 import useDeviceDetect from '../../hooks/useDeviceDetect';
 import { Swiper, SwiperSlide } from 'swiper/react';
-import { Autoplay } from 'swiper';
+// Autoplay removed — mobile swiper does not use it
 import TopAgentCard from './TopAgentCard';
 import { REACT_APP_API_URL } from '../../config';
 import { Member } from '../../types/member/member';
@@ -53,7 +53,7 @@ const TopAgents = (props: TopAgentsProps) => {
 							slidesPerView={'auto'}
 							centeredSlides={true}
 							spaceBetween={29}
-							modules={[Autoplay]}
+							modules={[]}
 						>
 							{topAgents.map((agent: Member) => {
 								return (

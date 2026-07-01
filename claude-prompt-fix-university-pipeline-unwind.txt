@@ -1,0 +1,37 @@
+Context: /university listing page shows only 4 universities even though many more exist
+in the database with ACTIVE status.
+
+Root cause (backend): In university.service.ts, the getUniversities aggregate pipeline
+has this stage:
+  { $unwind: '$memberData' }
+
+MongoDB $unwind WITHOUT preserveNullAndEmptyArrays drops any university document where
+the $lookup from 'members' returned an empty array — i.e., where the university's memberId
+has no matching document in the members collection. Those universities silently disappear.
+
+The 4 that showed had valid memberId references. All others were dropped.
+
+Fix: Change $unwind to use preserveNullAndEmptyArrays: true so universities without
+a matching member document are still returned (memberData will be null on those).
+
+=====================================================================
+FILE — apps/unifinder-api/src/components/university/university.service.ts
+=====================================================================
+
+ONE targeted edit only — do NOT touch any other line.
+
+Find (inside the getUniversities aggregate pipeline):
+				{ $unwind: '$memberData' }, // memberData ni array dan object ga o'tkazish
+
+Replace with:
+				{ $unwind: { path: '$memberData', preserveNullAndEmptyArrays: true } }, // memberData ni array dan object ga o'tkazish; null bo'lsa ham saqlaydi
+
+---
+
+Verify after implementing:
+1. Restart the backend (npm run start:dev).
+2. Navigate to /university — all ACTIVE universities now appear, not just 4.
+3. University cards that have no associated member still render correctly
+   (memberData will be null, which is handled by optional chaining in the frontend).
+4. University cards that DO have a valid member show member info as before.
+5. The total count in "Showing X-Y of Z universities" reflects the real count.

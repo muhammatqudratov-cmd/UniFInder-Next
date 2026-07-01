@@ -1,0 +1,241 @@
+Context: redesign two university card components to match the full-bleed photo style already
+used in TrendUniversityCard, TopUniversityCard, and PopularUniversityCard:
+- position: relative, borderRadius: 24px, overflow: hidden, height: 380px
+- Full-bleed <img> with position: absolute; inset: 0
+- Dark gradient overlay (linear-gradient to top)
+- Frosted glass heart button top-right
+- Text block at bottom: 68px from bottom
+- White pill CTA button at bottom: 16px
+
+ALL logic (likeUniversityHandler calls, router.push, myFavorites prop, recentlyVisited prop,
+topUniversityRank badge, meLiked check) is preserved exactly. Only JSX structure changes.
+
+SKIPPED: libs/components/mypage/UniversityCard.tsx — this is a management card (edit/delete/status)
+with a completely different purpose; its design must not change.
+
+=====================================================================
+FILE 1 — libs/components/university/UniversityCard.tsx
+=====================================================================
+
+Replace the ENTIRE file content with:
+
+```tsx
+import React from 'react';
+import useDeviceDetect from '../../hooks/useDeviceDetect';
+import FavoriteIcon from '@mui/icons-material/Favorite';
+import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
+import LocalOfferIcon from '@mui/icons-material/LocalOffer';
+import AspectRatioIcon from '@mui/icons-material/AspectRatio';
+import { University } from '../../types/university/university';
+import { REACT_APP_API_URL } from '../../config';
+import { useReactiveVar } from '@apollo/client';
+import { userVar } from '../../../apollo/store';
+import { useRouter } from 'next/router';
+
+interface UniversityCardType {
+	university: University;
+	likeUniversityHandler?: any;
+	myFavorites?: boolean;
+	recentlyVisited?: boolean;
+}
+
+const UniversityCard = (props: UniversityCardType) => {
+	const { university, likeUniversityHandler, myFavorites, recentlyVisited } = props;
+	const device = useDeviceDetect();
+	const user = useReactiveVar(userVar);
+	const router = useRouter();
+
+	const imagePath: string = university?.universityImages[0]
+		? `${REACT_APP_API_URL}/${university?.universityImages[0]}`
+		: '/img/banner/incheon.jpg';
+
+	if (device === 'mobile') {
+		return <div>UNIVERSITY CARD</div>;
+	} else {
+		return (
+			<div
+				onClick={() => router.push({ pathname: '/university/detail', query: { id: university?._id } })}
+				style={{ position: 'relative', borderRadius: '24px', overflow: 'hidden', height: '380px', cursor: 'pointer', background: '#1a1a2e' }}
+			>
+				{/* Full-bleed photo */}
+				<img
+					src={imagePath}
+					alt={university.universityName}
+					style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
+				/>
+
+				{/* Gradient overlay */}
+				<div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.45) 50%, transparent 100%)' }} />
+
+				{/* Type badge — top left */}
+				{university?.universityType && (
+					<span style={{ position: 'absolute', top: 14, left: 14, background: 'rgba(255,255,255,0.22)', backdropFilter: 'blur(8px)', borderRadius: '20px', padding: '4px 12px', color: '#fff', fontSize: 12, fontWeight: 500, zIndex: 2 }}>
+						{university.universityType}
+					</span>
+				)}
+
+				{/* Heart button — top right, hidden on recentlyVisited */}
+				{!recentlyVisited && (
+					<button
+						onClick={(e) => { e.stopPropagation(); likeUniversityHandler?.(user, university?._id); }}
+						style={{ position: 'absolute', top: 14, right: 14, width: 38, height: 38, borderRadius: '50%', background: 'rgba(255,255,255,0.22)', backdropFilter: 'blur(8px)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 2 }}
+					>
+						{myFavorites || university?.meLiked?.[0]?.myFavorite
+							? <FavoriteIcon style={{ fontSize: 18, color: '#ff6b6b' }} />
+							: <FavoriteBorderIcon style={{ fontSize: 18, color: '#fff' }} />
+						}
+					</button>
+				)}
+
+				{/* Text content — above CTA */}
+				<div style={{ position: 'absolute', bottom: 68, left: 18, right: 18, zIndex: 2 }}>
+					<h3 style={{ margin: 0, color: '#fff', fontSize: 22, fontWeight: 700, lineHeight: 1.2, textShadow: '0 1px 4px rgba(0,0,0,0.4)' }}>
+						{university.universityName}
+					</h3>
+					<p style={{ margin: '4px 0 10px', color: 'rgba(255,255,255,0.72)', fontSize: 13 }}>
+						{university.universityAddress}, {university.universityLocation}
+					</p>
+					<div style={{ display: 'flex', alignItems: 'center', gap: 14, color: '#fff', fontSize: 13 }}>
+						<span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+							<LocalOfferIcon style={{ fontSize: 14, opacity: 0.85 }} />
+							from ${university.universityTuition?.toLocaleString()}
+						</span>
+						<span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+							<AspectRatioIcon style={{ fontSize: 14, opacity: 0.85 }} />
+							{university.universityCampusSize} m²
+						</span>
+					</div>
+				</div>
+
+				{/* CTA pill button */}
+				<button
+					onClick={(e) => { e.stopPropagation(); router.push({ pathname: '/university/detail', query: { id: university?._id } }); }}
+					style={{ position: 'absolute', bottom: 16, left: 16, right: 16, height: 44, borderRadius: '50px', background: '#fff', border: 'none', color: '#1a1a1a', fontSize: 14, fontWeight: 600, cursor: 'pointer', zIndex: 2, letterSpacing: '0.01em' }}
+				>
+					View Details
+				</button>
+			</div>
+		);
+	}
+};
+
+export default UniversityCard;
+```
+
+=====================================================================
+FILE 2 — libs/components/common/UniversityBigCard.tsx
+=====================================================================
+
+Replace the ENTIRE file content with:
+
+```tsx
+import React from 'react';
+import useDeviceDetect from '../../hooks/useDeviceDetect';
+import FavoriteIcon from '@mui/icons-material/Favorite';
+import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
+import LocalOfferIcon from '@mui/icons-material/LocalOffer';
+import AspectRatioIcon from '@mui/icons-material/AspectRatio';
+import { University } from '../../types/university/university';
+import { REACT_APP_API_URL, topUniversityRank } from '../../config';
+import { useReactiveVar } from '@apollo/client';
+import { userVar } from '../../../apollo/store';
+import { useRouter } from 'next/router';
+
+interface UniversityBigCardProps {
+	university: University;
+	likeUniversityHandler?: any;
+}
+
+const UniversityBigCard = (props: UniversityBigCardProps) => {
+	const { university, likeUniversityHandler } = props;
+	const device = useDeviceDetect();
+	const user = useReactiveVar(userVar);
+	const router = useRouter();
+
+	if (device === 'mobile') {
+		return <div>APARTMENT BIG CARD</div>;
+	} else {
+		return (
+			<div
+				onClick={() => router.push(`/university/detail?id=${university?._id}`)}
+				style={{ position: 'relative', borderRadius: '24px', overflow: 'hidden', height: '380px', cursor: 'pointer', background: '#1a1a2e' }}
+			>
+				{/* Full-bleed photo */}
+				{university?.universityImages?.[0] ? (
+					<img
+						src={`${REACT_APP_API_URL}/${university.universityImages[0]}`}
+						alt={university?.universityName}
+						style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
+					/>
+				) : (
+					<div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, #2d2d44, #1a1a2e)' }} />
+				)}
+
+				{/* Gradient overlay */}
+				<div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.45) 50%, transparent 100%)' }} />
+
+				{/* TOP badge — top left */}
+				{university && university?.universityRank >= topUniversityRank && (
+					<span style={{ position: 'absolute', top: 14, left: 14, background: 'rgba(255,255,255,0.22)', backdropFilter: 'blur(8px)', borderRadius: '20px', padding: '4px 12px', color: '#fff', fontSize: 12, fontWeight: 600, zIndex: 2 }}>
+						⭐ Top
+					</span>
+				)}
+
+				{/* Heart button — top right */}
+				<button
+					onClick={(e) => { e.stopPropagation(); likeUniversityHandler?.(user, university?._id); }}
+					style={{ position: 'absolute', top: 14, right: 14, width: 38, height: 38, borderRadius: '50%', background: 'rgba(255,255,255,0.22)', backdropFilter: 'blur(8px)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 2 }}
+				>
+					{university?.meLiked && university?.meLiked[0]?.myFavorite
+						? <FavoriteIcon style={{ fontSize: 18, color: '#ff6b6b' }} />
+						: <FavoriteBorderIcon style={{ fontSize: 18, color: '#fff' }} />
+					}
+				</button>
+
+				{/* Text content — above CTA */}
+				<div style={{ position: 'absolute', bottom: 68, left: 18, right: 18, zIndex: 2 }}>
+					<h3 style={{ margin: 0, color: '#fff', fontSize: 22, fontWeight: 700, lineHeight: 1.2, textShadow: '0 1px 4px rgba(0,0,0,0.4)' }}>
+						{university?.universityName}
+					</h3>
+					<p style={{ margin: '4px 0 10px', color: 'rgba(255,255,255,0.72)', fontSize: 13 }}>
+						{university?.universityAddress}
+					</p>
+					<div style={{ display: 'flex', alignItems: 'center', gap: 14, color: '#fff', fontSize: 13 }}>
+						<span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+							<LocalOfferIcon style={{ fontSize: 14, opacity: 0.85 }} />
+							from ${university?.universityTuition?.toLocaleString()}
+						</span>
+						<span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+							<AspectRatioIcon style={{ fontSize: 14, opacity: 0.85 }} />
+							{university?.universityCampusSize} m²
+						</span>
+					</div>
+				</div>
+
+				{/* CTA pill button */}
+				<button
+					onClick={(e) => { e.stopPropagation(); router.push(`/university/detail?id=${university?._id}`); }}
+					style={{ position: 'absolute', bottom: 16, left: 16, right: 16, height: 44, borderRadius: '50px', background: '#fff', border: 'none', color: '#1a1a1a', fontSize: 14, fontWeight: 600, cursor: 'pointer', zIndex: 2, letterSpacing: '0.01em' }}
+				>
+					View Details
+				</button>
+			</div>
+		);
+	}
+};
+
+export default UniversityBigCard;
+```
+
+---
+
+Verify after implementing:
+1. `npx tsc --noEmit` → 0 errors. All imports are valid; `likeUniversityHandler?.()` optional chaining is safe.
+2. /university page → all listing cards show full-bleed photo, gradient, frosted heart button, text at bottom, white pill "View Details" button.
+3. /mypage?category=myFavorites → same card design, heart icon is filled red (myFavorites=true).
+4. /mypage?category=recentlyVisited → same card design, NO heart button (recentlyVisited=true hides it).
+5. /agent/detail → related universities section shows the new full-bleed card design (UniversityBigCard).
+6. /university/detail → related universities section also shows the new design.
+7. Clicking heart → likeUniversityHandler fires correctly (logic unchanged).
+8. Clicking card or "View Details" → navigates to /university/detail?id=... (logic unchanged).
+9. mypage/UniversityCard.tsx is NOT changed — My Universities management table looks the same.

@@ -228,19 +228,10 @@ const UniversityList: NextPage = ({ initialInput, ...props }: any) => {
 UniversityList.defaultProps = {
 	initialInput: {
 		page: 1,
-		limit: 6,
+		limit: 9,
 		sort: 'createdAt',
 		direction: 'DESC',
-		search: {
-			squaresRange: {
-				start: 0,
-				end: 1600000,
-			},
-			pricesRange: {
-				start: 0,
-				end: 5000000,
-			},
-		},
+		search: {},
 	},
 };
 

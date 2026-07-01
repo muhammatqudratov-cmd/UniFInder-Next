@@ -1,0 +1,59 @@
+Context: /university listing page shows only 4 universities even though all universities in the
+database have ACTIVE status and there are more than 4.
+
+Root cause: pages/university/index.tsx defaultProps always sends `squaresRange` and
+`pricesRange` inside the `search` object. The backend shapeMatchQuery applies these as
+MongoDB range filters ($gte/$lte) whenever they are present — so universities whose
+`universityCampusSize` or `universityTuition` falls outside the hardcoded defaults are
+silently excluded.
+
+Fix: remove `squaresRange` and `pricesRange` from defaultProps.initialInput.search so they
+are only sent when the user explicitly moves the filter sliders. Without them the backend
+returns ALL ACTIVE universities.
+
+=====================================================================
+FILE — pages/university/index.tsx
+=====================================================================
+
+ONE targeted edit only — do NOT touch any other line.
+
+Find:
+	initialInput: {
+		page: 1,
+		limit: 6,
+		sort: 'createdAt',
+		direction: 'DESC',
+		search: {
+			squaresRange: {
+				start: 0,
+				end: 1600000,
+			},
+			pricesRange: {
+				start: 0,
+				end: 5000000,
+			},
+		},
+	},
+
+Replace with:
+	initialInput: {
+		page: 1,
+		limit: 9,
+		sort: 'createdAt',
+		direction: 'DESC',
+		search: {},
+	},
+
+(limit changed from 6 → 9 so that 3 full rows of 3 cards each appear by default.)
+
+---
+
+Verify after implementing:
+1. Hard-refresh /university page.
+2. All ACTIVE universities in the database appear (not just 4).
+3. "Showing 1-N of N universities" reflects the real total.
+4. Pagination works correctly (9 per page).
+5. Filtering via the sidebar (price slider, campus size slider) still works — those
+   values are sent when the user interacts with the Filter component, so backend
+   filtering is preserved for explicit user actions.
+6. `npx tsc --noEmit` → 0 errors.

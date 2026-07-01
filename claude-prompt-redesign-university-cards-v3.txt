@@ -1,3 +1,25 @@
+Context: redesign libs/components/university/UniversityCard.tsx to match the full-bleed
+photo card style of TrendUniversityCard. The previous attempt broke the layout because
+the new card had no explicit width — the parent flex containers (.list-config,
+.favorites-list-box) rely on child items being exactly 296px wide (from SCSS .card-config).
+Fix: the new card outer div must include `width: '296px'` in its inline style.
+
+ALL logic preserved: likeUniversityHandler, myFavorites prop (filled heart),
+recentlyVisited prop (hide heart button), router.push, meLiked check, user from reactive var.
+No SCSS files touched.
+
+This file is used in three places:
+  - pages/university/index.tsx     → university listing page
+  - libs/components/mypage/MyFavorites.tsx   → My Favorites section
+  - libs/components/mypage/RecentlyVisited.tsx → Recently Visited section
+
+=====================================================================
+FILE — libs/components/university/UniversityCard.tsx
+=====================================================================
+
+Replace the ENTIRE file content with:
+
+```tsx
 import React from 'react';
 import useDeviceDetect from '../../hooks/useDeviceDetect';
 import FavoriteIcon from '@mui/icons-material/Favorite';
@@ -107,3 +129,19 @@ const UniversityCard = (props: UniversityCardType) => {
 };
 
 export default UniversityCard;
+```
+
+---
+
+Verify after implementing:
+1. `npx tsc --noEmit` → 0 errors.
+2. /university page → cards appear in 3-column flex grid, each card 296×380px with
+   full-bleed photo, dark gradient, type badge top-left, heart button top-right,
+   name/address/tuition/size text, white "View Details" pill button.
+3. /mypage?category=myFavorites → same card design, heart icon is filled red (myFavorites=true),
+   grid layout is preserved (3 columns).
+4. /mypage?category=recentlyVisited → same card design, NO heart button
+   (recentlyVisited=true hides it), grid layout preserved.
+5. Clicking heart on /university → likeUniversityHandler fires, no navigation (e.stopPropagation).
+6. Clicking card body or "View Details" → /university/detail?id=...
+7. Cards now visible in all 3 pages (width: 296px ensures flex layout works correctly).

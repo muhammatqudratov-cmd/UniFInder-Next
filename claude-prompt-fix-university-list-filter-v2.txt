@@ -1,0 +1,62 @@
+Context: After removing squaresRange/pricesRange from defaultProps.initialInput.search,
+the /university page shows "No Universities found!" — 0 results instead of 4.
+
+Root cause: The previous fix (claude-prompt-fix-university-list-filter.txt) set search: {}
+which sends NO campus size or price filter to the backend. Without those filters, the
+backend's $unwind stage drops all universities that lack a valid memberId reference,
+causing 0 results. The REAL fix is in the backend (claude-prompt-fix-university-pipeline-unwind.txt).
+
+This file restores working defaultProps while the backend fix is being applied.
+Keep search: {} (no default range filter) — once the backend $unwind is fixed,
+all universities will appear correctly. The previous prompt already set this correctly.
+
+IF the backend fix is already applied: no change needed here — /university will
+show all ACTIVE universities without any range filter.
+
+IF the backend fix is NOT yet applied: temporarily restore the original ranges to
+at least show the 4 valid universities while backend is being fixed.
+
+=====================================================================
+FILE — pages/university/index.tsx
+=====================================================================
+
+Only apply this if the backend $unwind fix has NOT been applied yet.
+Revert to temporarily show the 4 known-good universities:
+
+Find:
+	initialInput: {
+		page: 1,
+		limit: 9,
+		sort: 'createdAt',
+		direction: 'DESC',
+		search: {},
+	},
+
+Replace with:
+	initialInput: {
+		page: 1,
+		limit: 9,
+		sort: 'createdAt',
+		direction: 'DESC',
+		search: {
+			squaresRange: {
+				start: 0,
+				end: 1600000,
+			},
+			pricesRange: {
+				start: 0,
+				end: 5000000,
+			},
+		},
+	},
+
+NOTE: After applying the backend fix (claude-prompt-fix-university-pipeline-unwind.txt)
+and confirming all universities appear, remove squaresRange and pricesRange from
+defaultProps.initialInput.search again (set search: {}) so ALL universities show by
+default without any filter.
+
+---
+
+Verify after implementing:
+1. /university shows 4 universities again (temporary).
+2. After backend $unwind fix is applied, change back to search: {} to show all.
