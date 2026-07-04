@@ -1,0 +1,117 @@
+Goal: Update the hero word animation in libs/components/layout/LayoutHome.tsx
+to use a simple smooth slide (no blur, no scale, no gradient text, no underline).
+Also remove 'scholarship' from the WORDS array.
+
+Reference design: words slide up gently on enter, slide up and fade on exit.
+Color of animated word: #e8856a (coral). Plain text, not italic, no gradient.
+
+STRICT RULES:
+- Do NOT touch the canvas particle animation useEffect (spawn/draw/particles).
+- Do NOT change router.push, button text, button icons, subtitle, className values.
+- Do NOT change the hero-orbs divs or hero-buttons div.
+- Only touch: WORDS array, <style> keyframes block, and the <h1> block.
+
+=====================================================================
+FILE: libs/components/layout/LayoutHome.tsx
+=====================================================================
+
+--- STEP 1 ---
+Find:
+const WORDS = ['campus', 'university', 'program', 'scholarship', 'future', 'dream'];
+
+Replace with:
+const WORDS = ['campus', 'university', 'program', 'future', 'dream'];
+
+
+--- STEP 2 ---
+Find (the entire <style> block inside the hero section):
+							<style>{`
+								@keyframes wordIn {
+									from { opacity: 0; transform: translateY(20px) scale(0.93); filter: blur(4px); }
+									to   { opacity: 1; transform: translateY(0px)  scale(1);    filter: blur(0px); }
+								}
+								@keyframes wordOut {
+									from { opacity: 1; transform: translateY(0px)  scale(1);    filter: blur(0px); }
+									to   { opacity: 0; transform: translateY(-20px) scale(0.93); filter: blur(4px); }
+								}
+								@keyframes underlineGrow {
+									from { width: 0%; }
+									to   { width: 100%; }
+								}
+							`}</style>
+
+Replace with:
+							<style>{`
+								@keyframes wordSlideIn {
+									from { opacity: 0; transform: translateY(18px); }
+									to   { opacity: 1; transform: translateY(0px); }
+								}
+								@keyframes wordSlideOut {
+									from { opacity: 1; transform: translateY(0px); }
+									to   { opacity: 0; transform: translateY(-18px); }
+								}
+							`}</style>
+
+
+--- STEP 3 ---
+Find (the entire <h1> block):
+									<h1 className="hero-title">
+										Find your{' '}
+										<span key={wordIdx} style={{ display: 'inline-block', position: 'relative' }}>
+											<span
+												style={{
+													background: 'linear-gradient(135deg, #f5a97a 0%, #e8856a 50%, #d4627a 100%)',
+													WebkitBackgroundClip: 'text',
+													WebkitTextFillColor: 'transparent',
+													backgroundClip: 'text',
+													fontStyle: 'italic',
+													display: 'inline-block',
+													animation: `${phase === 'in' ? 'wordIn' : 'wordOut'} 0.4s ease forwards`,
+												}}
+											>
+												{WORDS[wordIdx]}
+											</span>
+											<span
+												style={{
+													position: 'absolute',
+													bottom: '-4px',
+													left: 0,
+													width: '0%',
+													height: '2px',
+													background: 'linear-gradient(90deg, #f5a97a, #d4627a)',
+													borderRadius: '2px',
+													animation: 'underlineGrow 0.5s ease 0.1s forwards',
+												}}
+											/>
+										</span>
+										<br />
+										in <span className="hero-accent">South Korea</span>
+									</h1>
+
+Replace with:
+									<h1 className="hero-title">
+										Find your{' '}
+										<span
+											key={wordIdx}
+											style={{
+												color: '#e8856a',
+												display: 'inline-block',
+												animation: `${phase === 'in' ? 'wordSlideIn' : 'wordSlideOut'} 0.4s ease forwards`,
+											}}
+										>
+											{WORDS[wordIdx]}
+										</span>
+										<br />
+										in <span className="hero-accent">South Korea</span>
+									</h1>
+
+=====================================================================
+Verify after implementing:
+1. npx tsc --noEmit → 0 errors
+2. Hero heading shows: "Find your campus" then "in South Korea"
+3. Word cycles every 2 seconds: campus → university → program → future → dream → campus
+4. 'scholarship' does NOT appear
+5. Animation is a gentle slide up (no blur, no scale, no gradient, no underline)
+6. Animated word color is #e8856a (coral/orange)
+7. "in South Korea" stays static — does not animate
+8. Buttons, subtitle, background canvas — completely unchanged

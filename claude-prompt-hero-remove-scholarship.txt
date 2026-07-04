@@ -1,0 +1,20 @@
+Goal: Remove 'scholarship' from the WORDS array in
+libs/components/layout/LayoutHome.tsx
+
+ONE targeted edit only — do NOT touch anything else in the file.
+
+=====================================================================
+FILE: libs/components/layout/LayoutHome.tsx
+=====================================================================
+
+Find:
+const WORDS = ['campus', 'university', 'program', 'scholarship', 'future', 'dream'];
+
+Replace with:
+const WORDS = ['campus', 'university', 'program', 'future', 'dream'];
+
+=====================================================================
+Verify after implementing:
+1. npx tsc --noEmit → 0 errors
+2. Hero heading cycles: campus → university → program → future → dream → campus ...
+3. 'scholarship' does NOT appear anywhere in the rotation

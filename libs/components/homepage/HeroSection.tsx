@@ -1,51 +1,23 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/router';
 
-const WORDS = ['Future', 'Dream', 'University', 'Career', 'Path'];
-
-function useTyping() {
-  const [text, setText] = useState('');
-  const [wordIndex, setWordIndex] = useState(0);
-  const [deleting, setDeleting] = useState(false);
-  const charIndex = useRef(0);
-
-  useEffect(() => {
-    const word = WORDS[wordIndex];
-    let timeout: ReturnType<typeof setTimeout>;
-    if (!deleting) {
-      timeout = setTimeout(() => {
-        setText(word.slice(0, charIndex.current + 1));
-        charIndex.current++;
-        if (charIndex.current === word.length) {
-          setDeleting(true);
-          charIndex.current = word.length;
-        }
-      }, 90);
-    } else {
-      timeout = setTimeout(() => {
-        setText(word.slice(0, charIndex.current - 1));
-        charIndex.current--;
-        if (charIndex.current === 0) {
-          setDeleting(false);
-          setWordIndex((prev) => (prev + 1) % WORDS.length);
-        }
-      }, deleting && charIndex.current === word.length ? 2000 : 50);
-    }
-    return () => clearTimeout(timeout);
-  }, [text, deleting, wordIndex]);
-
-  return text;
-}
+const WORDS = ['campus', 'university', 'program', 'scholarship', 'future', 'dream'];
 
 export default function HeroSection() {
   const router = useRouter();
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const typedText = useTyping();
-  const [cursorVisible, setCursorVisible] = useState(true);
+  const [wordIdx, setWordIdx] = useState(0);
+  const [phase, setPhase] = useState<'in' | 'out'>('in');
 
   useEffect(() => {
-    const interval = setInterval(() => setCursorVisible((v) => !v), 500);
-    return () => clearInterval(interval);
+    const tick = setInterval(() => {
+      setPhase('out');
+      setTimeout(() => {
+        setWordIdx((i) => (i + 1) % WORDS.length);
+        setPhase('in');
+      }, 400);
+    }, 2000);
+    return () => clearInterval(tick);
   }, []);
 
   useEffect(() => {
@@ -142,17 +114,69 @@ export default function HeroSection() {
 
   return (
     <div style={{ position: 'relative', width: '100%', height: '560px', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0d1117' }}>
+      <style>{`
+        @keyframes wordIn {
+          from { opacity: 0; transform: translateY(22px) scale(0.92); filter: blur(4px); }
+          to   { opacity: 1; transform: translateY(0px)   scale(1);   filter: blur(0px); }
+        }
+        @keyframes wordOut {
+          from { opacity: 1; transform: translateY(0px)   scale(1);   filter: blur(0px); }
+          to   { opacity: 0; transform: translateY(-22px) scale(0.92); filter: blur(4px); }
+        }
+        @keyframes underlineGrow {
+          from { width: 0%; }
+          to   { width: 100%; }
+        }
+      `}</style>
       <canvas ref={canvasRef} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', zIndex: 1 }} />
       <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at center, rgba(13,17,23,0.2) 0%, rgba(13,17,23,0.75) 100%)', zIndex: 2 }} />
       <div style={{ position: 'relative', zIndex: 3, textAlign: 'center', padding: '0 20px', maxWidth: '900px' }}>
         <p style={{ color: '#f5c518', fontSize: '12px', fontWeight: 600, letterSpacing: '3px', textTransform: 'uppercase', marginBottom: '16px' }}>
           The Ultimate Guide to Universities
         </p>
-        <h1 style={{ color: '#ffffff', fontSize: 'clamp(32px, 4vw, 56px)', fontWeight: 700, lineHeight: 1.1, marginBottom: '20px', overflow: 'visible', whiteSpace: 'nowrap' }}>
-          Find Your{' '}
-          <span style={{ color: '#f5c518' }}>
-            {typedText}
-            <span style={{ opacity: cursorVisible ? 1 : 0 }}>|</span>
+        <h1 style={{ color: '#ffffff', fontWeight: 700, lineHeight: 1.15, marginBottom: '20px' }}>
+          <span style={{ display: 'block', fontSize: 'clamp(34px, 4.5vw, 64px)' }}>
+            Find your{' '}
+            <span key={wordIdx} style={{ display: 'inline-block', position: 'relative' }}>
+              <span
+                style={{
+                  background: 'linear-gradient(135deg, #f5a97a 0%, #e8856a 50%, #d4627a 100%)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  backgroundClip: 'text',
+                  fontStyle: 'italic',
+                  display: 'inline-block',
+                  animation: `${phase === 'in' ? 'wordIn' : 'wordOut'} 0.4s ease forwards`,
+                }}
+              >
+                {WORDS[wordIdx]}
+              </span>
+              <span
+                style={{
+                  position: 'absolute',
+                  bottom: '-4px',
+                  left: 0,
+                  width: '0%',
+                  height: '2px',
+                  background: 'linear-gradient(90deg, #f5a97a, #d4627a)',
+                  borderRadius: '2px',
+                  animation: 'underlineGrow 0.5s ease 0.1s forwards',
+                }}
+              />
+            </span>
+          </span>
+          <span style={{ display: 'block', fontSize: 'clamp(34px, 4.5vw, 64px)' }}>
+            in{' '}
+            <span
+              style={{
+                background: 'linear-gradient(135deg, #7eb8f7 0%, #a78bfa 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text',
+              }}
+            >
+              South Korea
+            </span>
           </span>
         </h1>
         <p style={{ color: 'rgba(255,255,255,0.75)', fontSize: '18px', lineHeight: 1.6, marginBottom: '32px' }}>

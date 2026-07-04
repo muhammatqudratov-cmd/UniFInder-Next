@@ -1,0 +1,151 @@
+Goal: Add animated rotating word to the hero heading in
+libs/components/layout/LayoutHome.tsx
+
+The heading currently shows STATIC text: "Find your campus / in South Korea"
+Target: "Find your [ANIMATED WORD] / in South Korea" where WORD cycles every 2 seconds
+through university-related words with a smooth blur+slide animation and gradient underline.
+
+NOTE: HeroSection.tsx is NOT used anywhere — the real hero is inside LayoutHome.tsx.
+
+STRICT RULES:
+- Do NOT touch the canvas particle animation (the useEffect with spawn/draw/particles).
+- Do NOT change router.push calls, button text, button icons, subtitle text.
+- Do NOT change className values on existing elements.
+- Do NOT change the orb divs or hero-buttons div.
+- Only touch: imports, WORDS constant, word-rotation state/effect, style keyframes, h1 content.
+
+=====================================================================
+FILE: libs/components/layout/LayoutHome.tsx
+=====================================================================
+
+--- STEP 1 ---
+Find:
+import React, { useEffect, useRef } from 'react';
+
+Replace with:
+import React, { useEffect, useRef, useState } from 'react';
+
+
+--- STEP 2 ---
+Find:
+const withLayoutMain = (Component: any) => {
+
+Replace with:
+const WORDS = ['campus', 'university', 'program', 'scholarship', 'future', 'dream'];
+
+const withLayoutMain = (Component: any) => {
+
+
+--- STEP 3 ---
+Find (inside the inner returned function, right before /** LIFECYCLES **/ comment):
+		const canvasRef = useRef<HTMLCanvasElement>(null);
+
+		/** LIFECYCLES **/
+
+Replace with:
+		const canvasRef = useRef<HTMLCanvasElement>(null);
+
+		const [wordIdx, setWordIdx] = useState(0);
+		const [phase, setPhase] = useState<'in' | 'out'>('in');
+
+		/** LIFECYCLES **/
+
+
+--- STEP 4 ---
+Find (add word rotation effect right after the jwt useEffect, before the canvas useEffect):
+		useEffect(() => {
+			const canvas = canvasRef.current;
+
+Replace with:
+		useEffect(() => {
+			const tick = setInterval(() => {
+				setPhase('out');
+				setTimeout(() => {
+					setWordIdx((i) => (i + 1) % WORDS.length);
+					setPhase('in');
+				}, 400);
+			}, 2000);
+			return () => clearInterval(tick);
+		}, []);
+
+		useEffect(() => {
+			const canvas = canvasRef.current;
+
+
+--- STEP 5 ---
+Find (inside the desktop return, right before <canvas):
+						<section className="hero-section">
+							<canvas
+
+Replace with:
+						<section className="hero-section">
+							<style>{`
+								@keyframes wordIn {
+									from { opacity: 0; transform: translateY(20px) scale(0.93); filter: blur(4px); }
+									to   { opacity: 1; transform: translateY(0px)  scale(1);    filter: blur(0px); }
+								}
+								@keyframes wordOut {
+									from { opacity: 1; transform: translateY(0px)  scale(1);    filter: blur(0px); }
+									to   { opacity: 0; transform: translateY(-20px) scale(0.93); filter: blur(4px); }
+								}
+								@keyframes underlineGrow {
+									from { width: 0%; }
+									to   { width: 100%; }
+								}
+							`}</style>
+							<canvas
+
+
+--- STEP 6 ---
+Find (the entire h1 block):
+									<h1 className="hero-title">
+										Find your campus
+										<br />
+										in <span className="hero-accent">South Korea</span>
+									</h1>
+
+Replace with:
+									<h1 className="hero-title">
+										Find your{' '}
+										<span key={wordIdx} style={{ display: 'inline-block', position: 'relative' }}>
+											<span
+												style={{
+													background: 'linear-gradient(135deg, #f5a97a 0%, #e8856a 50%, #d4627a 100%)',
+													WebkitBackgroundClip: 'text',
+													WebkitTextFillColor: 'transparent',
+													backgroundClip: 'text',
+													fontStyle: 'italic',
+													display: 'inline-block',
+													animation: `${phase === 'in' ? 'wordIn' : 'wordOut'} 0.4s ease forwards`,
+												}}
+											>
+												{WORDS[wordIdx]}
+											</span>
+											<span
+												style={{
+													position: 'absolute',
+													bottom: '-4px',
+													left: 0,
+													width: '0%',
+													height: '2px',
+													background: 'linear-gradient(90deg, #f5a97a, #d4627a)',
+													borderRadius: '2px',
+													animation: 'underlineGrow 0.5s ease 0.1s forwards',
+												}}
+											/>
+										</span>
+										<br />
+										in <span className="hero-accent">South Korea</span>
+									</h1>
+
+=====================================================================
+Verify after implementing:
+1. npx tsc --noEmit → 0 errors
+2. Homepage hero loads with the same background (canvas particles + orbs)
+3. Heading shows: "Find your [word]" then "in South Korea" on next line
+4. Every 2 seconds the word blurs out upward, new word blurs in from below
+5. campus → university → program → scholarship → future → dream → campus ...
+6. Animated word is italic with coral-to-pink gradient
+7. Orange underline animates left→right under each new word
+8. "in South Korea" stays static — does NOT animate
+9. Both buttons, subtitle text, layout — completely unchanged

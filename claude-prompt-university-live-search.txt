@@ -1,0 +1,40 @@
+Goal: Make the search input on /university page filter results in real-time as the user
+types — no Enter required. Each keystroke triggers a debounced (400ms) search.
+
+Only one file needs editing.
+
+STRICT RULES:
+- Do NOT touch any other logic, handlers, imports, or components.
+- Only add the useEffect block described below.
+
+=====================================================================
+FILE: pages/university/index.tsx
+=====================================================================
+
+--- STEP 1: Add a debounced useEffect that fires searchFilter update on every keystroke ---
+
+Find (the existing useEffect blocks, place the new one right after this block):
+	useEffect(() => {}, [searchFilter]);
+
+Replace with:
+	useEffect(() => {}, [searchFilter]);
+
+	useEffect(() => {
+		const timeout = setTimeout(() => {
+			setSearchFilter((prev: UniversitiesInquiry) => ({
+				...prev,
+				page: 1,
+				search: { ...prev.search, text: searchText },
+			}));
+		}, 400);
+		return () => clearTimeout(timeout);
+	}, [searchText]);
+
+
+=====================================================================
+Verify after implementing:
+1. npx tsc --noEmit → 0 errors
+2. Open /university page, type "han" in the search input → Hanyang University appears after ~400ms without pressing Enter
+3. Clear the input → all universities return
+4. Sorting dropdown still works
+5. Other filters (location, type, faculties…) still work

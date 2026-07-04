@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import useDeviceDetect from '../../hooks/useDeviceDetect';
 import Head from 'next/head';
 import Top from '../Top';
@@ -15,6 +15,8 @@ import 'swiper/css';
 import 'swiper/css/pagination';
 import 'swiper/css/navigation';
 
+const WORDS = ['campus', 'university', 'program', 'future', 'dream'];
+
 const withLayoutMain = (Component: any) => {
 	return (props: any) => {
 		const device = useDeviceDetect();
@@ -23,10 +25,24 @@ const withLayoutMain = (Component: any) => {
 
 		const canvasRef = useRef<HTMLCanvasElement>(null);
 
+		const [wordIdx, setWordIdx] = useState(0);
+		const [phase, setPhase] = useState<'in' | 'out'>('in');
+
 		/** LIFECYCLES **/
 		useEffect(() => {
 			const jwt = getJwtToken();
 			if (jwt) updateUserInfo(jwt);
+		}, []);
+
+		useEffect(() => {
+			const tick = setInterval(() => {
+				setPhase('out');
+				setTimeout(() => {
+					setWordIdx((i) => (i + 1) % WORDS.length);
+					setPhase('in');
+				}, 400);
+			}, 2000);
+			return () => clearInterval(tick);
 		}, []);
 
 		useEffect(() => {
@@ -134,6 +150,16 @@ const withLayoutMain = (Component: any) => {
 						</Stack>
 
 						<section className="hero-section">
+							<style>{`
+								@keyframes wordSlideIn {
+									from { opacity: 0; transform: translateY(10px); }
+									to   { opacity: 1; transform: translateY(0px); }
+								}
+								@keyframes wordSlideOut {
+									from { opacity: 1; transform: translateY(0px); }
+									to   { opacity: 0; transform: translateY(-10px); }
+								}
+							`}</style>
 							<canvas
 								ref={canvasRef}
 								style={{
@@ -153,7 +179,19 @@ const withLayoutMain = (Component: any) => {
 							<div className="hero-content" style={{ position: 'relative', zIndex: 1 }}>
 								<div className="hero-tag">The ultimate guide to universities</div>
 								<h1 className="hero-title">
-									Find your campus
+									Find your{' '}
+									<span
+										key={wordIdx}
+										style={{
+											color: '#e8856a',
+											display: 'inline-block',
+											minWidth: '6em',
+											textAlign: 'center',
+											animation: `${phase === 'in' ? 'wordSlideIn' : 'wordSlideOut'} 0.5s ease-out forwards`,
+										}}
+									>
+										{WORDS[wordIdx]}
+									</span>
 									<br />
 									in <span className="hero-accent">South Korea</span>
 								</h1>

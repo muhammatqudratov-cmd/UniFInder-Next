@@ -1,0 +1,172 @@
+Context: Add an animated rotating word to the hero heading in
+libs/components/homepage/HeroSection.tsx.
+
+Current heading is static: "Find your campus / in South Korea"
+Target: "Find your [ANIMATED WORD]" where the word cycles every 2 seconds through
+university-related words with a slide-up/slide-down CSS animation.
+
+STRICT RULES:
+- Do NOT change the canvas particle animation (orbs + trails useEffect).
+- Do NOT change router.push calls, button text, subtitle text, or any colors.
+- Do NOT add new npm packages.
+- Only touch: the WORDS constant, the word-rotation state/effect, the <style> keyframes,
+  and the <h1> JSX block.
+
+=====================================================================
+FILE — libs/components/homepage/HeroSection.tsx
+=====================================================================
+
+STEP 1 — Replace the WORDS constant and remove the old useTyping hook.
+
+Find (entire block, including the useTyping function):
+```
+const WORDS = ['Future', 'Dream', 'University', 'Career', 'Path'];
+
+function useTyping() {
+  const [text, setText] = useState('');
+  const [wordIndex, setWordIndex] = useState(0);
+  const [deleting, setDeleting] = useState(false);
+  const charIndex = useRef(0);
+
+  useEffect(() => {
+    const word = WORDS[wordIndex];
+    let timeout: ReturnType<typeof setTimeout>;
+    if (!deleting) {
+      timeout = setTimeout(() => {
+        setText(word.slice(0, charIndex.current + 1));
+        charIndex.current++;
+        if (charIndex.current === word.length) {
+          setDeleting(true);
+          charIndex.current = word.length;
+        }
+      }, 90);
+    } else {
+      timeout = setTimeout(() => {
+        setText(word.slice(0, charIndex.current - 1));
+        charIndex.current--;
+        if (charIndex.current === 0) {
+          setDeleting(false);
+          setWordIndex((prev) => (prev + 1) % WORDS.length);
+        }
+      }, deleting && charIndex.current === word.length ? 2000 : 50);
+    }
+    return () => clearTimeout(timeout);
+  }, [text, deleting, wordIndex]);
+
+  return text;
+}
+```
+
+Replace with:
+```
+const WORDS = ['campus', 'university', 'program', 'scholarship', 'future', 'dream'];
+```
+
+---
+
+STEP 2 — Inside the HeroSection function body, remove the old state/effect lines
+and add the new word-rotation state + effect.
+
+Find (inside HeroSection, before the canvas useEffect):
+```
+  const typedText = useTyping();
+  const [cursorVisible, setCursorVisible] = useState(true);
+
+  useEffect(() => {
+    const interval = setInterval(() => setCursorVisible((v) => !v), 500);
+    return () => clearInterval(interval);
+  }, []);
+```
+
+Replace with:
+```
+  // Word rotation state
+  const [wordIdx, setWordIdx] = useState(0);
+  const [phase, setPhase] = useState<'in' | 'out'>('in');
+
+  useEffect(() => {
+    const tick = setInterval(() => {
+      setPhase('out');
+      setTimeout(() => {
+        setWordIdx((i) => (i + 1) % WORDS.length);
+        setPhase('in');
+      }, 400);
+    }, 2000);
+    return () => clearInterval(tick);
+  }, []);
+```
+
+---
+
+STEP 3 — Add CSS keyframes inside the return JSX, right after the opening <div>.
+
+Find (the first line inside the return statement):
+```
+      <canvas ref={canvasRef} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', zIndex: 1 }} />
+```
+
+Replace with:
+```
+      <style>{`
+        @keyframes wordSlideIn {
+          from { opacity: 0; transform: translateY(18px); }
+          to   { opacity: 1; transform: translateY(0px); }
+        }
+        @keyframes wordSlideOut {
+          from { opacity: 1; transform: translateY(0px); }
+          to   { opacity: 0; transform: translateY(-18px); }
+        }
+      `}</style>
+      <canvas ref={canvasRef} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', zIndex: 1 }} />
+```
+
+---
+
+STEP 4 — Replace the <h1> block only. Do NOT touch anything else in the JSX.
+
+Find:
+```
+        <h1 style={{ color: '#ffffff', fontSize: 'clamp(32px, 4vw, 56px)', fontWeight: 700, lineHeight: 1.1, marginBottom: '20px', overflow: 'visible', whiteSpace: 'nowrap' }}>
+          Find Your{' '}
+          <span style={{ color: '#f5c518' }}>
+            {typedText}
+            <span style={{ opacity: cursorVisible ? 1 : 0 }}>|</span>
+          </span>
+        </h1>
+```
+
+Replace with:
+```
+        <h1 style={{ color: '#ffffff', fontWeight: 700, lineHeight: 1.15, marginBottom: '20px' }}>
+          <span style={{ display: 'block', fontSize: 'clamp(34px, 4.5vw, 64px)' }}>
+            Find your{' '}
+            <span
+              key={wordIdx}
+              style={{
+                color: '#e8856a',
+                display: 'inline-block',
+                animation: `${phase === 'in' ? 'wordSlideIn' : 'wordSlideOut'} 0.4s ease forwards`,
+              }}
+            >
+              {WORDS[wordIdx]}
+            </span>
+          </span>
+          <span style={{ display: 'block', fontSize: 'clamp(34px, 4.5vw, 64px)' }}>
+            in{' '}
+            <span style={{ color: '#e8856a' }}>South Korea</span>
+          </span>
+        </h1>
+```
+
+---
+
+Verify after implementing:
+1. `npx tsc --noEmit` → 0 errors.
+2. Homepage hero loads with dark background + particle canvas animation (unchanged).
+3. Heading shows "Find your campus / in South Korea" on load.
+4. Every 2 seconds the word slides UP and disappears, then a new word slides UP
+   into place: campus → university → program → scholarship → future → dream → campus ...
+5. "in South Korea" does NOT animate — it stays static.
+6. Both buttons still navigate: Explore Universities → /university, Talk to an agent → /agent.
+7. The coral (#e8856a) color is used for the animated word AND "South Korea".
+8. No useTyping, no cursorVisible, no charIndex refs remain in the file.

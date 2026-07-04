@@ -1,0 +1,381 @@
+Goal: Move the search input from the Filter sidebar to the top bar, next to "Sort by",
+stretching it wide (flex: 1). The X (clear) and Refresh icon buttons are placed OUTSIDE
+the input, side by side, to the right of the input field.
+
+Layout of the top bar:
+  [ 🔍  What are you looking for...          ]  [✕] [↺]  |  Sort by: New ▾
+
+3 files must be edited. Apply all steps exactly as written.
+
+STRICT RULES:
+- Do NOT touch card rendering, pagination, GraphQL queries, mutation handlers,
+  sorting handlers, or any filter logic other than the search block.
+- Do NOT change any component other than the three listed below.
+- Do NOT rename or remove existing CSS classes — use inline sx/style for new elements.
+
+=====================================================================
+FILE 1: pages/university/index.tsx
+=====================================================================
+
+--- STEP 1: Add missing MUI imports ---
+Find:
+import { Box, Button, Menu, MenuItem, Pagination, Stack, Typography } from '@mui/material';
+
+Replace with:
+import { Box, Button, IconButton, Menu, MenuItem, OutlinedInput, Pagination, Stack, Tooltip, Typography } from '@mui/material';
+
+
+--- STEP 2: Add missing icon imports ---
+Find:
+import KeyboardArrowDownRoundedIcon from '@mui/icons-material/KeyboardArrowDownRounded';
+
+Replace with:
+import KeyboardArrowDownRoundedIcon from '@mui/icons-material/KeyboardArrowDownRounded';
+import CancelRoundedIcon from '@mui/icons-material/CancelRounded';
+import RefreshIcon from '@mui/icons-material/Refresh';
+
+
+--- STEP 3: Add searchText state (right after filterSortName state) ---
+Find:
+	const [filterSortName, setFilterSortName] = useState('New');
+
+Replace with:
+	const [filterSortName, setFilterSortName] = useState('New');
+	const [searchText, setSearchText] = useState<string>('');
+
+
+--- STEP 4: Add refreshHandler function (right before the device check) ---
+Find:
+	if (device === 'mobile') {
+
+Replace with:
+	const refreshHandler = async () => {
+		try {
+			setSearchText('');
+			await router.push(
+				`/university?input=${JSON.stringify(initialInput)}`,
+				`/university?input=${JSON.stringify(initialInput)}`,
+				{ scroll: false },
+			);
+		} catch (err: any) {
+			console.log('ERROR, refreshHandler:', err);
+		}
+	};
+
+	if (device === 'mobile') {
+
+
+--- STEP 5: Replace the entire .right Box with the new top bar ---
+Find:
+					<Box component={'div'} className={'right'}>
+						<span>Sort by</span>
+						<div>
+							<Button onClick={sortingClickHandler} endIcon={<KeyboardArrowDownRoundedIcon />}>
+								{filterSortName}
+							</Button>
+							<Menu anchorEl={anchorEl} open={sortingOpen} onClose={sortingCloseHandler} sx={{ paddingTop: '5px' }}>
+								<MenuItem
+									onClick={sortingHandler}
+									id={'new'}
+									disableRipple
+									sx={{ boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px' }}
+								>
+									New
+								</MenuItem>
+								<MenuItem
+									onClick={sortingHandler}
+									id={'lowest'}
+									disableRipple
+									sx={{ boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px' }}
+								>
+									Lowest Price
+								</MenuItem>
+								<MenuItem
+									onClick={sortingHandler}
+									id={'highest'}
+									disableRipple
+									sx={{ boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px' }}
+								>
+									Highest Price
+								</MenuItem>
+								<MenuItem
+									onClick={sortingHandler}
+									id={'popular'}
+									disableRipple
+									sx={{ boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px' }}
+								>
+									Most popular
+								</MenuItem>
+							</Menu>
+						</div>
+					</Box>
+
+Replace with:
+					<Box component={'div'} className={'right'}>
+						{/* Search input — stretches wide */}
+						<OutlinedInput
+							value={searchText}
+							type={'text'}
+							placeholder={'What are you looking for?'}
+							onChange={(e: any) => setSearchText(e.target.value)}
+							onKeyDown={(event: any) => {
+								if (event.key === 'Enter') {
+									setSearchFilter({ ...searchFilter, search: { ...searchFilter.search, text: searchText } });
+								}
+							}}
+							startAdornment={
+								<img
+									src={'/img/icons/search_icon.png'}
+									alt={''}
+									style={{ width: 18, height: 17, marginRight: 8, opacity: 0.45 }}
+								/>
+							}
+							sx={{
+								flex: 1,
+								height: 44,
+								borderRadius: '8px',
+								background: '#fff',
+								'& .MuiOutlinedInput-notchedOutline': { borderColor: '#e8e8e4' },
+								'&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#c8c8c4' },
+							}}
+						/>
+						{/* X (clear) button — outside the input, next to Refresh */}
+						<Tooltip title="Clear search">
+							<span>
+								<IconButton
+									onClick={() => {
+										setSearchText('');
+										setSearchFilter({ ...searchFilter, search: { ...searchFilter.search, text: '' } });
+									}}
+									disabled={!searchText}
+									size="small"
+									sx={{ color: searchText ? '#717171' : '#ccc' }}
+								>
+									<CancelRoundedIcon fontSize="small" />
+								</IconButton>
+							</span>
+						</Tooltip>
+						{/* Refresh button — resets all filters */}
+						<Tooltip title="Reset all filters">
+							<IconButton onClick={refreshHandler} size="small" sx={{ color: '#717171' }}>
+								<RefreshIcon fontSize="small" />
+							</IconButton>
+						</Tooltip>
+						{/* Divider */}
+						<Box component={'span'} sx={{ width: '1px', height: '24px', background: '#e8e8e4', mx: '4px', flexShrink: 0 }} />
+						{/* Sort by */}
+						<Box component={'div'} sx={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}>
+							<span style={{ fontSize: 14, color: '#717171', whiteSpace: 'nowrap' }}>Sort by</span>
+							<Button onClick={sortingClickHandler} endIcon={<KeyboardArrowDownRoundedIcon />}>
+								{filterSortName}
+							</Button>
+							<Menu anchorEl={anchorEl} open={sortingOpen} onClose={sortingCloseHandler} sx={{ paddingTop: '5px' }}>
+								<MenuItem
+									onClick={sortingHandler}
+									id={'new'}
+									disableRipple
+									sx={{ boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px' }}
+								>
+									New
+								</MenuItem>
+								<MenuItem
+									onClick={sortingHandler}
+									id={'lowest'}
+									disableRipple
+									sx={{ boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px' }}
+								>
+									Lowest Price
+								</MenuItem>
+								<MenuItem
+									onClick={sortingHandler}
+									id={'highest'}
+									disableRipple
+									sx={{ boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px' }}
+								>
+									Highest Price
+								</MenuItem>
+								<MenuItem
+									onClick={sortingHandler}
+									id={'popular'}
+									disableRipple
+									sx={{ boxShadow: 'rgba(149, 157, 165, 0.2) 0px 8px 24px' }}
+								>
+									Most popular
+								</MenuItem>
+							</Menu>
+						</Box>
+					</Box>
+
+
+=====================================================================
+FILE 2: libs/components/university/Filter.tsx
+=====================================================================
+
+--- STEP 1: Remove CancelRoundedIcon and RefreshIcon imports ---
+Find:
+import CancelRoundedIcon from '@mui/icons-material/CancelRounded';
+import { universityCampusSize } from '../../config';
+import RefreshIcon from '@mui/icons-material/Refresh';
+
+Replace with:
+import { universityCampusSize } from '../../config';
+
+
+--- STEP 2: Remove searchText state ---
+Find:
+	const [searchText, setSearchText] = useState<string>('');
+	const [showMore, setShowMore] = useState<boolean>(false);
+
+Replace with:
+	const [showMore, setShowMore] = useState<boolean>(false);
+
+
+--- STEP 3: Remove refreshHandler function ---
+Find:
+	const refreshHandler = async () => {
+		try {
+			setSearchText('');
+			await router.push(
+				`/university?input=${JSON.stringify(initialInput)}`,
+				`/university?input=${JSON.stringify(initialInput)}`,
+				{ scroll: false },
+			);
+		} catch (err: any) {
+			console.log('ERROR, refreshHandler:', err);
+		}
+	};
+
+Replace with:
+
+
+--- STEP 4: Remove the search input section (the first find-your-home Stack block) ---
+Find:
+				<Stack className={'find-your-home'} mb={'40px'}>
+					<Typography className={'title-main'}>Find Your University</Typography>
+					<Stack className={'input-box'}>
+						<OutlinedInput
+							value={searchText}
+							type={'text'}
+							className={'search-input'}
+							placeholder={'What are you looking for?'}
+							onChange={(e: any) => setSearchText(e.target.value)}
+							onKeyDown={(event: any) => {
+								if (event.key == 'Enter') {
+									setSearchFilter({
+										...searchFilter,
+										search: { ...searchFilter.search, text: searchText },
+									});
+								}
+							}}
+							endAdornment={
+								<>
+									<CancelRoundedIcon
+										onClick={() => {
+											setSearchText('');
+											setSearchFilter({
+												...searchFilter,
+												search: { ...searchFilter.search, text: '' },
+											});
+										}}
+									/>
+								</>
+							}
+						/>
+						<img src={'/img/icons/search_icon.png'} alt={''} />
+						<Tooltip title="Reset">
+							<IconButton onClick={refreshHandler}>
+								<RefreshIcon />
+							</IconButton>
+						</Tooltip>
+					</Stack>
+				</Stack>
+
+Replace with:
+
+
+=====================================================================
+FILE 3: scss/pc/university/university.scss
+=====================================================================
+
+--- STEP 1: Change .right from absolute-positioned to a full-width flex row ---
+Find:
+			.right {
+				position: absolute;
+				right: 0;
+				top: 3%;
+				display: flex;
+				flex-direction: row;
+				align-items: center;
+				z-index: 2;
+				button {
+					margin-left: 10px;
+					color: #181a20;
+					font-family: $font;
+					font-size: 14px;
+					font-style: normal;
+					font-weight: bold;
+					line-height: 26px;
+					&:hover {
+						background: none;
+					}
+				}
+			}
+
+Replace with:
+			.right {
+				width: 100%;
+				display: flex;
+				flex-direction: row;
+				align-items: center;
+				gap: 4px;
+				padding: 16px 0 12px;
+				z-index: 2;
+				button {
+					margin-left: 6px;
+					color: #181a20;
+					font-family: $font;
+					font-size: 14px;
+					font-style: normal;
+					font-weight: bold;
+					line-height: 26px;
+					&:hover {
+						background: none;
+					}
+				}
+			}
+
+
+--- STEP 2: Remove the padding-top on .university-page (was reserved for absolute .right) ---
+Find:
+				.university-page {
+					position: relative;
+					width: 100%;
+					flex-direction: row;
+					gap: 25px;
+					padding-top: 96px;
+
+Replace with:
+				.university-page {
+					position: relative;
+					width: 100%;
+					flex-direction: row;
+					gap: 25px;
+					padding-top: 0;
+
+
+=====================================================================
+Verify after implementing:
+1. npx tsc --noEmit → 0 errors
+2. /university page top bar:
+   - Wide search input on the LEFT (flex: 1, stretches across available space)
+   - [✕] IconButton immediately to the right of input — dimmed when empty, active when text entered
+   - [↺] RefreshIcon IconButton right next to [✕]
+   - Thin vertical divider
+   - "Sort by  New ▾" on the far RIGHT
+3. Typing in the top search and pressing Enter → filters universities by text
+4. Clicking [✕] when text is present → clears searchText and search.text in filter
+5. [✕] is disabled/greyed when searchText is empty
+6. Clicking [↺] → resets all filters (navigates to initialInput)
+7. Sorting dropdown (New / Lowest Price / Highest Price / Most popular) still works
+8. Filter sidebar still shows: Location, University Type, Faculties, Dormitory, Scholarship, Campus Size, Tuition Range — NO search input in sidebar
+9. Cards, pagination, like button — completely unchanged

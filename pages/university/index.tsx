@@ -1,6 +1,6 @@
 import React, { ChangeEvent, MouseEvent, useEffect, useState } from 'react';
 import { NextPage } from 'next';
-import { Box, Button, Menu, MenuItem, Pagination, Stack, Typography } from '@mui/material';
+import { Box, Button, IconButton, Menu, MenuItem, OutlinedInput, Pagination, Stack, Tooltip, Typography } from '@mui/material';
 import UniversityCard from '../../libs/components/university/UniversityCard';
 import useDeviceDetect from '../../libs/hooks/useDeviceDetect';
 import withLayoutBasic from '../../libs/components/layout/LayoutBasic';
@@ -10,6 +10,8 @@ import { UniversitiesInquiry } from '../../libs/types/university/university.inpu
 import { University } from '../../libs/types/university/university';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import KeyboardArrowDownRoundedIcon from '@mui/icons-material/KeyboardArrowDownRounded';
+import CancelRoundedIcon from '@mui/icons-material/CancelRounded';
+import RefreshIcon from '@mui/icons-material/Refresh';
 import { Direction, Message } from '../../libs/enums/common.enum';
 import { useMutation, useQuery } from '@apollo/client';
 import { GET_UNIVERSITIES } from '../../apollo/user/query';
@@ -35,6 +37,7 @@ const UniversityList: NextPage = ({ initialInput, ...props }: any) => {
 	const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 	const [sortingOpen, setSortingOpen] = useState(false);
 	const [filterSortName, setFilterSortName] = useState('New');
+	const [searchText, setSearchText] = useState<string>('');
 
 	/** APOLLO REQUESTS **/
 	const [likeTargetUniversity] = useMutation(LIKE_TARGET_UNIVERSITY);
@@ -64,6 +67,17 @@ const UniversityList: NextPage = ({ initialInput, ...props }: any) => {
 	}, [router]);
 
 	useEffect(() => {}, [searchFilter]);
+
+	useEffect(() => {
+		const timeout = setTimeout(() => {
+			setSearchFilter((prev: UniversitiesInquiry) => ({
+				...prev,
+				page: 1,
+				search: { ...prev.search, text: searchText },
+			}));
+		}, 400);
+		return () => clearTimeout(timeout);
+	}, [searchText]);
 
 	/** HANDLERS **/
 	const handlePaginationChange = async (event: ChangeEvent<unknown>, value: number) => {
@@ -126,6 +140,19 @@ const UniversityList: NextPage = ({ initialInput, ...props }: any) => {
 		setAnchorEl(null);
 	};
 
+	const refreshHandler = async () => {
+		try {
+			setSearchText('');
+			await router.push(
+				`/university?input=${JSON.stringify(initialInput)}`,
+				`/university?input=${JSON.stringify(initialInput)}`,
+				{ scroll: false },
+			);
+		} catch (err: any) {
+			console.log('ERROR, refreshHandler:', err);
+		}
+	};
+
 	if (device === 'mobile') {
 		return <h1>UNIVERSITIES MOBILE</h1>;
 	} else {
@@ -133,8 +160,60 @@ const UniversityList: NextPage = ({ initialInput, ...props }: any) => {
 			<div id="university-list-page" style={{ position: 'relative' }}>
 				<div className="container">
 					<Box component={'div'} className={'right'}>
-						<span>Sort by</span>
-						<div>
+						{/* Search input — stretches wide */}
+						<OutlinedInput
+							value={searchText}
+							type={'text'}
+							placeholder={'What are you looking for?'}
+							onChange={(e: any) => setSearchText(e.target.value)}
+							onKeyDown={(event: any) => {
+								if (event.key === 'Enter') {
+									setSearchFilter({ ...searchFilter, search: { ...searchFilter.search, text: searchText } });
+								}
+							}}
+							startAdornment={
+								<img
+									src={'/img/icons/search_icon.png'}
+									alt={''}
+									style={{ width: 18, height: 17, marginRight: 8, opacity: 0.45 }}
+								/>
+							}
+							sx={{
+								flex: 1,
+								height: 44,
+								borderRadius: '8px',
+								background: '#fff',
+								'& .MuiOutlinedInput-notchedOutline': { borderColor: '#e8e8e4' },
+								'&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#c8c8c4' },
+							}}
+						/>
+						{/* X (clear) button — outside the input, next to Refresh */}
+						<Tooltip title="Clear search">
+							<span>
+								<IconButton
+									onClick={() => {
+										setSearchText('');
+										setSearchFilter({ ...searchFilter, search: { ...searchFilter.search, text: '' } });
+									}}
+									disabled={!searchText}
+									size="small"
+									sx={{ color: searchText ? '#717171' : '#ccc' }}
+								>
+									<CancelRoundedIcon fontSize="small" />
+								</IconButton>
+							</span>
+						</Tooltip>
+						{/* Refresh button — resets all filters */}
+						<Tooltip title="Reset all filters">
+							<IconButton onClick={refreshHandler} size="small" sx={{ color: '#717171' }}>
+								<RefreshIcon fontSize="small" />
+							</IconButton>
+						</Tooltip>
+						{/* Divider */}
+						<Box component={'span'} sx={{ width: '1px', height: '24px', background: '#e8e8e4', mx: '4px', flexShrink: 0 }} />
+						{/* Sort by */}
+						<Box component={'div'} sx={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}>
+							<span style={{ fontSize: 14, color: '#717171', whiteSpace: 'nowrap' }}>Sort by</span>
 							<Button onClick={sortingClickHandler} endIcon={<KeyboardArrowDownRoundedIcon />}>
 								{filterSortName}
 							</Button>
@@ -172,7 +251,7 @@ const UniversityList: NextPage = ({ initialInput, ...props }: any) => {
 									Most popular
 								</MenuItem>
 							</Menu>
-						</div>
+						</Box>
 					</Box>
 					<Stack className={'university-page'}>
 						<Stack className={'filter-config'}>

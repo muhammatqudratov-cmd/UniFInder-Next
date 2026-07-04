@@ -1,0 +1,94 @@
+Goal: Fix the broken layout on /university page.
+
+Root cause: .container has global CSS "display: flex" (row direction).
+The previous prompt removed "position: absolute" from .right, turning it into
+a flex item beside .university-page instead of floating above it.
+Fix: restore position: absolute on .right, but now span full width (left: 0; right: 0)
+so the search+sort bar stretches across the entire container top.
+
+ONLY the SCSS file needs editing. index.tsx and Filter.tsx are already correct.
+
+STRICT RULES:
+- Do NOT touch index.tsx or Filter.tsx — they are correct.
+- Do NOT change any SCSS other than the two blocks below.
+
+=====================================================================
+FILE: scss/pc/university/university.scss
+=====================================================================
+
+--- STEP 1: Restore position: absolute on .right, span full width ---
+Find:
+			.right {
+				width: 100%;
+				display: flex;
+				flex-direction: row;
+				align-items: center;
+				gap: 4px;
+				padding: 16px 0 12px;
+				z-index: 2;
+				button {
+					margin-left: 6px;
+					color: #181a20;
+					font-family: $font;
+					font-size: 14px;
+					font-style: normal;
+					font-weight: bold;
+					line-height: 26px;
+					&:hover {
+						background: none;
+					}
+				}
+			}
+
+Replace with:
+			.right {
+				position: absolute;
+				left: 0;
+				right: 0;
+				top: 16px;
+				height: 44px;
+				display: flex;
+				flex-direction: row;
+				align-items: center;
+				gap: 4px;
+				z-index: 2;
+				button {
+					margin-left: 6px;
+					color: #181a20;
+					font-family: $font;
+					font-size: 14px;
+					font-style: normal;
+					font-weight: bold;
+					line-height: 26px;
+					&:hover {
+						background: none;
+					}
+				}
+			}
+
+
+--- STEP 2: Restore padding-top on .university-page so cards/sidebar start below the bar ---
+Find:
+				.university-page {
+					position: relative;
+					width: 100%;
+					flex-direction: row;
+					gap: 25px;
+					padding-top: 0;
+
+Replace with:
+				.university-page {
+					position: relative;
+					width: 100%;
+					flex-direction: row;
+					gap: 25px;
+					padding-top: 80px;
+
+
+=====================================================================
+Verify after implementing:
+1. npx tsc --noEmit → 0 errors
+2. /university page: search+sort bar appears at the TOP, stretching full width
+3. [ 🔍  What are you looking for... ] [✕] [↺] | Sort by: New ▾ — all in one row
+4. Sidebar (Location, Type, Faculties…) and cards grid start BELOW the bar
+5. No overlap, no misplaced elements
