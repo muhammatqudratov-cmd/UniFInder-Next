@@ -63,10 +63,10 @@ body::-webkit-scrollbar {
 		}
 		.navbar-main {
 			width: 100%;
-			background: rgba(250, 250, 248, 0.95);
-			backdrop-filter: blur(12px);
-			-webkit-backdrop-filter: blur(12px);
-			border-bottom: 1px solid #e9e7e0;
+			background: rgba(255, 255, 255, 0.06);
+			backdrop-filter: blur(2px);
+			-webkit-backdrop-filter: blur(2px);
+			border-bottom: 1px solid rgba(255, 255, 255, 0.15);
 			transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 
 			.container {
@@ -82,48 +82,107 @@ body::-webkit-scrollbar {
 					}
 				}
 				.router-box {
+					/* === APPLE LIQUID GLASS CAPSULE === */
 					position: relative;
-					width: 617px;
 					display: flex;
 					flex-direction: row;
-					justify-content: space-between;
+					align-items: center;
+					gap: 2px;
+					padding: 5px 6px;
+
+					/* Glass foundation: translucent white + frosted blur */
+					background: rgba(255, 255, 255, 0.10);
+					backdrop-filter: blur(4px) saturate(120%);
+					-webkit-backdrop-filter: blur(4px) saturate(120%);
+
+					/* Glass edge: bright white border (real glass catches light at edges) */
+					border: 1px solid rgba(255, 255, 255, 0.90);
+					border-radius: 999px;
+
+					/* Depth layers:
+					   - outer shadow: subtle lift
+					   - inset top: specular highlight (light hitting top of glass)
+					   - inset bottom: slight inner shadow for depth */
+					box-shadow:
+						0 2px 16px rgba(0, 0, 0, 0.08),
+						0 1px 4px rgba(0, 0, 0, 0.06),
+						inset 0 2px 10px rgba(255, 255, 255, 0.55),
+						inset 0 -1px 4px rgba(0, 0, 0, 0.06);
+
+					/* === SPECULAR SHINE (top inner highlight — the "liquid" feel) === */
+					&::before {
+						content: '';
+						position: absolute;
+						top: 2px;
+						left: 10px;
+						right: 10px;
+						height: 42%;
+						background: linear-gradient(
+							to bottom,
+							rgba(255, 255, 255, 0.65) 0%,
+							rgba(255, 255, 255, 0.18) 55%,
+							rgba(255, 255, 255, 0.00) 100%
+						);
+						border-radius: 999px 999px 60% 60%;
+						pointer-events: none;
+						z-index: 1;
+					}
+
+					/* === BOTTOM EDGE GLOW === */
+					&::after {
+						content: '';
+						position: absolute;
+						bottom: 1px;
+						left: 12px;
+						right: 12px;
+						height: 1px;
+						background: rgba(255, 255, 255, 0.55);
+						border-radius: 999px;
+						pointer-events: none;
+						z-index: 1;
+					}
+
 					a {
-						&[aria-current='page'] div,
-						&.active div {
-							color: #1c1b18 !important;
-							border-bottom: 2px solid #e8856a;
+						text-decoration: none;
+						position: relative;
+						z-index: 2;
+
+						/* === ACTIVE TAB: glass bubble === */
+						&[aria-current='page'] .nav-item,
+						&.active .nav-item {
+							background: rgba(255, 255, 255, 0.22);
+							backdrop-filter: blur(6px);
+							-webkit-backdrop-filter: blur(6px);
+							border: 1px solid rgba(255, 255, 255, 0.90);
+							border-radius: 999px;
+							color: #ffffff !important;
 							font-weight: 600;
+							text-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+							box-shadow:
+								0 3px 12px rgba(0, 0, 0, 0.12),
+								inset 0 1px 0 rgba(255, 255, 255, 0.9);
 						}
 					}
-					div {
+
+					.nav-item {
 						position: relative;
-						color: #57564f;
+						z-index: 2;
+						color: rgba(255, 255, 255, 0.82);
 						font-family: $font;
-						font-size: 15px;
-						font-style: normal;
-						font-weight: 600;
+						font-size: 14px;
+						font-weight: 500;
 						line-height: normal;
 						cursor: pointer;
-						.community_menu {
-							position: absolute;
-							left: -177%;
-							top: 30px;
-							width: 434px;
-							height: 33px;
-							background: white;
-							transition: all ease 2s;
-							&:before {
-								content: '';
-								display: block;
-								position: absolute;
-								top: 0;
-								right: 50%;
-								width: 10px;
-								height: 10px;
-								background: white;
-								transform: translateY(-50%) rotate(45deg);
-								z-index: 0;
-							}
+						padding: 7px 16px;
+						border-radius: 999px;
+						border: 1px solid transparent;
+						transition: all 0.22s ease;
+						white-space: nowrap;
+						text-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+
+						&:hover {
+							color: rgba(255, 255, 255, 1);
+							background: rgba(255, 255, 255, 0.12);
 						}
 					}
 				}
@@ -196,6 +255,27 @@ body::-webkit-scrollbar {
 				-webkit-backdrop-filter: blur(12px);
 				border: 1px solid #e9e7e0;
 				box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+
+				/* === TEXT COLORS ON LIGHT BACKGROUND (scrolled) === */
+				.logo-circle {
+					border-color: #1c1b18 !important;
+				}
+				.logo-text {
+					color: #1c1b18 !important;
+				}
+				.router-box .nav-item {
+					color: rgba(28, 27, 24, 0.70) !important;
+					text-shadow: none !important;
+					&:hover {
+						color: rgba(28, 27, 24, 0.95) !important;
+						background: rgba(0, 0, 0, 0.05);
+					}
+				}
+				.router-box a[aria-current='page'] .nav-item,
+				.router-box a.active .nav-item {
+					color: #1c1b18 !important;
+					text-shadow: none !important;
+				}
 			}
 		}
 	}

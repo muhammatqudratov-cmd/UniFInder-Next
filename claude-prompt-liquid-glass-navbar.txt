@@ -1,0 +1,297 @@
+Goal: Replace the center navbar pill with Apple-style "Liquid Glass" — a translucent frosted
+glass capsule with specular highlights, inner glow, and a glass bubble for the active tab.
+This is NOT a dark pill. It is a CLEAR/translucent glass effect like Apple's iOS 26 design:
+light frosted glass, white border, top shine highlight, visible blur of content behind it.
+
+Reference: Apple WWDC 2025 Liquid Glass — backdrop blur + saturate + inset glow + ::before shine.
+
+2 files must be edited.
+
+STRICT RULES:
+- Do NOT touch: logo div, user-box, lan-box, login/logout logic, language switcher,
+  router.push, mobile navbar, StyledMenu, scrolled-nav/transparent class behavior,
+  canvas, hero, any page outside the navbar.
+- Only change what is explicitly listed below.
+
+=====================================================================
+FILE 1: libs/components/Top.tsx
+=====================================================================
+
+--- STEP 1: Replace ALL 6 nav link divs (desktop only) with className="nav-item" ---
+    Remove ALL inline style= and onMouseEnter/Leave handlers from these divs.
+
+Find (Home):
+								<Link href={'/'}>
+									<div
+										style={{ color: '#57564f', fontSize: '14px', opacity: 0.9, transition: 'opacity 0.2s' }}
+										onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.opacity = '1'; (e.currentTarget as HTMLDivElement).style.color = '#1c1b18'; }}
+										onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.opacity = '0.9'; (e.currentTarget as HTMLDivElement).style.color = '#57564f'; }}
+									>{t('Home')}</div>
+								</Link>
+Replace with:
+								<Link href={'/'}>
+									<div className="nav-item">{t('Home')}</div>
+								</Link>
+
+Find (Universities):
+								<Link href={'/university'}>
+									<div
+										style={{ color: '#57564f', fontSize: '14px', opacity: 0.9, transition: 'opacity 0.2s' }}
+										onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.opacity = '1'; (e.currentTarget as HTMLDivElement).style.color = '#1c1b18'; }}
+										onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.opacity = '0.9'; (e.currentTarget as HTMLDivElement).style.color = '#57564f'; }}
+									>{t('Universities')}</div>
+								</Link>
+Replace with:
+								<Link href={'/university'}>
+									<div className="nav-item">{t('Universities')}</div>
+								</Link>
+
+Find (Agents):
+								<Link href={'/agent'}>
+									<div
+										style={{ color: '#57564f', fontSize: '14px', opacity: 0.9, transition: 'opacity 0.2s' }}
+										onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.opacity = '1'; (e.currentTarget as HTMLDivElement).style.color = '#1c1b18'; }}
+										onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.opacity = '0.9'; (e.currentTarget as HTMLDivElement).style.color = '#57564f'; }}
+									> {t('Agents')} </div>
+								</Link>
+Replace with:
+								<Link href={'/agent'}>
+									<div className="nav-item">{t('Agents')}</div>
+								</Link>
+
+Find (Community):
+								<Link href={'/community?articleCategory=FREE'}>
+									<div
+										style={{ color: '#57564f', fontSize: '14px', opacity: 0.9, transition: 'opacity 0.2s' }}
+										onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.opacity = '1'; (e.currentTarget as HTMLDivElement).style.color = '#1c1b18'; }}
+										onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.opacity = '0.9'; (e.currentTarget as HTMLDivElement).style.color = '#57564f'; }}
+									> {t('Community')} </div>
+								</Link>
+Replace with:
+								<Link href={'/community?articleCategory=FREE'}>
+									<div className="nav-item">{t('Community')}</div>
+								</Link>
+
+Find (My Page):
+									<Link href={'/mypage'}>
+										<div
+											style={{ color: '#57564f', fontSize: '14px', opacity: 0.9, transition: 'opacity 0.2s' }}
+											onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.opacity = '1'; (e.currentTarget as HTMLDivElement).style.color = '#1c1b18'; }}
+											onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.opacity = '0.9'; (e.currentTarget as HTMLDivElement).style.color = '#57564f'; }}
+										> {t('My Page')} </div>
+									</Link>
+Replace with:
+									<Link href={'/mypage'}>
+										<div className="nav-item">{t('My Page')}</div>
+									</Link>
+
+Find (CS):
+								<Link href={'/cs'}>
+									<div
+										style={{ color: '#57564f', fontSize: '14px', opacity: 0.9, transition: 'opacity 0.2s' }}
+										onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.opacity = '1'; (e.currentTarget as HTMLDivElement).style.color = '#1c1b18'; }}
+										onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.opacity = '0.9'; (e.currentTarget as HTMLDivElement).style.color = '#57564f'; }}
+									> {t('CS')} </div>
+								</Link>
+Replace with:
+								<Link href={'/cs'}>
+									<div className="nav-item">{t('CS')}</div>
+								</Link>
+
+
+=====================================================================
+FILE 2: scss/pc/main.scss
+=====================================================================
+
+--- STEP 1: Make navbar-main slightly less opaque so glass blurs page content behind it ---
+Find:
+		.navbar-main {
+			width: 100%;
+			background: rgba(250, 250, 248, 0.95);
+			backdrop-filter: blur(12px);
+			-webkit-backdrop-filter: blur(12px);
+			border-bottom: 1px solid #e9e7e0;
+			transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+Replace with:
+		.navbar-main {
+			width: 100%;
+			background: rgba(250, 250, 248, 0.80);
+			backdrop-filter: blur(10px) saturate(130%);
+			-webkit-backdrop-filter: blur(10px) saturate(130%);
+			border-bottom: 1px solid rgba(255, 255, 255, 0.6);
+			transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+
+
+--- STEP 2: Replace the entire .router-box block with Apple Liquid Glass pill ---
+
+Find:
+				.router-box {
+					position: relative;
+					width: 617px;
+					display: flex;
+					flex-direction: row;
+					justify-content: space-between;
+					a {
+						&[aria-current='page'] div,
+						&.active div {
+							color: #1c1b18 !important;
+							border-bottom: 2px solid #e8856a;
+							font-weight: 600;
+						}
+					}
+					div {
+						position: relative;
+						color: #57564f;
+						font-family: $font;
+						font-size: 15px;
+						font-style: normal;
+						font-weight: 600;
+						line-height: normal;
+						cursor: pointer;
+						.community_menu {
+							position: absolute;
+							left: -177%;
+							top: 30px;
+							width: 434px;
+							height: 33px;
+							background: white;
+							transition: all ease 2s;
+							&:before {
+								content: '';
+								display: block;
+								position: absolute;
+								top: 0;
+								right: 50%;
+								width: 10px;
+								height: 10px;
+								background: white;
+								transform: translateY(-50%) rotate(45deg);
+								z-index: 0;
+							}
+						}
+					}
+				}
+
+Replace with:
+				.router-box {
+					/* === APPLE LIQUID GLASS CAPSULE === */
+					position: relative;
+					display: flex;
+					flex-direction: row;
+					align-items: center;
+					gap: 2px;
+					padding: 5px 6px;
+
+					/* Glass foundation: translucent white + frosted blur */
+					background: rgba(255, 255, 255, 0.30);
+					backdrop-filter: blur(10px) saturate(140%);
+					-webkit-backdrop-filter: blur(10px) saturate(140%);
+
+					/* Glass edge: bright white border (real glass catches light at edges) */
+					border: 1px solid rgba(255, 255, 255, 0.78);
+					border-radius: 999px;
+
+					/* Depth layers:
+					   - outer shadow: subtle lift
+					   - inset top: specular highlight (light hitting top of glass)
+					   - inset bottom: slight inner shadow for depth */
+					box-shadow:
+						0 2px 16px rgba(0, 0, 0, 0.08),
+						0 1px 4px rgba(0, 0, 0, 0.06),
+						inset 0 2px 10px rgba(255, 255, 255, 0.55),
+						inset 0 -1px 4px rgba(0, 0, 0, 0.06);
+
+					/* === SPECULAR SHINE (top inner highlight — the "liquid" feel) === */
+					&::before {
+						content: '';
+						position: absolute;
+						top: 2px;
+						left: 10px;
+						right: 10px;
+						height: 42%;
+						background: linear-gradient(
+							to bottom,
+							rgba(255, 255, 255, 0.65) 0%,
+							rgba(255, 255, 255, 0.18) 55%,
+							rgba(255, 255, 255, 0.00) 100%
+						);
+						border-radius: 999px 999px 60% 60%;
+						pointer-events: none;
+						z-index: 1;
+					}
+
+					/* === BOTTOM EDGE GLOW === */
+					&::after {
+						content: '';
+						position: absolute;
+						bottom: 1px;
+						left: 12px;
+						right: 12px;
+						height: 1px;
+						background: rgba(255, 255, 255, 0.55);
+						border-radius: 999px;
+						pointer-events: none;
+						z-index: 1;
+					}
+
+					a {
+						text-decoration: none;
+						position: relative;
+						z-index: 2;
+
+						/* === ACTIVE TAB: glass bubble === */
+						&[aria-current='page'] .nav-item,
+						&.active .nav-item {
+							background: rgba(255, 255, 255, 0.58);
+							backdrop-filter: blur(10px);
+							-webkit-backdrop-filter: blur(10px);
+							border: 1px solid rgba(255, 255, 255, 0.88);
+							border-radius: 999px;
+							color: #1c1b18 !important;
+							font-weight: 600;
+							box-shadow:
+								0 3px 12px rgba(0, 0, 0, 0.1),
+								inset 0 1px 0 rgba(255, 255, 255, 0.95);
+						}
+					}
+
+					.nav-item {
+						position: relative;
+						z-index: 2;
+						color: rgba(28, 27, 24, 0.68);
+						font-family: $font;
+						font-size: 14px;
+						font-weight: 500;
+						line-height: normal;
+						cursor: pointer;
+						padding: 7px 16px;
+						border-radius: 999px;
+						border: 1px solid transparent;
+						transition: all 0.22s ease;
+						white-space: nowrap;
+
+						&:hover {
+							color: rgba(28, 27, 24, 0.92);
+							background: rgba(255, 255, 255, 0.38);
+						}
+					}
+				}
+
+
+=====================================================================
+Verify after implementing:
+1. npx tsc --noEmit → 0 errors
+2. Center nav links appear as a CLEAR frosted glass capsule (not dark):
+   - Light/translucent white background, you can see content blurring behind it
+   - White bright border around the capsule edge
+   - Top specular shine (lighter gradient at top)
+3. Active page link shows as a brighter glass bubble within the capsule:
+   - Slightly brighter white background
+   - White border
+   - Dark text (#1c1b18), bold
+4. Inactive links: dark muted text, no underline
+5. Hover: subtle white highlight
+6. Logo (left) and Login/Register + language switcher (right) — completely unchanged
+7. Navbar background is now less opaque (0.65 instead of 0.95) — page content blurs subtly behind
+8. Scrolled/transparent class — unchanged
+9. Mobile navbar — unchanged

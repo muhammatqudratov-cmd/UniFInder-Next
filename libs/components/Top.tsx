@@ -164,11 +164,11 @@ const Top = () => {
 				<Stack className={`navbar-main ${colorChange ? 'transparent' : ''} ${bgColor ? 'transparent' : ''}`}>
 					<Stack className={'container'} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', height: '56px' }}>
 						<div className="uni-logo" onClick={() => router.push('/')} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
-							<div style={{
+							<div className="logo-circle" style={{
 								width: '28px',
 								height: '28px',
 								borderRadius: '50%',
-								border: '2px solid #1C1B18',
+								border: '2px solid rgba(255, 255, 255, 0.55)',
 								display: 'flex',
 								alignItems: 'center',
 								justifyContent: 'center',
@@ -176,52 +176,28 @@ const Top = () => {
 							}}>
 								<div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#E8856A' }}></div>
 							</div>
-							<span style={{ fontSize: '17px', fontWeight: '800', color: '#1C1B18' }}>UniFinder</span>
+							<span className="logo-text" style={{ fontSize: '17px', fontWeight: '800', color: '#ffffff' }}>UniFinder</span>
 						</div>
 						<Box component={'div'} className={'router-box'}>
 							<Link href={'/'}>
-								<div
-									style={{ color: '#57564f', fontSize: '14px', opacity: 0.9, transition: 'opacity 0.2s' }}
-									onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.opacity = '1'; (e.currentTarget as HTMLDivElement).style.color = '#1c1b18'; }}
-									onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.opacity = '0.9'; (e.currentTarget as HTMLDivElement).style.color = '#57564f'; }}
-								>{t('Home')}</div>
+								<div className="nav-item">{t('Home')}</div>
 							</Link>
 							<Link href={'/university'}>
-								<div
-									style={{ color: '#57564f', fontSize: '14px', opacity: 0.9, transition: 'opacity 0.2s' }}
-									onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.opacity = '1'; (e.currentTarget as HTMLDivElement).style.color = '#1c1b18'; }}
-									onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.opacity = '0.9'; (e.currentTarget as HTMLDivElement).style.color = '#57564f'; }}
-								>{t('Universities')}</div>
+								<div className="nav-item">{t('Universities')}</div>
 							</Link>
 							<Link href={'/agent'}>
-								<div
-									style={{ color: '#57564f', fontSize: '14px', opacity: 0.9, transition: 'opacity 0.2s' }}
-									onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.opacity = '1'; (e.currentTarget as HTMLDivElement).style.color = '#1c1b18'; }}
-									onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.opacity = '0.9'; (e.currentTarget as HTMLDivElement).style.color = '#57564f'; }}
-								> {t('Agents')} </div>
+								<div className="nav-item">{t('Agents')}</div>
 							</Link>
 							<Link href={'/community?articleCategory=FREE'}>
-								<div
-									style={{ color: '#57564f', fontSize: '14px', opacity: 0.9, transition: 'opacity 0.2s' }}
-									onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.opacity = '1'; (e.currentTarget as HTMLDivElement).style.color = '#1c1b18'; }}
-									onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.opacity = '0.9'; (e.currentTarget as HTMLDivElement).style.color = '#57564f'; }}
-								> {t('Community')} </div>
+								<div className="nav-item">{t('Community')}</div>
 							</Link>
 							{user?._id && (
 								<Link href={'/mypage'}>
-									<div
-										style={{ color: '#57564f', fontSize: '14px', opacity: 0.9, transition: 'opacity 0.2s' }}
-										onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.opacity = '1'; (e.currentTarget as HTMLDivElement).style.color = '#1c1b18'; }}
-										onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.opacity = '0.9'; (e.currentTarget as HTMLDivElement).style.color = '#57564f'; }}
-									> {t('My Page')} </div>
+									<div className="nav-item">{t('My Page')}</div>
 								</Link>
 							)}
 							<Link href={'/cs'}>
-								<div
-									style={{ color: '#57564f', fontSize: '14px', opacity: 0.9, transition: 'opacity 0.2s' }}
-									onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.opacity = '1'; (e.currentTarget as HTMLDivElement).style.color = '#1c1b18'; }}
-									onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.opacity = '0.9'; (e.currentTarget as HTMLDivElement).style.color = '#57564f'; }}
-								> {t('CS')} </div>
+								<div className="nav-item">{t('CS')}</div>
 							</Link>
 						</Box>
 						<Box component={'div'} className={'user-box'}>
