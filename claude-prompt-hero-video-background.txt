@@ -1,0 +1,86 @@
+Goal: Add looping background video to the hero section in libs/components/layout/LayoutHome.tsx.
+3 videos play one after another seamlessly: add1.mp4 → add3.mp4 → add4.mp4 → add1.mp4 ...
+A semi-transparent dark overlay keeps the text readable.
+Canvas particle animation stays on top of the video.
+
+Video sizes: add1.mp4 (2.5MB), add3.mp4 (2.5MB), add4.mp4 (2.4MB).
+
+STRICT RULES:
+- Do NOT touch: WORDS array, word animation state/effects, canvas particle useEffect,
+  router.push, buttons, subtitle, hero-orbs, hero-content, keyframes, h1 block.
+- Only add: VIDEOS constant, videoIdx state, <video> element, dark overlay <div>.
+- Only edit: libs/components/layout/LayoutHome.tsx
+
+=====================================================================
+FILE: libs/components/layout/LayoutHome.tsx
+=====================================================================
+
+--- STEP 1: Add VIDEOS array right after WORDS array ---
+Find:
+const WORDS = ['campus', 'university', 'program', 'future', 'dream'];
+
+Replace with:
+const WORDS = ['campus', 'university', 'program', 'future', 'dream'];
+const VIDEOS = ['/video/add1.mp4', '/video/add3.mp4', '/video/add4.mp4'];
+
+
+--- STEP 2: Add videoIdx state right after the phase state ---
+Find:
+		const [wordIdx, setWordIdx] = useState(0);
+		const [phase, setPhase] = useState<'in' | 'out'>('in');
+
+Replace with:
+		const [wordIdx, setWordIdx] = useState(0);
+		const [phase, setPhase] = useState<'in' | 'out'>('in');
+		const [videoIdx, setVideoIdx] = useState(0);
+
+
+--- STEP 3: Add <video> element and dark overlay as the very first children
+            inside <section className="hero-section">, BEFORE the <style> tag ---
+Find:
+						<section className="hero-section">
+							<style>{`
+
+Replace with:
+						<section className="hero-section">
+							{/* Background video — cycles through 3 clips seamlessly */}
+							<video
+								key={videoIdx}
+								autoPlay
+								muted
+								playsInline
+								onEnded={() => setVideoIdx((i) => (i + 1) % VIDEOS.length)}
+								style={{
+									position: 'absolute',
+									inset: 0,
+									width: '100%',
+									height: '100%',
+									objectFit: 'cover',
+									zIndex: 0,
+									pointerEvents: 'none',
+								}}
+							>
+								<source src={VIDEOS[videoIdx]} type="video/mp4" />
+							</video>
+							{/* Dark overlay so text stays legible over the video */}
+							<div
+								style={{
+									position: 'absolute',
+									inset: 0,
+									background: 'rgba(10, 10, 20, 0.55)',
+									zIndex: 0,
+									pointerEvents: 'none',
+								}}
+							/>
+							<style>{`
+
+=====================================================================
+Verify after implementing:
+1. npx tsc --noEmit → 0 errors
+2. Home page hero section plays add1.mp4 as a full-cover background video
+3. When add1.mp4 ends → add3.mp4 starts automatically → then add4.mp4 → loops back to add1.mp4
+4. Dark overlay keeps "Find your campus / in South Korea" text readable
+5. Particle canvas animation is still visible on top of the video
+6. Word rotation animation (campus → university → ...) still works
+7. "Explore Universities" and "Talk to an agent" buttons still work
+8. No TypeScript errors, no console errors

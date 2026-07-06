@@ -15,7 +15,8 @@ import 'swiper/css';
 import 'swiper/css/pagination';
 import 'swiper/css/navigation';
 
-const WORDS = ['campus', 'university', 'program', 'future', 'dream'];
+const WORDS = ['campus', 'program', 'future', 'dream'];
+const VIDEOS = ['/video/add1.mp4', '/video/add3.mp4', '/video/add4.mp4'];
 
 const withLayoutMain = (Component: any) => {
 	return (props: any) => {
@@ -24,9 +25,13 @@ const withLayoutMain = (Component: any) => {
 		const router = useRouter();
 
 		const canvasRef = useRef<HTMLCanvasElement>(null);
+		const videoRef = useRef<HTMLVideoElement>(null);
+		const videoFirstRender = useRef(true);
 
 		const [wordIdx, setWordIdx] = useState(0);
 		const [phase, setPhase] = useState<'in' | 'out'>('in');
+		const [videoIdx, setVideoIdx] = useState(0);
+		const [videoBlur, setVideoBlur] = useState(false);
 
 		/** LIFECYCLES **/
 		useEffect(() => {
@@ -44,6 +49,18 @@ const withLayoutMain = (Component: any) => {
 			}, 2000);
 			return () => clearInterval(tick);
 		}, []);
+
+		useEffect(() => {
+			if (videoFirstRender.current) {
+				videoFirstRender.current = false;
+				return;
+			}
+			const video = videoRef.current;
+			if (!video) return;
+			video.src = VIDEOS[videoIdx];
+			video.play().catch(() => {});
+			setTimeout(() => setVideoBlur(false), 80);
+		}, [videoIdx]);
 
 		useEffect(() => {
 			const canvas = canvasRef.current;
@@ -176,38 +193,100 @@ const withLayoutMain = (Component: any) => {
 								<div className="hero-orb orb-sage"></div>
 								<div className="hero-orb orb-lav"></div>
 							</div>
-							<div className="hero-content" style={{ position: 'relative', zIndex: 1 }}>
-								<div className="hero-tag">The ultimate guide to universities</div>
-								<h1 className="hero-title">
-									Find your{' '}
-									<span
-										key={wordIdx}
+							<div className="hero-content" style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'row', alignItems: 'center', width: '100%', gap: '56px' }}>
+
+								{/* LEFT 50% — text content */}
+								<div style={{ flex: '0 0 50%', textAlign: 'left' }}>
+									<div className="hero-tag">The ultimate guide to universities</div>
+									<h1 className="hero-title">
+										Find your{' '}
+										<span
+											key={wordIdx}
+											style={{
+												color: '#e8856a',
+												display: 'inline-block',
+												animation: `${phase === 'in' ? 'wordSlideIn' : 'wordSlideOut'} 0.5s ease-out forwards`,
+											}}
+										>
+											{WORDS[wordIdx]}
+										</span>
+										<br />
+										in <span className="hero-accent">South Korea</span>
+									</h1>
+									<p className="hero-sub" style={{ margin: '0 0 32px' }}>
+										Compare top universities, connect with trusted agents, and plan your move — all in one calm, clear place.
+									</p>
+									<div className="hero-buttons" style={{ justifyContent: 'flex-start', marginBottom: '24px' }}>
+										<button className="hero-btn-primary" onClick={() => router.push('/university')}>
+											<SchoolIcon className="hero-btn-icon" />
+											Explore Universities
+										</button>
+										<button className="hero-btn-secondary" onClick={() => router.push('/agent')}>
+											<SupportAgentIcon className="hero-btn-icon" />
+											Talk to an agent
+										</button>
+									</div>
+									{/* Social proof */}
+									<div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+										<div style={{ display: 'flex' }}>
+											{['#e8856a', '#c4b5d9', '#a8c5a0'].map((color, i) => (
+												<div
+													key={i}
+													style={{
+														width: '28px',
+														height: '28px',
+														borderRadius: '50%',
+														background: color,
+														border: '2px solid #15140f',
+														marginLeft: i === 0 ? 0 : '-8px',
+													}}
+												/>
+											))}
+										</div>
+										<div>
+											<span style={{ color: '#e8856a', fontSize: '13px', fontWeight: 700 }}>★★★★★</span>
+											<span style={{ color: 'rgba(255,255,255,0.55)', fontSize: '13px', marginLeft: '6px' }}>
+												Loved by 500+ students
+											</span>
+										</div>
+									</div>
+								</div>
+
+								{/* RIGHT 50% — video card with floating info cards */}
+								<div style={{ flex: '0 0 50%', position: 'relative', height: '340px' }}>
+
+									{/* Main video card */}
+									<div
 										style={{
-											color: '#e8856a',
-											display: 'inline-block',
-											minWidth: '6em',
-											textAlign: 'center',
-											animation: `${phase === 'in' ? 'wordSlideIn' : 'wordSlideOut'} 0.5s ease-out forwards`,
+											width: '100%',
+											height: '100%',
+											borderRadius: '20px',
+											overflow: 'hidden',
+											boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5)',
 										}}
 									>
-										{WORDS[wordIdx]}
-									</span>
-									<br />
-									in <span className="hero-accent">South Korea</span>
-								</h1>
-								<p className="hero-sub">
-									Compare top universities, connect with trusted agents, and plan your move — all in one calm, clear
-									place.
-								</p>
-								<div className="hero-buttons">
-									<button className="hero-btn-primary" onClick={() => router.push('/university')}>
-										<SchoolIcon className="hero-btn-icon" />
-										Explore Universities
-									</button>
-									<button className="hero-btn-secondary" onClick={() => router.push('/agent')}>
-										<SupportAgentIcon className="hero-btn-icon" />
-										Talk to an agent
-									</button>
+										<video
+											ref={videoRef}
+											autoPlay
+											muted
+											playsInline
+											onEnded={() => {
+												setVideoBlur(true);
+												setTimeout(() => setVideoIdx((i) => (i + 1) % VIDEOS.length), 500);
+											}}
+											style={{
+												width: '100%',
+												height: '100%',
+												objectFit: 'cover',
+												transition: 'opacity 0.5s ease, filter 0.5s ease',
+												opacity: videoBlur ? 0 : 1,
+												filter: videoBlur ? 'blur(12px)' : 'blur(0px)',
+											}}
+										>
+											<source src={VIDEOS[0]} type="video/mp4" />
+										</video>
+									</div>
+
 								</div>
 							</div>
 						</section>

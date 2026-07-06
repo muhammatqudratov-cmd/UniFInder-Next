@@ -1,0 +1,109 @@
+Goal: Add blur + fade transition when videos switch in the hero section.
+When a video ends: current video blurs+fades out (500ms), then the next video
+fades+unblurs back in (500ms). Seamless and smooth.
+
+Only libs/components/layout/LayoutHome.tsx needs editing.
+
+STRICT RULES:
+- Do NOT touch canvas useEffect, word animation, buttons, router, SCSS, or any
+  other logic outside the video-related code listed below.
+
+=====================================================================
+FILE: libs/components/layout/LayoutHome.tsx
+=====================================================================
+
+--- STEP 1: Add videoRef after canvasRef ---
+Find:
+		const canvasRef = useRef<HTMLCanvasElement>(null);
+
+Replace with:
+		const canvasRef = useRef<HTMLCanvasElement>(null);
+		const videoRef = useRef<HTMLVideoElement>(null);
+		const videoFirstRender = useRef(true);
+
+
+--- STEP 2: Add videoBlur state after videoIdx state ---
+Find:
+		const [videoIdx, setVideoIdx] = useState(0);
+
+Replace with:
+		const [videoIdx, setVideoIdx] = useState(0);
+		const [videoBlur, setVideoBlur] = useState(false);
+
+
+--- STEP 3: Add useEffect that changes video src and fades back in when videoIdx changes
+            Place it right after the word animation useEffect (the one with setInterval) ---
+Find:
+		useEffect(() => {}, [searchFilter]);
+
+NOTE: If that line doesn't exist here, place the new useEffect right after:
+		}, []);
+
+		useEffect(() => {
+
+...specifically after the closing of the word-rotation useEffect. Insert BEFORE the canvas useEffect.
+
+Find (the canvas useEffect opener):
+		useEffect(() => {
+			const canvas = canvasRef.current;
+
+Replace with:
+		useEffect(() => {
+			if (videoFirstRender.current) {
+				videoFirstRender.current = false;
+				return;
+			}
+			const video = videoRef.current;
+			if (!video) return;
+			video.src = VIDEOS[videoIdx];
+			video.play().catch(() => {});
+			setTimeout(() => setVideoBlur(false), 80);
+		}, [videoIdx]);
+
+		useEffect(() => {
+			const canvas = canvasRef.current;
+
+
+--- STEP 4: Replace the video element — remove key, add ref + blur transition ---
+Find:
+										<video
+											key={videoIdx}
+											autoPlay
+											muted
+											playsInline
+											onEnded={() => setVideoIdx((i) => (i + 1) % VIDEOS.length)}
+											style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+										>
+											<source src={VIDEOS[videoIdx]} type="video/mp4" />
+										</video>
+
+Replace with:
+										<video
+											ref={videoRef}
+											autoPlay
+											muted
+											playsInline
+											onEnded={() => {
+												setVideoBlur(true);
+												setTimeout(() => setVideoIdx((i) => (i + 1) % VIDEOS.length), 500);
+											}}
+											style={{
+												width: '100%',
+												height: '100%',
+												objectFit: 'cover',
+												transition: 'opacity 0.5s ease, filter 0.5s ease',
+												opacity: videoBlur ? 0 : 1,
+												filter: videoBlur ? 'blur(12px)' : 'blur(0px)',
+											}}
+										>
+											<source src={VIDEOS[0]} type="video/mp4" />
+										</video>
+
+
+=====================================================================
+Verify after implementing:
+1. npx tsc --noEmit → 0 errors
+2. Hero video plays normally
+3. When video ends: blurs + fades to black (500ms) → next video fades + unblurs in (500ms)
+4. Cycle: add1.mp4 → add3.mp4 → add4.mp4 → add1.mp4 with blur transitions each time
+5. Word animation, buttons, social proof, canvas — completely unchanged

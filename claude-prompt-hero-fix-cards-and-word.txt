@@ -1,0 +1,105 @@
+Goal: Two fixes in libs/components/layout/LayoutHome.tsx:
+1. Remove the two floating cards (Seoul National, Hanyang University) from the video.
+2. Fix animated word alignment — remove minWidth/textAlign so it left-aligns below "Find your".
+
+STRICT RULES:
+- Do NOT touch anything else: canvas, buttons, social proof, router, video card, SCSS.
+
+=====================================================================
+FILE: libs/components/layout/LayoutHome.tsx
+=====================================================================
+
+--- STEP 1: Remove minWidth and textAlign from the animated word span ---
+Find:
+										<span
+											key={wordIdx}
+											style={{
+												color: '#e8856a',
+												display: 'inline-block',
+												minWidth: '6em',
+												textAlign: 'center',
+												animation: `${phase === 'in' ? 'wordSlideIn' : 'wordSlideOut'} 0.5s ease-out forwards`,
+											}}
+										>
+
+Replace with:
+										<span
+											key={wordIdx}
+											style={{
+												color: '#e8856a',
+												display: 'inline-block',
+												animation: `${phase === 'in' ? 'wordSlideIn' : 'wordSlideOut'} 0.5s ease-out forwards`,
+											}}
+										>
+
+
+--- STEP 2: Remove floating card — top left (Seoul National) ---
+Find:
+									{/* Floating card — top left */}
+									<div
+										style={{
+											position: 'absolute',
+											top: '16px',
+											left: '16px',
+											background: '#fff',
+											borderRadius: '10px',
+											padding: '8px 14px',
+											boxShadow: '0 4px 16px rgba(0,0,0,0.25)',
+										}}
+									>
+										<div style={{ fontSize: '10px', color: '#999', marginBottom: '2px' }}>Top University</div>
+										<div style={{ fontSize: '15px', fontWeight: 700, color: '#111' }}>Seoul National</div>
+									</div>
+
+Replace with:
+(delete entirely)
+
+
+--- STEP 3: Remove floating card — bottom right (Hanyang University) ---
+Find:
+									{/* Floating card — bottom right */}
+									<div
+										style={{
+											position: 'absolute',
+											bottom: '16px',
+											right: '16px',
+											background: '#fff',
+											borderRadius: '10px',
+											padding: '10px 14px',
+											boxShadow: '0 4px 16px rgba(0,0,0,0.25)',
+											display: 'flex',
+											alignItems: 'center',
+											gap: '10px',
+										}}
+									>
+										<div
+											style={{
+												width: '36px',
+												height: '36px',
+												borderRadius: '8px',
+												background: 'rgba(232,133,106,0.12)',
+												display: 'flex',
+												alignItems: 'center',
+												justifyContent: 'center',
+											}}
+										>
+											<SchoolIcon style={{ fontSize: '20px', color: '#e8856a' }} />
+										</div>
+										<div>
+											<div style={{ fontSize: '13px', fontWeight: 700, color: '#111' }}>Hanyang University</div>
+											<div style={{ fontSize: '11px', color: '#888' }}>Seoul · $7,800 / yr</div>
+										</div>
+									</div>
+
+Replace with:
+(delete entirely)
+
+
+=====================================================================
+Verify after implementing:
+1. npx tsc --noEmit → 0 errors
+2. Video card is clean — no white floating cards on top
+3. "Find your" stays left-aligned, animated word (campus, university...) appears
+   directly below "Find your", also left-aligned — no centering or offset
+4. Word animation still works (slide in/out)
+5. Social proof, buttons, subtitle — unchanged

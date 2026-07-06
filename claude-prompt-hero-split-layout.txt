@@ -1,0 +1,334 @@
+Goal: Change the hero section to a 50/50 split layout.
+Left: heading (animated word) + subtitle + buttons + social proof.
+Right: full video card (straight, no tilt) with 2 floating info cards overlaid.
+Background video removed (video moves into the right card).
+
+2 files must be edited.
+
+STRICT RULES:
+- Do NOT touch WORDS, wordIdx/phase animation logic, canvas useEffect, router.push,
+  button text, button icons, hero-orbs, or keyframes.
+- Only change what is explicitly listed below.
+
+=====================================================================
+FILE 1: libs/components/layout/LayoutHome.tsx
+=====================================================================
+
+--- STEP 1: Remove the background video element and dark overlay div ---
+Find:
+						{/* Background video — cycles through 3 clips seamlessly */}
+						<video
+							key={videoIdx}
+							autoPlay
+							muted
+							playsInline
+							onEnded={() => setVideoIdx((i) => (i + 1) % VIDEOS.length)}
+							style={{
+								position: 'absolute',
+								inset: 0,
+								width: '100%',
+								height: '100%',
+								objectFit: 'contain',
+								backgroundColor: '#0a0a14',
+								zIndex: 0,
+								pointerEvents: 'none',
+							}}
+						>
+							<source src={VIDEOS[videoIdx]} type="video/mp4" />
+						</video>
+						{/* Dark overlay so text stays legible over the video */}
+						<div
+							style={{
+								position: 'absolute',
+								inset: 0,
+								background: 'rgba(10, 10, 20, 0.55)',
+								zIndex: 0,
+								pointerEvents: 'none',
+							}}
+						/>
+
+Replace with:
+(delete entirely — remove those lines)
+
+
+--- STEP 2: Replace hero-content div with 50/50 split layout ---
+Find:
+								<div className="hero-content" style={{ position: 'relative', zIndex: 1 }}>
+									<div className="hero-tag">The ultimate guide to universities</div>
+									<h1 className="hero-title">
+										Find your{' '}
+										<span
+											key={wordIdx}
+											style={{
+												color: '#e8856a',
+												display: 'inline-block',
+												minWidth: '6em',
+												textAlign: 'center',
+												animation: `${phase === 'in' ? 'wordSlideIn' : 'wordSlideOut'} 0.5s ease-out forwards`,
+											}}
+										>
+											{WORDS[wordIdx]}
+										</span>
+										<br />
+										in <span className="hero-accent">South Korea</span>
+									</h1>
+									<p className="hero-sub">
+										Compare top universities, connect with trusted agents, and plan your move — all in one calm, clear
+										place.
+									</p>
+									<div className="hero-buttons">
+										<button className="hero-btn-primary" onClick={() => router.push('/university')}>
+											<SchoolIcon className="hero-btn-icon" />
+											Explore Universities
+										</button>
+										<button className="hero-btn-secondary" onClick={() => router.push('/agent')}>
+											<SupportAgentIcon className="hero-btn-icon" />
+											Talk to an agent
+										</button>
+									</div>
+								</div>
+
+Replace with:
+								<div className="hero-content" style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'row', alignItems: 'center', width: '100%', gap: '56px' }}>
+
+									{/* LEFT 50% — text content */}
+									<div style={{ flex: '0 0 50%', textAlign: 'left' }}>
+										<div className="hero-tag">The ultimate guide to universities</div>
+										<h1 className="hero-title">
+											Find your{' '}
+											<span
+												key={wordIdx}
+												style={{
+													color: '#e8856a',
+													display: 'inline-block',
+													minWidth: '6em',
+													textAlign: 'center',
+													animation: `${phase === 'in' ? 'wordSlideIn' : 'wordSlideOut'} 0.5s ease-out forwards`,
+												}}
+											>
+												{WORDS[wordIdx]}
+											</span>
+											<br />
+											in <span className="hero-accent">South Korea</span>
+										</h1>
+										<p className="hero-sub" style={{ margin: '0 0 32px' }}>
+											Compare top universities, connect with trusted agents, and plan your move — all in one calm, clear place.
+										</p>
+										<div className="hero-buttons" style={{ justifyContent: 'flex-start', marginBottom: '24px' }}>
+											<button className="hero-btn-primary" onClick={() => router.push('/university')}>
+												<SchoolIcon className="hero-btn-icon" />
+												Explore Universities
+											</button>
+											<button className="hero-btn-secondary" onClick={() => router.push('/agent')}>
+												<SupportAgentIcon className="hero-btn-icon" />
+												Talk to an agent
+											</button>
+										</div>
+										{/* Social proof */}
+										<div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+											<div style={{ display: 'flex' }}>
+												{['#e8856a', '#c4b5d9', '#a8c5a0'].map((color, i) => (
+													<div
+														key={i}
+														style={{
+															width: '28px',
+															height: '28px',
+															borderRadius: '50%',
+															background: color,
+															border: '2px solid #15140f',
+															marginLeft: i === 0 ? 0 : '-8px',
+														}}
+													/>
+												))}
+											</div>
+											<div>
+												<span style={{ color: '#e8856a', fontSize: '13px', fontWeight: 700 }}>★★★★★</span>
+												<span style={{ color: 'rgba(255,255,255,0.55)', fontSize: '13px', marginLeft: '6px' }}>
+													Loved by 500+ students
+												</span>
+											</div>
+										</div>
+									</div>
+
+									{/* RIGHT 50% — video card with floating info cards */}
+									<div style={{ flex: '0 0 50%', position: 'relative', height: '340px' }}>
+
+										{/* Main video card */}
+										<div
+											style={{
+												width: '100%',
+												height: '100%',
+												borderRadius: '20px',
+												overflow: 'hidden',
+												boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5)',
+											}}
+										>
+											<video
+												key={videoIdx}
+												autoPlay
+												muted
+												playsInline
+												onEnded={() => setVideoIdx((i) => (i + 1) % VIDEOS.length)}
+												style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+											>
+												<source src={VIDEOS[videoIdx]} type="video/mp4" />
+											</video>
+										</div>
+
+										{/* Floating card — top left */}
+										<div
+											style={{
+												position: 'absolute',
+												top: '16px',
+												left: '16px',
+												background: '#fff',
+												borderRadius: '10px',
+												padding: '8px 14px',
+												boxShadow: '0 4px 16px rgba(0,0,0,0.25)',
+											}}
+										>
+											<div style={{ fontSize: '10px', color: '#999', marginBottom: '2px' }}>Top University</div>
+											<div style={{ fontSize: '15px', fontWeight: 700, color: '#111' }}>Seoul National</div>
+										</div>
+
+										{/* Floating card — bottom right */}
+										<div
+											style={{
+												position: 'absolute',
+												bottom: '16px',
+												right: '16px',
+												background: '#fff',
+												borderRadius: '10px',
+												padding: '10px 14px',
+												boxShadow: '0 4px 16px rgba(0,0,0,0.25)',
+												display: 'flex',
+												alignItems: 'center',
+												gap: '10px',
+											}}
+										>
+											<div
+												style={{
+													width: '36px',
+													height: '36px',
+													borderRadius: '8px',
+													background: 'rgba(232,133,106,0.12)',
+													display: 'flex',
+													alignItems: 'center',
+													justifyContent: 'center',
+												}}
+											>
+												<SchoolIcon style={{ fontSize: '20px', color: '#e8856a' }} />
+											</div>
+											<div>
+												<div style={{ fontSize: '13px', fontWeight: 700, color: '#111' }}>Hanyang University</div>
+												<div style={{ fontSize: '11px', color: '#888' }}>Seoul · $7,800 / yr</div>
+											</div>
+										</div>
+
+									</div>
+								</div>
+
+
+=====================================================================
+FILE 2: scss/pc/homepage/homepage.scss
+=====================================================================
+
+--- STEP 1: Update .hero-section — remove text-align center, wider padding ---
+Find:
+	.hero-section {
+		position: relative;
+		min-height: 580px;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		padding: 80px 24px 100px;
+		overflow-x: hidden;
+		overflow-y: visible;
+		text-align: center;
+		background: linear-gradient(135deg, #15140f 0%, #1c2620 50%, #1a2230 100%);
+	}
+
+Replace with:
+	.hero-section {
+		position: relative;
+		min-height: 580px;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		padding: 80px 80px 100px;
+		overflow-x: hidden;
+		overflow-y: visible;
+		text-align: left;
+		background: linear-gradient(135deg, #15140f 0%, #1c2620 50%, #1a2230 100%);
+	}
+
+
+--- STEP 2: Update .hero-content — remove max-width constraint, make full width ---
+Find:
+	.hero-content {
+		position: relative;
+		z-index: 2;
+		max-width: 700px;
+		margin: 0 auto;
+	}
+
+Replace with:
+	.hero-content {
+		position: relative;
+		z-index: 2;
+		width: 100%;
+		max-width: 1300px;
+	}
+
+
+--- STEP 3: Update .hero-sub — remove auto horizontal margin ---
+Find:
+	.hero-sub {
+		font-size: 17px;
+		color: rgba(255, 255, 255, 0.65);
+		line-height: 1.65;
+		max-width: 500px;
+		margin: 0 auto 36px;
+	}
+
+Replace with:
+	.hero-sub {
+		font-size: 17px;
+		color: rgba(255, 255, 255, 0.65);
+		line-height: 1.65;
+		max-width: 500px;
+		margin: 0 0 36px;
+	}
+
+
+--- STEP 4: Update .hero-buttons — align left ---
+Find:
+	.hero-buttons {
+		display: flex;
+		gap: 12px;
+		justify-content: center;
+		margin-bottom: 40px;
+	}
+
+Replace with:
+	.hero-buttons {
+		display: flex;
+		gap: 12px;
+		justify-content: flex-start;
+		margin-bottom: 40px;
+	}
+
+
+=====================================================================
+Verify after implementing:
+1. npx tsc --noEmit → 0 errors
+2. Home page hero: left 50% — "Find your [word] / in South Korea", subtitle, buttons, social proof (avatars + stars)
+3. Right 50% — full straight video card (20px radius, no tilt, 340px tall)
+4. Floating card top-left on video: "Top University / Seoul National"
+5. Floating card bottom-right on video: school icon + "Hanyang University / Seoul · $7,800/yr"
+6. Word animation still works
+7. Both buttons navigate correctly (router.push)
+8. Canvas particles still animate
+9. No full-screen background video — dark gradient background shows
