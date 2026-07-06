@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { Stack } from '@mui/material';
 import StarIcon from '@mui/icons-material/Star';
@@ -23,6 +23,44 @@ const TopAgents = (props: TopAgentsProps) => {
 	const device = useDeviceDetect();
 	const router = useRouter();
 	const [topAgents, setTopAgents] = useState<Member[]>([]);
+
+	const gridRef = useRef<HTMLDivElement>(null);
+
+	useEffect(() => {
+		const grid = gridRef.current;
+		if (!grid) return;
+
+		const cards = Array.from(grid.querySelectorAll<HTMLElement>('.agent-card'));
+		if (cards.length === 0) return;
+
+		cards.forEach((card) => {
+			card.style.opacity = '0';
+			card.style.transform = 'translateY(24px)';
+			card.style.filter = 'blur(6px)';
+			card.style.transition = 'none';
+		});
+
+		const observer = new IntersectionObserver(
+			(entries) => {
+				if (entries[0].isIntersecting) {
+					cards.forEach((card, i) => {
+						setTimeout(() => {
+							card.style.transition =
+								'opacity 0.9s cubic-bezier(.16,1,.3,1), transform 0.9s cubic-bezier(.16,1,.3,1), filter 0.9s cubic-bezier(.16,1,.3,1)';
+							card.style.opacity = '1';
+							card.style.transform = 'translateY(0)';
+							card.style.filter = 'blur(0px)';
+						}, i * 200);
+					});
+					observer.disconnect();
+				}
+			},
+			{ threshold: 0.08 },
+		);
+
+		observer.observe(grid);
+		return () => observer.disconnect();
+	}, [topAgents]);
 
 	/** APOLLO REQUESTS **/
 	const {
@@ -102,6 +140,7 @@ const TopAgents = (props: TopAgentsProps) => {
 				</div>
 
 				<div
+					ref={gridRef}
 					className="agents-grid"
 					style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px', width: '100%' }}
 				>

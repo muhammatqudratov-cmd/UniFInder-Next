@@ -1,0 +1,136 @@
+Goal: Wrap the entire university page content (search bar + filter + cards) in a large
+liquid glass rectangle — same visual approach as the hero section glass card on the homepage.
+Also apply liquid glass styling to the search bar.
+
+STRICT RULES:
+- Do NOT change: filter logic, search handlers, sort handlers, pagination,
+  likeUniversityHandler, router.push calls, Apollo queries, any imports.
+- Do NOT change: className on existing elements, existing SCSS classes.
+- Do NOT touch Filter.tsx, LayoutBasic.tsx, or any other file.
+- Only edit: pages/university/index.tsx (structural wrapper + search bar sx)
+- Only add: one new CSS block in scss/pc/university/university.scss
+
+=====================================================================
+FILE 1: pages/university/index.tsx
+=====================================================================
+
+--- STEP 1: Add glass wrapper div around page content ---
+
+The <Box className="right"> (search bar) and the <Stack className="university-page">
+must both be wrapped inside a single <div className="uni-glass-wrap">.
+The new div provides position: relative context for the absolute-positioned search bar.
+
+Find:
+			<div id="university-list-page" style={{ position: 'relative' }}>
+				<div className="container">
+					<Box component={'div'} className={'right'}>
+
+Replace with:
+			<div id="university-list-page" style={{ position: 'relative' }}>
+				<div className="container">
+					<div className="uni-glass-wrap">
+					<Box component={'div'} className={'right'}>
+
+
+--- STEP 2: Close the wrapper after the university-page Stack closes ---
+
+The <Stack className="university-page"> ends before the closing </div> of container.
+Find the closing Stack and add the closing </div> after it.
+
+Find (the closing of university-page Stack and container):
+					</Stack>
+				</div>
+			</div>
+
+Replace with:
+					</Stack>
+					</div>{/* end uni-glass-wrap */}
+				</div>
+			</div>
+
+
+--- STEP 3: Apply glass styling to the search bar OutlinedInput ---
+
+Find:
+					sx={{
+						flex: 1,
+						height: 44,
+						borderRadius: '8px',
+						background: '#fff',
+						'& .MuiOutlinedInput-notchedOutline': { borderColor: '#e8e8e4' },
+						'&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#c8c8c4' },
+					}}
+
+Replace with:
+					sx={{
+						flex: 1,
+						height: 44,
+						borderRadius: '10px',
+						background: 'rgba(255, 255, 255, 0.68)',
+						backdropFilter: 'blur(12px) saturate(140%)',
+						WebkitBackdropFilter: 'blur(12px) saturate(140%)',
+						border: '1px solid rgba(255, 255, 255, 0.90)',
+						boxShadow: 'inset 0 1px 0 rgba(255,255,255,1), 0 2px 8px rgba(0,0,0,0.04)',
+						'& .MuiOutlinedInput-notchedOutline': { borderColor: 'transparent' },
+						'&:hover .MuiOutlinedInput-notchedOutline': { borderColor: 'transparent' },
+						'&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(232, 133, 106, 0.50)' },
+					}}
+
+
+=====================================================================
+FILE 2: scss/pc/university/university.scss
+=====================================================================
+
+Add the .uni-glass-wrap rule inside the #pc-wrap > #university-list-page > .container
+block. Insert it BEFORE the existing .right rule (around line 6-10).
+
+Find:
+		.container {
+			.right {
+				position: absolute;
+
+Replace with:
+		.container {
+			/* === LIQUID GLASS PAGE WRAPPER === */
+			.uni-glass-wrap {
+				position: relative;
+				width: 100%;
+				border-radius: 20px;
+				overflow: hidden;
+
+				/* Glass foundation */
+				background: rgba(255, 255, 255, 0.42);
+				backdrop-filter: blur(10px) saturate(130%);
+				-webkit-backdrop-filter: blur(10px) saturate(130%);
+
+				/* Glass border */
+				border: 1px solid rgba(255, 255, 255, 0.88);
+
+				/* Depth */
+				box-shadow:
+					0 8px 40px rgba(0, 0, 0, 0.06),
+					0 2px 12px rgba(0, 0, 0, 0.04),
+					inset 0 1px 0 rgba(255, 255, 255, 1);
+
+				padding: 0 24px 32px;
+				margin-bottom: 40px;
+			}
+
+			.right {
+				position: absolute;
+
+
+=====================================================================
+Verify after implementing:
+1. npx tsc --noEmit → 0 errors
+2. University page: a large glass rectangle frames the search bar + filter + cards
+3. Glass border visible at edges of the wrapper
+4. Search bar: glass background, no hard white box — frosted glass look
+5. Filter sidebar: already updated separately (glass from SCSS direct edit)
+6. Filter logic — all filter clicks still work (no logic changed)
+7. Sort dropdown — still opens and functions
+8. Pagination — unchanged
+9. Like button — unchanged
+10. position: relative on uni-glass-wrap means .right absolute is still correctly positioned
+    at top: 16px within the glass wrapper (same visual position as before)
+=====================================================================

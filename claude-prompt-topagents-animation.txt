@@ -1,0 +1,103 @@
+Goal: Add the exact same scroll-triggered Slide + Blur entrance animation to Top Agents cards
+as was done for Trend Universities cards (same timing, same easing, same stagger).
+
+When .agents-grid enters the viewport, each .agent-card animates:
+  - opacity: 0 → 1
+  - transform: translateY(24px) → translateY(0)
+  - filter: blur(6px) → blur(0px)
+  - duration: 0.9s  easing: cubic-bezier(.16, 1, .3, 1)
+  - stagger: 200ms per card
+  - plays ONCE (observer disconnects after trigger)
+
+STRICT RULES:
+- Only edit: libs/components/homepage/TopAgents.tsx
+- Do NOT change: Apollo queries, router.push, any props, defaultProps, hover CSS in <style> tag
+- Do NOT add external libraries
+- Animation only on desktop (device !== 'mobile') path
+
+=====================================================================
+FILE: libs/components/homepage/TopAgents.tsx
+=====================================================================
+
+--- STEP 1: Update import line ---
+
+Find:
+import React, { useState } from 'react';
+
+Replace with:
+import React, { useState, useRef, useEffect } from 'react';
+
+
+--- STEP 2: Add gridRef and useEffect inside component body ---
+
+Find (inside TopAgents component, right after the state declaration):
+	/** APOLLO REQUESTS **/
+
+Replace with:
+	const gridRef = useRef<HTMLDivElement>(null);
+
+	useEffect(() => {
+		const grid = gridRef.current;
+		if (!grid) return;
+
+		const cards = Array.from(grid.querySelectorAll<HTMLElement>('.agent-card'));
+		if (cards.length === 0) return;
+
+		cards.forEach((card) => {
+			card.style.opacity = '0';
+			card.style.transform = 'translateY(24px)';
+			card.style.filter = 'blur(6px)';
+			card.style.transition = 'none';
+		});
+
+		const observer = new IntersectionObserver(
+			(entries) => {
+				if (entries[0].isIntersecting) {
+					cards.forEach((card, i) => {
+						setTimeout(() => {
+							card.style.transition =
+								'opacity 0.9s cubic-bezier(.16,1,.3,1), transform 0.9s cubic-bezier(.16,1,.3,1), filter 0.9s cubic-bezier(.16,1,.3,1)';
+							card.style.opacity = '1';
+							card.style.transform = 'translateY(0)';
+							card.style.filter = 'blur(0px)';
+						}, i * 200);
+					});
+					observer.disconnect();
+				}
+			},
+			{ threshold: 0.08 },
+		);
+
+		observer.observe(grid);
+		return () => observer.disconnect();
+	}, [topAgents]);
+
+	/** APOLLO REQUESTS **/
+
+
+--- STEP 3: Add ref to agents-grid div ---
+
+Find:
+				<div
+					className="agents-grid"
+					style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px', width: '100%' }}
+				>
+
+Replace with:
+				<div
+					ref={gridRef}
+					className="agents-grid"
+					style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px', width: '100%' }}
+				>
+
+
+=====================================================================
+Verify after implementing:
+1. npx tsc --noEmit → 0 errors
+2. Open homepage, scroll to Top Agents section
+3. Cards start invisible (opacity 0, blurred, shifted down 24px)
+4. As section enters viewport: 4 agent cards animate in one by one with 200ms stagger
+5. Hover effect (blur non-hovered cards, scale hovered) still works after animation
+6. router.push to /agent/detail still works
+7. Mobile Swiper render path unchanged
+=====================================================================
