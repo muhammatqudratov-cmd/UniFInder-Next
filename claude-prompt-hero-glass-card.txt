@@ -1,0 +1,140 @@
+Goal: Wrap the entire hero section content (text + video) inside a large rectangular
+liquid glass card — like the Syne Ring Dribbble reference. The glass card becomes the
+visual frame that holds everything together.
+
+NO logic changes. NO layout changes. NO text or button changes.
+Only structural wrapping + SCSS styling.
+
+STRICT RULES:
+- Do NOT touch: canvas, orbs, wordSlideIn/Out animation, video logic, button onClick handlers,
+  social proof, router.push, user var, mobile section, Footer, Chat, Top.
+- Do NOT change: font sizes, padding of individual elements, gap between buttons.
+- Do NOT remove existing CSS classes already on elements.
+- Only ADD the wrapper div in TSX and ADD the new SCSS class.
+
+=====================================================================
+FILE 1: libs/components/layout/LayoutHome.tsx
+=====================================================================
+
+Wrap the entire hero-content div inside a new hero-glass-card div.
+
+--- STEP 1: Find the hero-content opening div ---
+
+Find (exact, do not change anything except adding the wrapper):
+							<div className="hero-content" style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'row', alignItems: 'center', width: '100%', gap: '56px' }}>
+
+Replace with (add wrapper div BEFORE it):
+							<div className="hero-glass-card">
+							<div className="hero-content" style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'row', alignItems: 'center', width: '100%', gap: '56px' }}>
+
+
+--- STEP 2: Close the wrapper div AFTER hero-content closes ---
+
+Find (the closing of hero-content and the section):
+								</div>
+							</section>
+
+Replace with:
+								</div>
+							</div>{/* end hero-glass-card */}
+							</section>
+
+
+=====================================================================
+FILE 2: scss/pc/homepage/homepage.scss
+=====================================================================
+
+Add the .hero-glass-card rule inside the #pc-wrap block, right after the
+.hero-content rule (around line 865–870 area).
+
+--- STEP 1: Find the .hero-content rule end ---
+
+Find:
+	.hero-content {
+		position: relative;
+		z-index: 2;
+		width: 100%;
+		max-width: 1300px;
+	}
+
+Replace with:
+	.hero-content {
+		position: relative;
+		z-index: 2;
+		width: 100%;
+	}
+
+	/* === LIQUID GLASS CARD — wraps text + video === */
+	.hero-glass-card {
+		position: relative;
+		z-index: 2;
+		width: 100%;
+		max-width: 1240px;
+		border-radius: 28px;
+
+		/* Liquid glass foundation */
+		background: rgba(255, 255, 255, 0.07);
+		backdrop-filter: blur(24px) saturate(180%);
+		-webkit-backdrop-filter: blur(24px) saturate(180%);
+
+		/* Glass edge: bright border catches light */
+		border: 1px solid rgba(255, 255, 255, 0.18);
+
+		/* Depth: outer glow + inner specular + bottom fill */
+		box-shadow:
+			0 32px 80px rgba(0, 0, 0, 0.40),
+			0 8px 32px rgba(0, 0, 0, 0.20),
+			inset 0 2px 24px rgba(255, 255, 255, 0.07),
+			inset 0 -1px 8px rgba(0, 0, 0, 0.08);
+
+		padding: 48px 52px;
+
+		/* === SPECULAR SHINE: top highlight (the "liquid" surface sheen) === */
+		&::before {
+			content: '';
+			position: absolute;
+			top: 1px;
+			left: 20px;
+			right: 20px;
+			height: 38%;
+			background: linear-gradient(
+				to bottom,
+				rgba(255, 255, 255, 0.13) 0%,
+				rgba(255, 255, 255, 0.05) 45%,
+				rgba(255, 255, 255, 0.00) 100%
+			);
+			border-radius: 28px 28px 60% 60%;
+			pointer-events: none;
+			z-index: 0;
+		}
+
+		/* === BOTTOM EDGE GLOW === */
+		&::after {
+			content: '';
+			position: absolute;
+			bottom: 1px;
+			left: 20px;
+			right: 20px;
+			height: 1px;
+			background: rgba(255, 255, 255, 0.22);
+			border-radius: 999px;
+			pointer-events: none;
+			z-index: 0;
+		}
+	}
+
+
+=====================================================================
+Verify after implementing:
+1. npx tsc --noEmit → 0 errors
+2. Hero section: a large frosted glass rectangle visually wraps both text and video
+3. Text (heading, subtitle, buttons, social proof) — all still visible, unchanged
+4. Video card — still plays, still transitions between videos
+5. Glass card: translucent (you can see dark background + orb colors THROUGH it)
+6. Border visible at edges — bright white hairline border
+7. Top specular shine gradient visible at top of card
+8. No layout shift — content width/spacing same as before, just now inside the card
+9. hero-section background (dark gradient) still shows through the glass
+10. Canvas particle animation still works (it's behind the glass, z-index: 0)
+11. Mobile section — completely unchanged
+=====================================================================

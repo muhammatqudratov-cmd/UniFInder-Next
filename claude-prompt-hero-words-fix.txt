@@ -1,0 +1,68 @@
+Goal: Two small fixes in LayoutHome.tsx:
+1. Add "university" to the rotating WORDS array.
+2. Fix layout shift (navbar and hero section jumping in size) during word animation
+   by giving the animated span a fixed minimum width — so ALL words reserve the
+   same horizontal space regardless of character count.
+
+STRICT RULES:
+- Do NOT change: animation logic, setPhase, setWordIdx, timing, video logic,
+  canvas, orbs, buttons, router.push, social proof, Footer, Chat, Top, mobile section.
+- Do NOT change the wordSlideIn / wordSlideOut keyframe definitions.
+- Only change what is listed below.
+
+=====================================================================
+FILE: libs/components/layout/LayoutHome.tsx
+=====================================================================
+
+--- STEP 1: Add "university" to WORDS array ---
+
+Find:
+const WORDS = ['campus', 'program', 'future', 'dream'];
+
+Replace with:
+const WORDS = ['campus', 'program', 'university', 'future', 'dream'];
+
+
+--- STEP 2: Fix layout shift — add minWidth to the animated span ---
+
+The span currently has no minWidth, so it collapses/expands with each word,
+causing the h1 to change width and the navbar pill to jump.
+Fix: reserve space equal to the longest word ("university" = 10ch).
+
+Find:
+										<span
+											key={wordIdx}
+											style={{
+												color: '#e8856a',
+												display: 'inline-block',
+												animation: `${phase === 'in' ? 'wordSlideIn' : 'wordSlideOut'} 0.5s ease-out forwards`,
+											}}
+										>
+											{WORDS[wordIdx]}
+										</span>
+
+Replace with:
+										<span
+											key={wordIdx}
+											style={{
+												color: '#e8856a',
+												display: 'inline-block',
+												minWidth: '10ch',
+												textAlign: 'left',
+												animation: `${phase === 'in' ? 'wordSlideIn' : 'wordSlideOut'} 0.5s ease-out forwards`,
+											}}
+										>
+											{WORDS[wordIdx]}
+										</span>
+
+
+=====================================================================
+Verify after implementing:
+1. npx tsc --noEmit → 0 errors
+2. Rotating words cycle: campus → program → university → future → dream → campus
+3. During word transitions, the hero section height does NOT change
+4. During word transitions, the navbar pill does NOT jump or resize
+5. All words left-aligned inside their reserved horizontal space
+6. "university" renders on the same line as "Find your" (not wrapping to next line)
+7. Video logic, button clicks, canvas particles — all unchanged
+=====================================================================

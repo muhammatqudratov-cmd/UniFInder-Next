@@ -15,7 +15,7 @@ import 'swiper/css';
 import 'swiper/css/pagination';
 import 'swiper/css/navigation';
 
-const WORDS = ['campus', 'program', 'future', 'dream'];
+const WORDS = ['campus', 'program', 'university', 'future', 'dream'];
 const VIDEOS = ['/video/add1.mp4', '/video/add3.mp4', '/video/add4.mp4'];
 
 const withLayoutMain = (Component: any) => {
@@ -193,7 +193,8 @@ const withLayoutMain = (Component: any) => {
 								<div className="hero-orb orb-sage"></div>
 								<div className="hero-orb orb-lav"></div>
 							</div>
-							<div className="hero-content" style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'row', alignItems: 'center', width: '100%', gap: '56px' }}>
+							<div className="hero-glass-card">
+						<div className="hero-content" style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'row', alignItems: 'center', width: '100%', gap: '56px' }}>
 
 								{/* LEFT 50% — text content */}
 								<div style={{ flex: '0 0 50%', textAlign: 'left' }}>
@@ -205,6 +206,8 @@ const withLayoutMain = (Component: any) => {
 											style={{
 												color: '#e8856a',
 												display: 'inline-block',
+												minWidth: '10ch',
+												textAlign: 'left',
 												animation: `${phase === 'in' ? 'wordSlideIn' : 'wordSlideOut'} 0.5s ease-out forwards`,
 											}}
 										>
@@ -289,6 +292,7 @@ const withLayoutMain = (Component: any) => {
 
 								</div>
 							</div>
+							</div>{/* end hero-glass-card */}
 						</section>
 
 						<Stack id={'main'}>

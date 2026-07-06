@@ -1,0 +1,418 @@
+Goal: Apply Apple Liquid Glass effect to ALL buttons on the home page.
+Only scss/pc/homepage/homepage.scss is edited. No TSX, no logic, no layout changes.
+Each button keeps its original shape, color, and size — only glass properties are added/replaced.
+
+Dark-background buttons (hero, newsletter): use white/semi-transparent border + inset highlight.
+Light-background buttons (arrows, agent, ad): use translucent white glass + bright border.
+
+STRICT RULES:
+- Do NOT touch any .tsx files.
+- Do NOT change: padding, border-radius, font-size, font-weight, width/height, layout.
+- Do NOT remove hover transforms (translateY, scale).
+- Only modify: background, border, box-shadow, backdrop-filter, color where noted.
+
+=====================================================================
+FILE: scss/pc/homepage/homepage.scss
+=====================================================================
+
+--- STEP 1: hero-btn-primary (coral pill, DARK background) ---
+Find:
+	.hero-btn-primary {
+		display: inline-flex;
+		align-items: center;
+		gap: 8px;
+		padding: 14px 28px;
+		background: #e8856a;
+		color: white;
+		border: none;
+		border-radius: 32px;
+		font-size: 14px;
+		font-weight: 600;
+		cursor: pointer;
+		box-shadow: 0 4px 20px rgba(232, 133, 106, 0.4);
+		transition: transform 0.2s;
+
+		&:hover {
+			transform: translateY(-2px);
+		}
+	}
+
+Replace with:
+	.hero-btn-primary {
+		display: inline-flex;
+		align-items: center;
+		gap: 8px;
+		padding: 14px 28px;
+		background: rgba(232, 133, 106, 0.88);
+		backdrop-filter: blur(10px) saturate(160%);
+		-webkit-backdrop-filter: blur(10px) saturate(160%);
+		color: white;
+		border: 1px solid rgba(255, 255, 255, 0.32);
+		border-radius: 32px;
+		font-size: 14px;
+		font-weight: 600;
+		cursor: pointer;
+		box-shadow:
+			0 4px 20px rgba(232, 133, 106, 0.40),
+			inset 0 1px 0 rgba(255, 255, 255, 0.40);
+		transition: transform 0.2s;
+
+		&:hover {
+			transform: translateY(-2px);
+		}
+	}
+
+
+--- STEP 2: hero-btn-secondary (white pill, DARK background) ---
+Find:
+	.hero-btn-secondary {
+		display: inline-flex;
+		align-items: center;
+		gap: 8px;
+		padding: 14px 28px;
+		background: white;
+		color: #1c1b18;
+		border: 1.5px solid #e9e7e0;
+		border-radius: 32px;
+		font-size: 14px;
+		font-weight: 600;
+		cursor: pointer;
+		transition: transform 0.2s, border-color 0.2s;
+
+		&:hover {
+			transform: translateY(-2px);
+			border-color: #e8856a;
+		}
+	}
+
+Replace with:
+	.hero-btn-secondary {
+		display: inline-flex;
+		align-items: center;
+		gap: 8px;
+		padding: 14px 28px;
+		background: rgba(255, 255, 255, 0.13);
+		backdrop-filter: blur(10px) saturate(150%);
+		-webkit-backdrop-filter: blur(10px) saturate(150%);
+		color: #ffffff;
+		border: 1px solid rgba(255, 255, 255, 0.72);
+		border-radius: 32px;
+		font-size: 14px;
+		font-weight: 600;
+		cursor: pointer;
+		box-shadow:
+			inset 0 1px 0 rgba(255, 255, 255, 0.55),
+			0 2px 14px rgba(0, 0, 0, 0.18);
+		transition: transform 0.2s, background 0.2s;
+
+		&:hover {
+			transform: translateY(-2px);
+			background: rgba(255, 255, 255, 0.20);
+		}
+	}
+
+
+--- STEP 3: ad-button (coral, LIGHT/cream background) ---
+Find:
+			.ad-button {
+				align-self: flex-start;
+				margin-top: 8px;
+				background: #e8856a;
+				color: #ffffff;
+				border: none;
+				border-radius: 8px;
+				padding: 14px 28px;
+				font-family: $font;
+				font-size: 15px;
+				font-weight: 600;
+				cursor: pointer;
+				transition: background 0.15s ease;
+				&:hover {
+					background: #d2674c;
+				}
+			}
+
+Replace with:
+			.ad-button {
+				align-self: flex-start;
+				margin-top: 8px;
+				background: rgba(232, 133, 106, 0.90);
+				backdrop-filter: blur(10px) saturate(150%);
+				-webkit-backdrop-filter: blur(10px) saturate(150%);
+				color: #ffffff;
+				border: 1px solid rgba(255, 255, 255, 0.38);
+				border-radius: 8px;
+				padding: 14px 28px;
+				font-family: $font;
+				font-size: 15px;
+				font-weight: 600;
+				cursor: pointer;
+				box-shadow:
+					0 4px 18px rgba(232, 133, 106, 0.35),
+					inset 0 1px 0 rgba(255, 255, 255, 0.42);
+				transition: background 0.15s ease, transform 0.15s ease;
+				&:hover {
+					background: rgba(210, 103, 76, 0.90);
+					transform: translateY(-1px);
+				}
+			}
+
+
+--- STEP 4: trend-nav-arrows buttons (white circles, LIGHT background) ---
+Find:
+.trend-nav-arrows {
+	display: flex;
+	gap: 8px;
+	margin-top: 6px;
+
+	button {
+		width: 40px;
+		height: 40px;
+		border-radius: 50%;
+		border: 1.5px solid #e9e7e0;
+		background: white;
+		font-size: 16px;
+		cursor: pointer;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		transition: all 0.2s;
+		color: #1c1b18;
+
+		&:hover {
+			border-color: #e8856a;
+			color: #e8856a;
+		}
+	}
+}
+
+Replace with:
+.trend-nav-arrows {
+	display: flex;
+	gap: 8px;
+	margin-top: 6px;
+
+	button {
+		width: 40px;
+		height: 40px;
+		border-radius: 50%;
+		background: rgba(255, 255, 255, 0.55);
+		backdrop-filter: blur(8px) saturate(130%);
+		-webkit-backdrop-filter: blur(8px) saturate(130%);
+		border: 1px solid rgba(255, 255, 255, 0.88);
+		font-size: 16px;
+		cursor: pointer;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		transition: all 0.2s;
+		color: #1c1b18;
+		box-shadow:
+			0 2px 10px rgba(0, 0, 0, 0.06),
+			inset 0 1px 0 rgba(255, 255, 255, 0.95);
+
+		&:hover {
+			border-color: rgba(232, 133, 106, 0.7);
+			color: #e8856a;
+			background: rgba(255, 255, 255, 0.70);
+		}
+	}
+}
+
+
+--- STEP 5: top-nav-arrows buttons (same style, LIGHT background) ---
+Find:
+.top-nav-arrows button {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1.5px solid #e9e7e0;
+  background: white;
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  color: #1c1b18;
+}
+.top-nav-arrows button:hover {
+  border-color: #e8856a;
+  color: #e8856a;
+}
+
+Replace with:
+.top-nav-arrows button {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(8px) saturate(130%);
+  -webkit-backdrop-filter: blur(8px) saturate(130%);
+  border: 1px solid rgba(255, 255, 255, 0.88);
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  color: #1c1b18;
+  box-shadow:
+    0 2px 10px rgba(0, 0, 0, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95);
+}
+.top-nav-arrows button:hover {
+  border-color: rgba(232, 133, 106, 0.7);
+  color: #e8856a;
+  background: rgba(255, 255, 255, 0.70);
+}
+
+
+--- STEP 6: agent-btn (outline button, LIGHT background) ---
+Find:
+.agent-btn {
+  width: 100%;
+  padding: 10px 0;
+  border: 1.5px solid #e9e7e0;
+  border-radius: 10px;
+  background: white;
+  font-size: 13px;
+  font-weight: 600;
+  color: #57564f;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s, background 0.2s;
+}
+.agent-btn:hover {
+  border-color: #e8856a;
+  color: #e8856a;
+  background: #fff7f5;
+}
+
+Replace with:
+.agent-btn {
+  width: 100%;
+  padding: 10px 0;
+  background: rgba(255, 255, 255, 0.50);
+  backdrop-filter: blur(8px) saturate(130%);
+  -webkit-backdrop-filter: blur(8px) saturate(130%);
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #57564f;
+  cursor: pointer;
+  box-shadow:
+    0 2px 10px rgba(0, 0, 0, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95);
+  transition: border-color 0.2s, color 0.2s, background 0.2s;
+}
+.agent-btn:hover {
+  border-color: rgba(232, 133, 106, 0.6);
+  color: #e8856a;
+  background: rgba(255, 255, 255, 0.68);
+}
+
+
+--- STEP 7: newsletter-btn (coral pill, DARK background) ---
+Find:
+.newsletter-btn {
+  padding: 13px 28px;
+  border-radius: 999px;
+  background: #E8856A;
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.2s;
+}
+
+.newsletter-btn:hover { background: #d2674c; }
+
+Replace with:
+.newsletter-btn {
+  padding: 13px 28px;
+  border-radius: 999px;
+  background: rgba(232, 133, 106, 0.88);
+  backdrop-filter: blur(10px) saturate(160%);
+  -webkit-backdrop-filter: blur(10px) saturate(160%);
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  border: 1px solid rgba(255, 255, 255, 0.32);
+  cursor: pointer;
+  white-space: nowrap;
+  box-shadow:
+    0 4px 18px rgba(232, 133, 106, 0.38),
+    inset 0 1px 0 rgba(255, 255, 255, 0.40);
+  transition: background 0.2s, transform 0.2s;
+}
+
+.newsletter-btn:hover {
+  background: rgba(210, 103, 76, 0.90);
+  transform: translateY(-1px);
+}
+
+
+--- STEP 8: footer-social-btn (circle, DARK background) ---
+Find:
+.footer-social-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 255, 255, 0.25);
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 15px;
+  transition: all 0.2s;
+}
+
+.footer-social-btn:hover {
+  border-color: #E8856A;
+  color: #E8856A;
+}
+
+Replace with:
+.footer-social-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.10);
+  backdrop-filter: blur(8px) saturate(130%);
+  -webkit-backdrop-filter: blur(8px) saturate(130%);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 15px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.20);
+  transition: all 0.2s;
+}
+
+.footer-social-btn:hover {
+  border-color: rgba(232, 133, 106, 0.70);
+  color: #E8856A;
+  background: rgba(255, 255, 255, 0.16);
+}
+
+
+=====================================================================
+Verify after implementing:
+1. npx tsc --noEmit → 0 errors (no TSX touched)
+2. Hero "Explore Universities": coral glass pill, white border, inner highlight
+3. Hero "Talk to an agent": translucent white glass, white border, white text
+4. Trend/Top section arrow buttons: glass circles on light bg
+5. Agent cards "Contact" button: glass outline on white card
+6. Advertisement "Explore Now": coral glass on cream bg
+7. Newsletter "Subscribe": coral glass on dark bg
+8. Footer social icons: dark glass circles
+9. All button sizes/positions/fonts — unchanged
+10. Hover animations (translateY) — still work
+=====================================================================
