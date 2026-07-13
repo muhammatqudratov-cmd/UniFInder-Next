@@ -97,7 +97,7 @@ const TelegramLoginButton = () => {
 			return;
 		}
 
-		const origin = encodeURIComponent('http://127.0.0.1:3000');
+		const origin = encodeURIComponent(window.location.origin);
 		const url = `https://oauth.telegram.org/auth?bot_id=${botId}&origin=${origin}&request_access=write`;
 
 		window.open(url, 'telegram_auth', 'width=550,height=450,resizable=yes');
