@@ -1,0 +1,25 @@
+version: "3.3"
+
+services:
+  unifinder-next-api:
+    container_name: unifinder-next-api
+    restart: always
+    image: node:20.10.0
+    ports:
+      - 4007:3000
+    environment:
+      - PORT=3000
+
+    volumes:
+      - ./:/usr/src/unifinder-next
+    working_dir: /usr/src/unifinder-next
+
+    networks:
+      - client-network
+
+    # for production
+    command: bash -c "yarn && yarn build && yarn start"
+
+networks:
+  client-network:
+    driver: bridge 
