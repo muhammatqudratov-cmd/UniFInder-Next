@@ -1,0 +1,70 @@
+Goal: Fix like button in TrendUniversities so that clicking like does NOT refetch
+the entire list (which causes cards to re-render and animation to replay).
+Instead, update the liked university's state locally (optimistic update).
+
+STRICT RULES:
+- Only edit: libs/components/homepage/TrendUniversities.tsx
+- Do NOT change: Apollo queries, animation logic, router.push, props, defaultProps
+- Do NOT add external libraries
+- Remove getUniversitiesRefetch call from likeUniversityHandler only
+
+=====================================================================
+FILE: libs/components/homepage/TrendUniversities.tsx
+=====================================================================
+
+--- STEP 1: Replace likeUniversityHandler ---
+
+Find:
+	const likeUniversityHandler = async (user: T, id: string) => {
+		try {
+			if (!id) return;
+			if (!user._id) throw new Error(Message.NOT_AUTHENTICATED);
+			// Execute like
+			await likeTargetUniversity({ variables: { input: id } });
+			// Refetch
+			await getUniversitiesRefetch({ input: initialInput });
+
+			await sweetTopSmallSuccessAlert('Success', 800);
+		} catch (err: any) {
+			console.log('ERROR, likeUniversityHandler', err);
+			sweetMixinErrorAlert(err.message).then();
+		}
+	};
+
+Replace with:
+	const likeUniversityHandler = async (user: T, id: string) => {
+		try {
+			if (!id) return;
+			if (!user._id) throw new Error(Message.NOT_AUTHENTICATED);
+			// Execute like
+			await likeTargetUniversity({ variables: { input: id } });
+			// Optimistic local update — no refetch, no re-render of all cards
+			setTrendUniversities((prev) =>
+				prev.map((uni) => {
+					if (uni._id !== id) return uni;
+					const liked = uni.meLiked?.[0]?.myFavorite ?? false;
+					return {
+						...uni,
+						universityLikes: liked
+							? Math.max((uni.universityLikes ?? 1) - 1, 0)
+							: (uni.universityLikes ?? 0) + 1,
+						meLiked: [{ myFavorite: !liked }],
+					};
+				}),
+			);
+			await sweetTopSmallSuccessAlert('Success', 800);
+		} catch (err: any) {
+			console.log('ERROR, likeUniversityHandler', err);
+			sweetMixinErrorAlert(err.message).then();
+		}
+	};
+
+=====================================================================
+Verify after implementing:
+1. npx tsc --noEmit → 0 errors
+2. Open homepage, scroll to Trend Universities
+3. Click like on any card → heart icon toggles, NO page/card re-render
+4. Animation does NOT replay after liking
+5. Like count updates immediately (optimistic)
+6. Scroll animation still works on first load
+=====================================================================
