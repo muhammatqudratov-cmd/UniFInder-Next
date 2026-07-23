@@ -39,14 +39,31 @@ export default function TelegramLoginButton({ onAuth }: Props) {
 
 	return (
 		<div
-			ref={ref}
 			style={{
-				backgroundColor: 'transparent',
+				backgroundColor: '#ffffff',
 				colorScheme: 'light',
 				display: 'inline-flex',
 				alignItems: 'center',
 				justifyContent: 'center',
+				borderRadius: '8px',
+				overflow: 'hidden',
+				border: 'none',
+				outline: 'none',
+				padding: '0',
 			}}
-		/>
+		>
+			<div
+				ref={ref}
+				style={{
+					backgroundColor: '#ffffff',
+					colorScheme: 'light',
+					display: 'inline-flex',
+					alignItems: 'center',
+					justifyContent: 'center',
+					border: 'none',
+					outline: 'none',
+				}}
+			/>
+		</div>
 	);
 }
