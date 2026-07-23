@@ -10,6 +10,7 @@ export default function Document() {
 	return (
 		<Html lang="en">
 			<Head>
+				<meta name="color-scheme" content="light" />
 				<meta name="robots" content="index,follow" />
 				<link rel="icon" type="image/svg+xml" href="/favicon.svg?v=2" />
 				<link rel="shortcut icon" href="/favicon.svg?v=2" />
