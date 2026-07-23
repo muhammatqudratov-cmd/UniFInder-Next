@@ -2,7 +2,9 @@ import React, { useCallback, useState } from 'react';
 import { NextPage } from 'next';
 import useDeviceDetect from '../../libs/hooks/useDeviceDetect';
 import withLayoutBasic from '../../libs/components/layout/LayoutBasic';
-import { Box, Button, Checkbox, FormControlLabel, FormGroup, Stack } from '@mui/material';
+import { Box, Button, Checkbox, FormControlLabel, FormGroup, Stack, IconButton } from '@mui/material';
+import Visibility from '@mui/icons-material/Visibility';
+import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import { useRouter } from 'next/router';
 import { useMutation } from '@apollo/client';
 import { logIn, signUp, updateStorage, updateUserInfo } from '../../libs/auth';
@@ -24,6 +26,7 @@ const Join: NextPage = () => {
 	const device = useDeviceDetect();
 	const [input, setInput] = useState({ nick: '', password: '', phone: '', type: 'USER' });
 	const [loginView, setLoginView] = useState<boolean>(true);
+	const [showPassword, setShowPassword] = useState<boolean>(false);
 	const [telegramLogin] = useMutation(TELEGRAM_LOGIN);
 
 	/** HANDLERS **/
@@ -145,16 +148,29 @@ const Join: NextPage = () => {
 						</div>
 						<div className={'input-box'}>
 							<span>Password</span>
-							<input
-								type="text"
-								placeholder={'Enter password'}
-								onChange={(e) => handleInput('password', e.target.value)}
-								required={true}
-								onKeyDown={(event) => {
-									if (event.key == 'Enter' && loginView) doLogin();
-									if (event.key == 'Enter' && !loginView) doSignUp();
-								}}
-							/>
+							<div className={'password-wrapper'}>
+								<input
+									type={showPassword ? 'text' : 'password'}
+									placeholder={'Enter password'}
+									onChange={(e) => handleInput('password', e.target.value)}
+									required={true}
+									onKeyDown={(event) => {
+										if (event.key == 'Enter' && loginView) doLogin();
+										if (event.key == 'Enter' && !loginView) doSignUp();
+									}}
+								/>
+								<IconButton
+									className={'eye-btn'}
+									onClick={() => setShowPassword((prev) => !prev)}
+									tabIndex={-1}
+								>
+									{showPassword ? (
+										<VisibilityOff fontSize="small" />
+									) : (
+										<Visibility fontSize="small" />
+									)}
+								</IconButton>
+							</div>
 						</div>
 						{!loginView && (
 							<div className={'input-box'}>

@@ -108,6 +108,31 @@
 						line-height: 26px;
 						color: #181a20;
 					}
+					.password-wrapper {
+						position: relative;
+						display: flex;
+						align-items: center;
+
+						input {
+							padding-right: 44px;
+						}
+
+						.eye-btn {
+							position: absolute;
+							right: 8px;
+							padding: 4px;
+							color: #9ca3af;
+
+							&:hover {
+								color: #57564f;
+								background: transparent;
+							}
+
+							svg {
+								font-size: 18px;
+							}
+						}
+					}
 				}
 			}
 			.register {
@@ -193,6 +218,18 @@
 					display: flex;
 					align-items: center;
 					justify-content: center;
+					background-color: transparent;
+					color-scheme: light;
+
+					div {
+						background-color: transparent;
+						color-scheme: light;
+					}
+
+					iframe {
+						color-scheme: light;
+						background-color: transparent !important;
+					}
 				}
 			}
 			.ask-info {

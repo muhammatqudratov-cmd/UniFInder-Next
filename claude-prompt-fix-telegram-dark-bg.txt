@@ -1,0 +1,74 @@
+Goal: Fix Telegram Login Widget black background in Safari and dark-mode browsers.
+Do NOT change any logic, handlers, or auth flow. Only styling changes.
+
+=====================================================================
+CHANGE 1: components/TelegramLoginButton.tsx
+=====================================================================
+
+Find:
+	return <div ref={ref} />;
+
+Replace with:
+	return (
+		<div
+			ref={ref}
+			style={{
+				backgroundColor: 'transparent',
+				colorScheme: 'light',
+				display: 'inline-flex',
+				alignItems: 'center',
+				justifyContent: 'center',
+			}}
+		/>
+	);
+
+Reason: Safari and dark-mode browsers inherit color-scheme from the OS and pass it
+to iframes. Setting colorScheme: 'light' on the wrapper hints Telegram's iframe to
+render in light mode. backgroundColor: 'transparent' prevents any dark bleed-through.
+
+=====================================================================
+CHANGE 2: scss/pc/account/join.scss
+=====================================================================
+
+Find:
+				.telegram-row {
+					margin-top: 16px;
+					width: 100%;
+					display: flex;
+					align-items: center;
+					justify-content: center;
+				}
+
+Replace with:
+				.telegram-row {
+					margin-top: 16px;
+					width: 100%;
+					display: flex;
+					align-items: center;
+					justify-content: center;
+					background-color: transparent;
+					color-scheme: light;
+
+					div {
+						background-color: transparent;
+						color-scheme: light;
+					}
+
+					iframe {
+						color-scheme: light;
+						background-color: transparent !important;
+					}
+				}
+
+Reason: Explicitly sets light color-scheme on the row, its wrapper div, and the
+Telegram iframe element so dark-mode CSS does not override the widget's appearance.
+
+=====================================================================
+Verify after implementing:
+1. Open https://unifinder.tech/account/join in Safari (or enable dark mode in DevTools)
+2. Telegram button should show blue background, NOT black
+3. "Log in as [username]" or "Log in with Telegram" button must be fully visible
+4. No layout shift or overflow issues
+5. Chrome and other browsers unaffected
+6. npx tsc --noEmit → 0 errors
+=====================================================================

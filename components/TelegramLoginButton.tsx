@@ -37,5 +37,16 @@ export default function TelegramLoginButton({ onAuth }: Props) {
 		};
 	}, []);
 
-	return <div ref={ref} />;
+	return (
+		<div
+			ref={ref}
+			style={{
+				backgroundColor: 'transparent',
+				colorScheme: 'light',
+				display: 'inline-flex',
+				alignItems: 'center',
+				justifyContent: 'center',
+			}}
+		/>
+	);
 }
